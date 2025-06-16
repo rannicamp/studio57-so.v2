@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Sistema Studio 57 (v2.6 - User Test)</title>
+    <title>Login - Sistema Studio 57</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
@@ -131,7 +131,7 @@
         <img src="https://studio57.arq.br/wp-content/uploads/2025/04/STUDIO-57-PRETO-RETANGULO.png" alt="Logo Studio 57" class="login-logo">
         <div id="error-message" role="alert"></div>
 
-        <form id="login-form" class="login-form">
+        <form id="login-form" class="login-form" method="post">
             <div class="form-group">
                 <label for="email">Email ou Usuário:</label>
                 <input type="email" id="email" name="email" required placeholder="seuemail@exemplo.com">
@@ -153,15 +153,10 @@
         <p> © 2025 Studio 57 Arquitetura e Incorporação - CNPJ: 41.464.589/0001-66. Todos os direitos reservados. </p>
     </footer>
 
-    <audio id="opening-sound" preload="auto">
-        <source src="somdeabertura.MP3" type="audio/mpeg">
-        Seu navegador não suporta o elemento de áudio.
-    </audio>
-
     <script>
-        // Inicializa o Nhost
-        const NHOST_SUBDOMAIN = 'ntppmtmghbomqfvyprrq';
-        const NHOST_REGION = 'sa-east-1';
+        // Inicializa o Nhost com as credenciais do seu projeto
+        const NHOST_SUBDOMAIN = 'ntppmtmghbomqfvyprrq'; // Subdomínio do seu projeto Nhost
+        const NHOST_REGION = 'sa-east-1'; // Região do seu projeto Nhost
 
         const nhost = new Nhost({
             subdomain: NHOST_SUBDOMAIN,
@@ -174,14 +169,18 @@
             const passwordInput = document.getElementById('password');
             const loginButton = document.getElementById('login-button');
             const errorMessageDiv = document.getElementById('error-message');
-            const openingSound = document.getElementById('opening-sound');
+            // A referência a 'openingSound' foi removida, pois a tag de áudio foi comentada/removida
+            // const openingSound = document.getElementById('opening-sound');
 
+            // O bloco de reprodução de áudio foi removido, pois a tag de áudio foi comentada/removida
+            /*
             if (openingSound) {
                 openingSound.volume = 0.4;
                 openingSound.play().catch(error => {
                     console.warn("Autoplay do som bloqueado pelo navegador:", error.message);
                 });
             }
+            */
 
             loginForm.addEventListener('submit', async (event) => {
                 event.preventDefault();
@@ -197,9 +196,9 @@
                     const { session, error } = await nhost.auth.signIn({ email, password });
 
                     if (error) {
-                        console.error('Erro no login Nhost:', error);
-                        // Exibe uma mensagem de erro mais amigável
-                        if (error.status === 401 || error.status === 400) {
+                        console.error('Erro no login Nhost:', error); // Exibe o erro completo no console para depuração
+                        // Exibe uma mensagem de erro mais amigável para o usuário
+                        if (error.status === 401 || error.status === 400) { // 401 Unauthorized, 400 Bad Request (comuns para credenciais inválidas)
                              errorMessageDiv.textContent = 'Email ou senha inválidos. Tente novamente.';
                         } else {
                              errorMessageDiv.textContent = `Erro ao tentar fazer login: ${error.message}.`;
@@ -208,19 +207,24 @@
                         loginButton.disabled = false;
                         loginButton.textContent = 'Entrar';
                     } else if (session) {
-                        console.log('Login bem-sucedido com Nhost!', session);
+                        console.log('Login bem-sucedido com Nhost!', session); // Log da sessão para confirmação
 
+                        // Obtém informações do usuário da sessão Nhost
                         const user = session.user;
-                        const userName = user.displayName || user.email;
+                        // Define o nome de usuário para exibição no dashboard, usando display name se disponível, senão email
+                        const userName = user.displayName || user.email; 
 
+                        // Armazena informações no localStorage para serem usadas por outras páginas
                         localStorage.setItem('loggedInUserName', userName);
-                        localStorage.setItem('userRole', user.isAnonymous ? 'anonymous' : 'user');
+                        // Define o papel do usuário. 'user' para logados, 'anonymous' se a sessão for anônima (menos comum aqui)
+                        localStorage.setItem('userRole', user.isAnonymous ? 'anonymous' : 'user'); 
 
+                        // Redireciona para o dashboard
                         window.location.href = 'dashboard.html';
 
                     }
                 } catch (e) {
-                    console.error('Erro inesperado no login:', e);
+                    console.error('Erro inesperado no login:', e); // Captura e loga erros inesperados na requisição
                     errorMessageDiv.textContent = 'Ocorreu um erro inesperado. Verifique sua conexão ou tente novamente.';
                     errorMessageDiv.style.display = 'block';
                     loginButton.disabled = false;
@@ -228,6 +232,7 @@
                 }
             });
 
+            // Limpa a mensagem de erro ao digitar nos campos
             emailInput.addEventListener('input', () => errorMessageDiv.style.display = 'none');
             passwordInput.addEventListener('input', () => errorMessageDiv.style.display = 'none');
         });
