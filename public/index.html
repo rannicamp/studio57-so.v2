@@ -220,7 +220,7 @@
                         localStorage.setItem('userRole', user.isAnonymous ? 'anonymous' : 'user'); 
 
                         // Redireciona para o dashboard
-                        window.location.href = 'pagina_inicial.html';
+                        window.location.href = '/pagina_inicial.html'; // Adiciona a barra '/' para garantir que o caminho seja a partir da raiz do site
 
                     }
                 } catch (e) {
