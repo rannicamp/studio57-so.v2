@@ -280,6 +280,7 @@
         const cidadeInput = document.getElementById('cidade');
         const estadoInput = document.getElementById('estado');
         const numeroInput = document.getElementById('numero');
+        const complementoInput = document.getElementById('complemento'); // Adicionado
         const cepStatusSpan = document.getElementById('cep-status');
         const cadastroForm = document.getElementById('cadastro-funcionario-form');
         const feedbackMessageDiv = document.getElementById('feedback-message');
@@ -288,9 +289,9 @@
         const identidadeInput = document.getElementById('upload-identidade');
         let dateTimeInterval;
         let cepTimeout = null;
-        // const storageKey = 'studio57_funcionarios'; // Não usaremos mais localStorage para dados de funcionários
+        let currentEmployeeId = null; // Para armazenar o ID do funcionário em modo de edição
 
-        // --- Funções ---
+        // --- Funções Auxiliares ---
         function updateDateTime() {
             if (!currentDatetimeSpan) return;
             const now = new Date();
@@ -339,6 +340,8 @@
             if (bairroInput) bairroInput.value = "";
             if (cidadeInput) cidadeInput.value = "";
             if (estadoInput) estadoInput.value = "";
+            if (numeroInput) numeroInput.value = ""; // Limpa o número também
+            if (complementoInput) complementoInput.value = ""; // Limpa o complemento
             if (cepStatusSpan) cepStatusSpan.textContent = "";
             if (cepStatusSpan) cepStatusSpan.className = "";
         }
@@ -399,6 +402,59 @@
             }, 5000); // Mensagem some após 5 segundos
         }
 
+        // Função para preencher o formulário com dados de um funcionário
+        function fillFormWithEmployeeData(employee) {
+            document.getElementById('nome-completo').value = employee.fullName || '';
+            document.getElementById('cpf').value = employee.cpf || '';
+            document.getElementById('rg').value = employee.rg || '';
+            document.getElementById('data-nascimento').value = employee.birthDate || '';
+            document.getElementById('telefone').value = employee.phone || '';
+            document.getElementById('email').value = employee.email || '';
+
+            // Campos de endereço
+            // Nota: O campo 'address' no DB é uma concatenação.
+            // Aqui vamos tentar preencher os campos separados de volta.
+            // Para isso, precisaria de uma lógica de "desconcatenar" ou salvar separado no DB.
+            // Por enquanto, vou preencher os campos separados com o que temos.
+            // Se o 'address' do DB contém "Logradouro, Numero - Complemento", você precisaria de parsing.
+            // Por simplicidade, vou usar os campos separados do DB se existirem, ou tentar parsing básico.
+            // O ideal é que logradouro, numero, bairro, cidade, estado, complemento fossem campos separados no DB.
+            // Se eles estiverem todos no campo 'address' do DB, este preenchimento será limitado.
+            // Para o nosso DB schema atual, eles SÃO campos separados.
+            document.getElementById('logradouro').value = employee.address_street || ''; // Se tiver campo separado
+            document.getElementById('numero').value = employee.address_number || '';     // Se tiver campo separado
+            document.getElementById('complemento').value = employee.address_complement || ''; // Se tiver campo separado
+            document.getElementById('bairro').value = employee.neighborhood || '';
+            document.getElementById('cidade').value = employee.city || '';
+            document.getElementById('estado').value = employee.state || '';
+            document.getElementById('cep').value = employee.cep || '';
+            if (employee.cep) buscarEnderecoPorCEP(employee.cep); // Tenta buscar CEP para preencher o resto
+
+            // Dados Contratuais
+            document.getElementById('cargo').value = employee.contractRole || '';
+            document.getElementById('data-admissao').value = employee.admissionDate || '';
+            document.getElementById('salario-base').value = employee.baseSalary || '';
+            document.getElementById('salario-total').value = employee.totalSalary || '';
+            document.getElementById('valor-dia').value = employee.dailyValue || '';
+
+            // Dados de Pagamento
+            document.getElementById('forma-pagamento').value = employee.paymentMethod || '';
+            togglePaymentFields(); // Garante que os campos PIX/Banco sejam exibidos/escondidos
+            document.getElementById('chave-pix').value = employee.pixKey || '';
+            document.getElementById('dados-bancarios').value = employee.bankDetails || '';
+
+            // Documentos (apenas o nome do arquivo, sem carregar o arquivo real)
+            document.getElementById('upload-aso-info').textContent = employee.asoDoc ? `Arquivo: ${employee.asoDoc}` : '';
+            document.getElementById('upload-contrato-info').textContent = employee.contractDoc ? `Arquivo: ${employee.contractDoc}` : '';
+            document.getElementById('upload-identidade-info').textContent = employee.identityDoc ? `Arquivo: ${employee.identityDoc}` : '';
+
+            document.getElementById('observacoes').value = employee.observations || '';
+
+            // Opcional: Desabilitar CPF para edição se ele for a chave primária
+            // document.getElementById('cpf').readOnly = true;
+        }
+
+
         async function handleFormSubmit(event) {
             event.preventDefault(); // Impede o envio padrão do formulário
             showFeedback('Enviando dados...', 'info');
@@ -407,16 +463,14 @@
             const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
 
-            // Processar os uploads de arquivos para URL (não vai funcionar diretamente para upload real neste momento)
-            // Por enquanto, vamos enviar o nome do arquivo, a lógica de upload real virá depois
-            data.asoDoc = asoInput.files[0] ? asoInput.files[0].name : null;
-            data.contractDoc = contratoInput.files[0] ? contratoInput.files[0].name : null;
-            data.identityDoc = identidadeInput.files[0] ? identidadeInput.files[0].name : null;
+            // Processar os uploads de arquivos para URL (nome do arquivo por enquanto)
+            data.asoDoc = asoInput.files[0] ? asoInput.files[0].name : (document.getElementById('upload-aso-info').textContent.replace('Arquivo: ', '') || null);
+            data.contractDoc = contratoInput.files[0] ? contratoInput.files[0].name : (document.getElementById('upload-contrato-info').textContent.replace('Arquivo: ', '') || null);
+            data.identityDoc = identidadeInput.files[0] ? identidadeInput.files[0].name : (document.getElementById('upload-identidade-info').textContent.replace('Arquivo: ', '') || null);
 
-            // O valor da foto não será enviado aqui; o upload da foto será um passo separado
-            delete data.foto_funcionario;
+            delete data.foto_funcionario; // Foto é tratada separadamente
 
-            // Tratar campos vazios ou nulos (ajuste conforme a necessidade do seu schema)
+            // Tratar campos vazios ou nulos
             for (const key in data) {
                 if (data[key] === '') {
                     data[key] = null;
@@ -431,7 +485,7 @@
                 birthDate: data['data_nascimento'],
                 phone: data['telefone'],
                 email: data['email'],
-                // Endereço será concatenado para o campo 'address' no schema do DB
+                // Concatenar campos de endereço para o campo 'address' no schema do DB
                 address: `${data['logradouro'] || ''}, ${data['numero'] || ''}`.trim().replace(/^, /, '') + (data['complemento'] ? ` - ${data['complemento']}` : ''),
                 cep: data['cep'],
                 city: data['cidade'],
@@ -445,9 +499,9 @@
                 paymentMethod: data['forma_pagamento'],
                 pixKey: data['chave_pix'],
                 bankDetails: data['dados_bancarios'],
-                asoDoc: data['asoDoc'],
-                contractDoc: data['contratoDoc'],
-                identityDoc: data['identityDoc'],
+                asoDoc: data.asoDoc,
+                contractDoc: data.contractDoc,
+                identityDoc: data.identityDoc,
                 observations: data['observacoes'],
             };
 
@@ -460,9 +514,16 @@
             }
 
             try {
-                // Enviar dados para a sua Netlify Function
-                const response = await fetch('/api/create-employee', {
-                    method: 'POST',
+                let url = '/api/create-employee';
+                let method = 'POST';
+
+                if (currentEmployeeId) { // Se estiver em modo de edição
+                    url = `/api/create-employee?id=${currentEmployeeId}`; // Usar a mesma API, mas com ID
+                    method = 'PUT'; // Usaremos PUT para atualização
+                }
+
+                const response = await fetch(url, {
+                    method: method,
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -472,45 +533,73 @@
                 const result = await response.json();
 
                 if (response.ok) {
-                    showFeedback('Funcionário cadastrado com sucesso!', 'success');
-                    console.log('Funcionário cadastrado:', result.employee);
-                    // Opcional: Limpar formulário após sucesso
-                    form.reset();
-                    limparCamposEndereco(); // Limpa também o endereço após o reset
-                    handlePhotoPreview({ target: { files: [] } }); // Limpa preview da foto
-                    togglePaymentFields(); // Reseta os campos condicionais
-                    document.getElementById('upload-aso-info').textContent = '';
-                    document.getElementById('upload-contrato-info').textContent = '';
-                    document.getElementById('upload-identidade-info').textContent = '';
+                    showFeedback(`Funcionário ${currentEmployeeId ? 'atualizado' : 'cadastrado'} com sucesso!`, 'success');
+                    console.log(`Funcionário ${currentEmployeeId ? 'atualizado' : 'cadastrado'}:`, result.employee);
+                    // Opcional: Redirecionar ou limpar o formulário após o sucesso
+                    if (!currentEmployeeId) { // Só limpa se for um novo cadastro
+                        form.reset();
+                        limparCamposEndereco();
+                        handlePhotoPreview({ target: { files: [] } });
+                        togglePaymentFields();
+                        document.getElementById('upload-aso-info').textContent = '';
+                        document.getElementById('upload-contrato-info').textContent = '';
+                        document.getElementById('upload-identidade-info').textContent = '';
+                    }
+                    // Em caso de edição, talvez redirecionar para o quadro de funcionários
+                    if (currentEmployeeId) {
+                         setTimeout(() => {
+                             window.location.href = 'quadrodefuncionarios.html';
+                         }, 1500);
+                    }
                 } else {
-                    showFeedback(`Erro ao cadastrar: ${result.error || 'Erro desconhecido.'}`, 'error');
+                    showFeedback(`Erro ao ${currentEmployeeId ? 'atualizar' : 'cadastrar'}: ${result.error || 'Erro desconhecido.'}`, 'error');
                     console.error('Erro na API:', result);
                 }
             } catch (error) {
-                showFeedback('Erro de rede ou servidor ao cadastrar funcionário.', 'error');
+                showFeedback('Erro de rede ou servidor ao tentar operação.', 'error');
                 console.error('Erro na requisição fetch:', error);
             }
         }
 
-        // Funções para carregar dados para edição (se houver ID na URL)
+        // Funções para carregar dados para edição
         async function loadEmployeeDataForEdit() {
-            // Esta função será expandida no futuro para buscar dados do backend
-            // Por enquanto, ela apenas mostra como o ID seria lido
             const urlParams = new URLSearchParams(window.location.search);
-            const employeeId = urlParams.get('id'); // Pega o ID (que seria o CPF) da URL
+            const employeeId = urlParams.get('id');
 
             if (employeeId) {
+                currentEmployeeId = employeeId; // Armazena o ID para uso no submit
                 document.querySelector('h1').textContent = 'Editar Funcionário';
                 showFeedback(`Carregando dados para edição do funcionário com ID: ${employeeId}...`, 'info');
-                // No futuro, aqui você faria um 'fetch' para '/api/get-employee?id=...'
-                // Por enquanto, não haverá dados para carregar, pois não implementamos o GET ainda
-                console.log(`Simulando carregamento para ID: ${employeeId}.`);
-                // Exemplo de como preencheria o formulário (apenas para demonstração)
-                // document.getElementById('nome-completo').value = 'Fulano de Tal';
-                // document.getElementById('cpf').value = employeeId;
-                // document.getElementById('cpf').readOnly = true; // Não permitir mudar o CPF em edição
+
+                try {
+                    const response = await fetch(`/api/get-employee-by-id?id=${employeeId}`, {
+                        method: 'GET',
+                        headers: { 'Content-Type': 'application/json' },
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        if (result.employee) {
+                            fillFormWithEmployeeData(result.employee);
+                            showFeedback('Dados do funcionário carregados com sucesso!', 'success');
+                            // Opcional: Desabilitar o campo CPF se ele for usado como identificador único
+                            // document.getElementById('cpf').readOnly = true;
+                        } else {
+                            showFeedback('Funcionário não encontrado.', 'error');
+                            console.error('Funcionário não encontrado:', result);
+                        }
+                    } else {
+                        showFeedback(`Erro ao carregar dados: ${result.error || 'Erro desconhecido.'}`, 'error');
+                        console.error('Erro na API ao carregar funcionário:', result);
+                    }
+                } catch (error) {
+                    showFeedback('Erro de rede ou servidor ao carregar dados do funcionário.', 'error');
+                    console.error('Erro na requisição fetch para carregar funcionário:', error);
+                }
             } else {
                 document.querySelector('h1').textContent = 'Cadastro de Funcionários';
+                currentEmployeeId = null; // Garante que não está em modo de edição
             }
         }
 
@@ -523,6 +612,9 @@
             document.getElementById('upload-contrato-info').textContent = '';
             document.getElementById('upload-identidade-info').textContent = '';
             showFeedback('Formulário limpo.', 'info');
+            currentEmployeeId = null; // Garante que não está mais em modo de edição após reset
+            document.querySelector('h1').textContent = 'Cadastro de Funcionários'; // Reseta o título
+            // document.getElementById('cpf').readOnly = false; // Habilita o CPF novamente
         }
 
 
@@ -562,7 +654,7 @@
 
             // Inicializações Finais
             togglePaymentFields(); // Garante que os campos de pagamento sejam exibidos corretamente ao carregar
-            loadEmployeeDataForEdit(); // Verifica se é modo de edição
+            loadEmployeeDataForEdit(); // CHAMA A FUNÇÃO QUE CARREGA OS DADOS SE FOR EDIÇÃO
             console.log("Cadastro de Funcionários adaptado ao backend inicializado.");
         });
     </script>
