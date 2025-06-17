@@ -8,11 +8,11 @@ const nhost = new Nhost({
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    const userInfoSpan = document.getElementById('user-info')?.querySelector('span');
-    const currentDatetimeSpan = document.getElementById('current-datetime');
-    const logoutLink = document.getElementById('logout-link');
-    const nhostUserIdSpan = document.getElementById('nhost-user-id');
-    const nhostUserEmailSpan = document.getElementById('nhost-user-email');
+    const userInfoSpan = document.getElementById('user-info')?.querySelector('span'); //
+    const currentDatetimeSpan = document.getElementById('current-datetime'); //
+    const logoutLink = document.getElementById('logout-link'); //
+    const nhostUserIdSpan = document.getElementById('nhost-user-id'); //
+    const nhostUserEmailSpan = document.getElementById('nhost-user-email'); //
 
     let dateTimeInterval;
 
@@ -26,9 +26,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Função para Carregar Informações do Usuário Nhost ---
-    function loadNhostUserInfo() {
-        // Verifica se o usuário está autenticado
-        const user = nhost.auth.getUser();
+    async function loadNhostUserInfo() { // Tornar assíncrona para await no getUserSession
+        // Espera a sessão do Nhost carregar
+        const { session, error } = await nhost.auth.getUserSession(); //
+
+        if (error) {
+            console.error("Erro ao obter sessão Nhost:", error);
+            // Se houver erro ao obter a sessão, assume que não está autenticado
+            console.log("Sessão Nhost com erro. Redirecionando para login.");
+            window.location.href = '/index.html'; // Caminho absoluto
+            return;
+        }
+
+        const user = session?.user; //
 
         if (user) {
             // Exibe o nome de usuário (se disponível no profile do Nhost) ou o email
@@ -47,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // TODO: Futuramente, buscar dados da public.funcionarios_id associado ao user.id
             // para mostrar o nome completo do funcionário em vez do email do Nhost.
         } else {
-            // Se não há usuário logado, redireciona para a página de login
+            // Se não há usuário logado na sessão, redireciona para a página de login
             console.log("Nenhum usuário logado. Redirecionando para login.");
             window.location.href = '/index.html'; // Caminho absoluto
         }
@@ -58,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
         logoutLink.addEventListener('click', async (event) => {
             event.preventDefault(); // Previne o comportamento padrão do link
             try {
-                const { error } = await nhost.auth.signOut();
+                const { error } = await nhost.auth.signOut(); //
                 if (error) {
                     console.error("Erro ao fazer logout:", error);
                     alert("Erro ao fazer logout. Tente novamente.");
@@ -74,25 +84,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Inicialização da Página ---
-    function initializePage() {
-        // Verifica se o usuário está autenticado imediatamente ao carregar a página
-        if (!nhost.auth.isAuthenticated()) {
-            console.log("Usuário não autenticado. Redirecionando para index.html.");
-            window.location.href = '/index.html'; // Caminho absoluto
-            return; // Para a execução para evitar erros
-        }
+    async function initializePage() { // Tornar assíncrona
+        // Primeiro, tenta carregar as informações do usuário.
+        // A função loadNhostUserInfo já lida com o redirecionamento se não houver sessão.
+        await loadNhostUserInfo(); // Espera a função terminar de verificar a autenticação
+
+        // Se o código chegou até aqui, significa que loadNhostUserInfo encontrou um usuário logado
+        // ou já redirecionou. Não precisamos de uma verificação duplicada de `isAuthenticated` aqui,
+        // pois `loadNhostUserInfo` já faz isso de forma mais completa com `getUserSession`.
 
         // Atualiza data e hora
         updateDateTime();
         if (dateTimeInterval) clearInterval(dateTimeInterval);
         dateTimeInterval = setInterval(updateDateTime, 1000);
 
-        // Carrega e exibe informações do usuário
-        loadNhostUserInfo();
-
         console.log("Página Inicial carregada e pronta.");
     }
 
     // Inicializa a página quando o DOM estiver completamente carregado
-    initializePage(); // Chamada direta, pois a verificação de autenticação é imediata.
+    initializePage(); // Chamada direta e assíncrona
 });
