@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             // Se não há usuário logado, redireciona para a página de login
             console.log("Nenhum usuário logado. Redirecionando para login.");
-            window.location.href = 'index.html';
+            window.location.href = '/index.html'; // Caminho absoluto
         }
     }
 
@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     alert("Erro ao fazer logout. Tente novamente.");
                 } else {
                     console.log("Logout bem-sucedido. Redirecionando para a página de login.");
-                    window.location.href = 'index.html'; // Redireciona para a página de login
+                    window.location.href = '/index.html'; // Caminho absoluto
                 }
             } catch (e) {
                 console.error("Erro inesperado durante o logout:", e);
@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Verifica se o usuário está autenticado imediatamente ao carregar a página
         if (!nhost.auth.isAuthenticated()) {
             console.log("Usuário não autenticado. Redirecionando para index.html.");
-            window.location.href = 'index.html';
+            window.location.href = '/index.html'; // Caminho absoluto
             return; // Para a execução para evitar erros
         }
 
