@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes do Funcionário - Sistema Studio 57</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-body: 'Roboto', sans-serif;
+            --font-heading: 'Montserrat', sans-serif;
+            --color-primary: #ffe57b; /* Amarelo Paleta */
+            --color-primary-dark: #fdda4a; /* Amarelo Escuro Paleta */
+            --color-danger: #ff5757;
+            --color-danger-dark: #f03a3a;
+            --color-success: #c1ff72;
+            --color-success-dark: #a0e650;
+            --color-info: #38b6ff;
+            --color-info-dark: #1f9ff0;
+            --color-light: #f8f9fa;
+            --color-dark: #343a40;
+            --color-muted: #737373;
+            --color-white: #ffffff;
+            --color-border: #d9d9d9;
+            --color-border-focus: var(--color-primary-dark);
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+            --border-radius-sm: 4px;
+            --border-radius-md: 8px;
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 15px;
+            --spacing-lg: 20px;
+            --spacing-xl: 30px;
+            --photo-preview-size-large: 180px;
+        }
+        body { font-family: var(--font-body); line-height: 1.6; margin: var(--spacing-lg); background-color: var(--color-light); color: var(--color-dark); font-size: 16px; }
+        h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); color: var(--color-dark); margin-top: 1.5em; margin-bottom: 0.8em; }
+        h2 { font-size: 1.6em; border-bottom: 1px solid var(--color-border); padding-bottom: var(--spacing-sm); }
+        .main-container { background-color: var(--color-white); padding: var(--spacing-xl); border-radius: var(--border-radius-md); box-shadow: var(--shadow-md); max-width: 950px; margin: var(--spacing-xl) auto; border: 1px solid var(--color-border); }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-xl); border-bottom: 1px solid var(--color-border); padding-bottom: var(--spacing-md); gap: var(--spacing-md); }
+        .header-left { flex-shrink: 0; }
+        .header-center { flex-grow: 1; text-align: center; }
+        .header-right { flex-shrink: 0; min-width: 200px; text-align: right; display: flex; align-items: center; justify-content: flex-end; gap: var(--spacing-sm); }
+        .studio57-logo { display: inline-block; max-height: 50px; width: auto; vertical-align: middle; }
+        .page-header h1 { margin-bottom: 0; font-weight: 600; color: var(--color-dark); font-size: 1.5em; line-height: 1.2; }
+        #current-datetime { font-family: var(--font-body); font-size: 0.9em; color: var(--color-muted); white-space: nowrap; }
+        .back-link { display: inline-block; color: var(--color-info); text-decoration: none; font-weight: 500; margin-right: var(--spacing-lg); padding: var(--spacing-xs) var(--spacing-sm); border: 1px solid transparent; border-radius: var(--border-radius-sm); transition: all 0.2s ease; }
+        .back-link:hover { color: var(--color-info-dark); background-color: var(--color-light); border-color: var(--color-border); }
+        .employee-details-layout { display: flex; flex-wrap: wrap; gap: var(--spacing-xl); margin-bottom: var(--spacing-xl); }
+        .employee-details-photo { flex-shrink: 0; width: var(--photo-preview-size-large); height: var(--photo-preview-size-large); border-radius: 50%; background-color: var(--color-medium-light-gray); display: flex; align-items: center; justify-content: center; color: var(--color-white); font-size: 4em; overflow: hidden; margin-bottom: var(--spacing-md); }
+        .employee-details-info { flex-grow: 1; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--spacing-md) var(--spacing-lg); }
+        .info-item { margin-bottom: var(--spacing-sm); }
+        .info-item strong { display: block; font-size: 0.9em; color: var(--color-dark-gray); margin-bottom: 2px; }
+        .info-item span { display: block; font-size: 1.1em; color: var(--color-dark); }
+        .info-item.full-width { grid-column: 1 / -1; } /* Para itens que ocupam a largura total */
+        .employee-actions-area { display: flex; flex-wrap: wrap; gap: var(--spacing-md); margin-top: var(--spacing-xl); padding-top: var(--spacing-lg); border-top: 1px solid var(--color-border); justify-content: center; }
+        .employee-actions-area button, .employee-actions-area a { font-family: var(--font-heading); padding: 12px var(--spacing-xl); border-radius: var(--border-radius-sm); border: 1px solid transparent; cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease; font-size: 1em; font-weight: 500; flex-grow: 1; min-width: 180px; text-align: center; }
+        .employee-actions-area .edit-btn { background-color: var(--color-primary); color: var(--color-dark); border-color: var(--color-primary-dark); }
+        .employee-actions-area .edit-btn:hover { background-color: var(--color-primary-dark); }
+        .employee-actions-area .delete-btn { background-color: var(--color-danger); color: white; border-color: var(--color-danger-dark); }
+        .employee-actions-area .delete-btn:hover { background-color: var(--color-danger-dark); }
+        .employee-actions-area .secondary-btn { background-color: var(--color-muted); color: white; border-color: var(--color-muted); }
+        .employee-actions-area .secondary-btn:hover { background-color: var(--color-dark-gray); }
+
+        #feedback-message { padding: var(--spacing-md); margin-bottom: var(--spacing-lg); border-radius: var(--border-radius-sm); font-weight: 500; text-align: center; display: none; }
+        #feedback-message.success { background-color: var(--color-success); color: var(--color-dark); border: 1px solid var(--color-success-dark); }
+        #feedback-message.error { background-color: #ffebee; color: var(--color-danger-dark); border: 1px solid var(--color-danger); }
+        #feedback-message.info { background-color: #e0f7ff; color: var(--color-info-dark); border: 1px solid var(--color-info); }
+        /* Rodapé */
+        .legal-footer { margin-top: var(--spacing-xl); padding-top: var(--spacing-lg); text-align: center; font-size: 0.8em; color: var(--color-muted); border-top: 1px solid #eee; }
+    </style>
+</head>
+<body>
+    <main class="main-container">
+        <header class="page-header">
+            <div class="header-left">
+                <a href="quadrodefuncionarios.html" class="back-link" title="Voltar ao Quadro de Funcionários">← Voltar</a>
+                <img src="https://studio57.arq.br/wp-content/uploads/2025/04/STUDIO-57-PRETO-RETANGULO.png" alt="Logo Studio 57" class="studio57-logo">
+            </div>
+            <div class="header-center"> <h1 id="page-title">Detalhes do Funcionário</h1> </div>
+            <div class="header-right"> <span id="current-datetime">--/--/---- --:--:--</span> </div>
+        </header>
+
+        <div id="feedback-message"></div>
+
+        <section class="employee-details-layout">
+            <div class="employee-details-photo" id="employee-photo-initials">?</div>
+            <div class="employee-details-info">
+                <div class="info-item">
+                    <strong>Nome Completo:</strong>
+                    <span id="full-name-display">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <strong>CPF:</strong>
+                    <span id="cpf-display">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <strong>RG:</strong>
+                    <span id="rg-display">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <strong>Data de Nascimento:</strong>
+                    <span id="birth-date-display">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <strong>Telefone:</strong>
+                    <span id="phone-display">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <strong>Email:</strong>
+                    <span id="email-display">Carregando...</span>
+                </div>
+                <div class="info-item full-width">
+                    <strong>Endereço:</strong>
+                    <span id="address-display">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <strong>CEP:</strong>
+                    <span id="cep-display">Carregando...</span>
+                </div>
+                 <div class="info-item">
+                    <strong>Bairro:</strong>
+                    <span id="neighborhood-display">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <strong>Cidade:</strong>
+                    <span id="city-display">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <strong>Estado (UF):</strong>
+                    <span id="state-display">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <strong>Cargo / Função:</strong>
+                    <span id="contract-role-display">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <strong>Data de Admissão:</strong>
+                    <span id="admission-date-display">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <strong>Salário Base (R$):</strong>
+                    <span id="base-salary-display">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <strong>Salário Total (R$):</strong>
+                    <span id="total-salary-display">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <strong>Valor Dia (R$):</strong>
+                    <span id="daily-value-display">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <strong>Forma de Pagamento:</strong>
+                    <span id="payment-method-display">Carregando...</span>
+                </div>
+                <div class="info-item" id="pix-key-item" style="display: none;">
+                    <strong>Chave PIX:</strong>
+                    <span id="pix-key-display">Carregando...</span>
+                </div>
+                <div class="info-item full-width" id="bank-details-item" style="display: none;">
+                    <strong>Dados Bancários:</strong>
+                    <span id="bank-details-display">Carregando...</span>
+                </div>
+                 <div class="info-item full-width">
+                    <strong>Observações:</strong>
+                    <span id="observations-display">Carregando...</span>
+                </div>
+                <div class="info-item full-width">
+                    <strong>ASO:</strong>
+                    <span id="aso-doc-display"></span>
+                </div>
+                <div class="info-item full-width">
+                    <strong>Contrato de Trabalho:</strong>
+                    <span id="contract-doc-display"></span>
+                </div>
+                <div class="info-item full-width">
+                    <strong>Documento Identidade:</strong>
+                    <span id="identity-doc-display"></span>
+                </div>
+            </div>
+        </section>
+
+        <div class="employee-actions-area">
+            <a href="#" id="edit-employee-btn" class="edit-btn">✏️ Editar Cadastro</a>
+            <button type="button" id="delete-employee-btn" class="delete-btn">🗑️ Excluir Funcionário</button>
+            <a href="#" id="view-timesheet-btn" class="secondary-btn">🗓️ Ver Folha de Ponto</a>
+            </div>
+
+        <footer class="legal-footer">
+            <p> © 2025 Studio 57 Arquitetura e Incorporação - CNPJ: 41.464.589/0001-66. Todos os direitos reservados. </p>
+        </footer>
+    </main>
+
+    <script>
+        // --- Seletores Globais ---
+        const currentDatetimeSpan = document.getElementById('current-datetime');
+        const feedbackMessageDiv = document.getElementById('feedback-message');
+        const employeePhotoInitials = document.getElementById('employee-photo-initials');
+        const editEmployeeBtn = document.getElementById('edit-employee-btn');
+        const deleteEmployeeBtn = document.getElementById('delete-employee-btn');
+        const viewTimesheetBtn = document.getElementById('view-timesheet-btn');
+
+        let currentEmployeeId = null; // ID do funcionário que está sendo visualizado
+
+        // --- Funções Auxiliares ---
+        function updateDateTime() {
+            if (!currentDatetimeSpan) return;
+            const now = new Date();
+            const formattedDate = now.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+            const formattedTime = now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+            currentDatetimeSpan.textContent = `${formattedDate} ${formattedTime}`;
+        }
+
+        function showFeedback(message, type = 'success') {
+            if (!feedbackMessageDiv) return;
+            feedbackMessageDiv.textContent = message;
+            feedbackMessageDiv.className = '';
+            feedbackMessageDiv.classList.add(type);
+            feedbackMessageDiv.style.display = 'block';
+            setTimeout(() => {
+                if (feedbackMessageDiv.textContent === message) {
+                    feedbackMessageDiv.style.display = 'none';
+                }
+            }, 5000);
+        }
+
+        // Função para preencher a exibição dos detalhes do funcionário
+        function displayEmployeeDetails(employee) {
+            document.getElementById('full-name-display').textContent = employee.fullName || 'Não informado';
+            employeePhotoInitials.textContent = employee.fullName ? employee.fullName.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() : '?';
+
+            document.getElementById('cpf-display').textContent = employee.cpf || 'Não informado';
+            document.getElementById('rg-display').textContent = employee.rg || 'Não informado';
+            document.getElementById('birth-date-display').textContent = employee.birthDate ? new Date(employee.birthDate + 'T00:00:00').toLocaleDateString('pt-BR') : 'Não informado';
+            document.getElementById('phone-display').textContent = employee.phone || 'Não informado';
+            document.getElementById('email-display').textContent = employee.email || 'Não informado';
+
+            // Reconstruir endereço concatenado para exibição
+            const fullAddress = `${employee.address_street || ''}, ${employee.address_number || ''}`.trim().replace(/^, /, '') + (employee.address_complement ? ` - ${employee.address_complement}` : '');
+            document.getElementById('address-display').textContent = fullAddress || 'Não informado';
+            document.getElementById('cep-display').textContent = employee.cep || 'Não informado';
+            document.getElementById('neighborhood-display').textContent = employee.neighborhood || 'Não informado';
+            document.getElementById('city-display').textContent = employee.city || 'Não informado';
+            document.getElementById('state-display').textContent = employee.state || 'Não informado';
+
+            document.getElementById('contract-role-display').textContent = employee.contractRole || 'Não informado';
+            document.getElementById('admission-date-display').textContent = employee.admissionDate ? new Date(employee.admissionDate + 'T00:00:00').toLocaleDateString('pt-BR') : 'Não informado';
+            document.getElementById('base-salary-display').textContent = employee.baseSalary ? parseFloat(employee.baseSalary).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'Não informado';
+            document.getElementById('total-salary-display').textContent = employee.totalSalary ? parseFloat(employee.totalSalary).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'Não informado';
+            document.getElementById('daily-value-display').textContent = employee.dailyValue ? parseFloat(employee.dailyValue).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'Não informado';
+
+            document.getElementById('payment-method-display').textContent = employee.paymentMethod || 'Não informado';
+
+            // Exibe ou esconde campos condicionais de pagamento
+            const pixKeyItem = document.getElementById('pix-key-item');
+            const bankDetailsItem = document.getElementById('bank-details-item');
+
+            if (employee.paymentMethod === 'pix') {
+                pixKeyItem.style.display = 'block';
+                document.getElementById('pix-key-display').textContent = employee.pixKey || 'Não informado';
+                bankDetailsItem.style.display = 'none';
+            } else if (employee.paymentMethod === 'deposito') {
+                bankDetailsItem.style.display = 'block';
+                document.getElementById('bank-details-display').textContent = employee.bankDetails || 'Não informado';
+                pixKeyItem.style.display = 'none';
+            } else {
+                pixKeyItem.style.display = 'none';
+                bankDetailsItem.style.display = 'none';
+            }
+
+            // Documentos (apenas o nome do arquivo, com link se disponível)
+            document.getElementById('aso-doc-display').innerHTML = employee.asoDoc ? `<a href="<span class="math-inline">\{employee\.asoDoc\}" target\="\_blank"\>Ver ASO \(</span>{employee.asoDoc})</a>` : 'Nenhum';
+            document.getElementById('contract-doc-display').innerHTML = employee.contractDoc ? `<a href="<span class="math-inline">\{employee\.contractDoc\}" target\="\_blank"\>Ver Contrato \(</span>{employee.contractDoc})</a>` : 'Nenhum';
+            document.getElementById('identity-doc-display').innerHTML = employee.identityDoc ? `<a href="<span class="math-inline">\{employee\.identityDoc\}" target\="\_blank"\>Ver Identidade \(</span>{employee.identityDoc})</a>` : 'Nenhum';
+
+            document.getElementById('observations-display').textContent = employee.observations || 'Nenhuma';
+
+            // Atualiza links de ação
+            editEmployeeBtn.href = `registro_funcionario.html?id=${employee.id}`;
+            viewTimesheetBtn.href = `folha de ponto.html?employeeId=${employee.id}`; // Link provisório
+        }
+
+        // Função para carregar os dados do funcionário ao carregar a página
+        async function loadEmployeeDetails() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const employeeId = urlParams.get('id');
+
+            if (!employeeId) {
+                showFeedback('ID do funcionário não fornecido na URL.', 'error');
+                document.querySelector('h1').textContent = 'Erro';
+                return;
+            }
+
+            currentEmployeeId = employeeId;
+            showFeedback(`Carregando detalhes do funcionário com ID: ${employeeId}...`, 'info');
+
+            try {
+                const response = await fetch(`/api/get-employee-by-id?id=${employeeId}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    if (result.employee) {
+                        displayEmployeeDetails(result.employee);
+                        showFeedback('Detalhes do funcionário carregados com sucesso!', 'success');
+                        document.querySelector('h1').textContent = `Detalhes de ${result.employee.fullName}`;
+                    } else {
+                        showFeedback('Funcionário não encontrado.', 'error');
+                        console.error('Funcionário não encontrado:', result);
+                        document.querySelector('h1').textContent = 'Funcionário Não Encontrado';
+                    }
+                } else {
+                    showFeedback(`Erro ao carregar detalhes: ${result.error || 'Erro desconhecido.'}`, 'error');
+                    console.error('Erro na API ao carregar detalhes do funcionário:', result);
+                    document.querySelector('h1').textContent = 'Erro ao Carregar Detalhes';
+                }
+            } catch (error) {
+                showFeedback('Erro de rede ou servidor ao carregar detalhes do funcionário.', 'error');
+                console.error('Erro na requisição fetch para carregar detalhes:', error);
+                document.querySelector('h1').textContent = 'Erro de Conexão';
+            }
+        }
+
+        // Função para excluir funcionário (será implementada depois)
+        async function deleteEmployee() {
+            if (!currentEmployeeId) {
+                alert('Nenhum funcionário selecionado para exclusão.');
+                return;
+            }
+
+            if (confirm(`Tem certeza que deseja EXCLUIR o funcionário ID <span class="math-inline">\{currentEmployeeId\} \(</span>{document.getElementById('full-name-display').textContent})? Esta ação é irreversível.`)) {
+                showFeedback('Excluindo funcionário...', 'info');
+                try {
+                    // TODO: Implementar API de exclusão (DELETE /api/delete-employee?id=...)
+                    const response = await fetch(`/api/delete-employee?id=${currentEmployeeId}`, {
+                        method: 'DELETE',
+                    });
+
+                    if (response.ok) {
+                        showFeedback('Funcionário excluído com sucesso!', 'success');
+                        console.log(`Funcionário ID ${currentEmployeeId} excluído.`);
+                        setTimeout(() => {
+                            window.location.href = 'quadrodefuncionarios.html'; // Redireciona de volta
+                        }, 1500);
+                    } else {
+                        const errorResult = await response.json();
+                        showFeedback(`Erro ao excluir: ${errorResult.error || 'Erro desconhecido.'}`, 'error');
+                        console.error('Erro na API de exclusão:', errorResult);
+                    }
+                } catch (error) {
+                    showFeedback('Erro de rede ou servidor ao excluir funcionário.', 'error');
+                    console.error('Erro na requisição fetch para exclusão:', error);
+                }
+            }
+        }
+
+
+        // --- Event Listeners e Inicialização ---
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDateTime();
+            setInterval(updateDateTime, 1000); // Atualiza a cada segundo
+
+            loadEmployeeDetails(); // Chama para carregar os detalhes do funcionário
+
+            // Event Listener para o botão de exclusão
+            deleteEmployeeBtn.addEventListener('click', deleteEmployee);
+        });
+    </script>
+</body>
+</html>

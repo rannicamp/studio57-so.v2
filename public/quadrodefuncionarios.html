@@ -193,7 +193,7 @@
         <section>
             <h2>Funcionários Cadastrados</h2>
             <div style="margin-bottom: var(--spacing-lg);">
-                 <a href="registro_funcionario.html" style="display: inline-block; padding: 10px 15px; background-color: var(--color-primary); color: var(--color-dark); border-radius: var(--border-radius-sm); font-weight: 500; text-decoration: none; border: 1px solid var(--color-primary-dark);">+ Adicionar Novo Funcionário</a>
+                <a href="registro_funcionario.html" style="display: inline-block; padding: 10px 15px; background-color: var(--color-primary); color: var(--color-dark); border-radius: var(--border-radius-sm); font-weight: 500; text-decoration: none; border: 1px solid var(--color-primary-dark);">+ Adicionar Novo Funcionário</a>
             </div>
 
             <div class="employee-grid" id="employee-grid-container">
@@ -228,11 +228,10 @@
 
             // --- Função para Carregar e Exibir Funcionários do Backend ---
             async function loadAndDisplayEmployees() {
-                gridContainer.innerHTML = ''; // Limpa o container antes de carregar
-                noEmployeesMessage.style.display = 'none'; // Esconde a mensagem de "nenhum funcionário"
+                gridContainer.innerHTML = '';
+                noEmployeesMessage.style.display = 'none';
 
                 try {
-                    // Fazer a requisição para a Netlify Function
                     const response = await fetch('/api/get-employees', {
                         method: 'GET',
                         headers: {
@@ -243,32 +242,28 @@
                     const result = await response.json();
 
                     if (response.ok) {
-                        const employees = result.employees; // A lista de funcionários vem aqui
+                        const employees = result.employees;
 
                         if (employees.length === 0) {
                             noEmployeesMessage.style.display = 'block';
                             noEmployeesMessage.textContent = 'Nenhum funcionário cadastrado ainda.';
                         } else {
                             employees.forEach(func => {
-                                // Verifica se o objeto funcionário tem as propriedades esperadas do DB
-                                if (!func || !func.id || !func.fullName) { // Ajustado para 'fullName' do esquema do DB
+                                if (!func || !func.id || !func.fullName) {
                                     console.warn("Registro de funcionário inválido encontrado (faltando ID ou Nome Completo):", func);
-                                    return; // Pula registro inválido ou incompleto
+                                    return;
                                 }
 
                                 const card = document.createElement('div');
                                 card.classList.add('employee-card');
-                                card.dataset.employeeId = func.id; // Usamos o ID do DB para referência no card
+                                card.dataset.employeeId = func.id;
 
-                                // --- Foto Placeholder (ainda sem upload real) ---
                                 const photoDiv = document.createElement('div');
                                 photoDiv.classList.add('employee-photo');
-                                // Pega as iniciais do nome para o placeholder
                                 const initials = func.fullName ? func.fullName.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() : '?';
                                 photoDiv.textContent = initials;
                                 card.appendChild(photoDiv);
 
-                                // --- Informações ---
                                 const infoDiv = document.createElement('div');
                                 infoDiv.classList.add('employee-info');
 
@@ -277,16 +272,13 @@
                                 infoDiv.appendChild(nameH4);
 
                                 const cargoP = document.createElement('p');
-                                // Ajustado para 'contractRole' do esquema do DB
                                 cargoP.innerHTML = `<strong>Cargo:</strong> ${func.contractRole || 'Não informado'}`;
                                 infoDiv.appendChild(cargoP);
 
                                 const telefoneP = document.createElement('p');
-                                // Ajustado para 'phone' do esquema do DB
                                 telefoneP.innerHTML = `<strong>Telefone:</strong> ${func.phone || 'Não informado'}`;
                                 infoDiv.appendChild(telefoneP);
 
-                                // --- Placeholders para dados agregados (ainda sem dados reais do DB) ---
                                 const faltasP = document.createElement('p');
                                 faltasP.innerHTML = `<strong>Faltas (Diário):</strong> --`;
                                 infoDiv.appendChild(faltasP);
@@ -295,7 +287,6 @@
                                 horasP.innerHTML = `<strong>Horas Trab. (Mês):</strong> --:--`;
                                 infoDiv.appendChild(horasP);
 
-                                // --- Ações ---
                                 const actionsDiv = document.createElement('div');
                                 actionsDiv.classList.add('employee-actions');
 
@@ -308,13 +299,13 @@
                                 };
                                 actionsDiv.appendChild(uploadBtn);
 
-                                const editLink = document.createElement('a');
-                                editLink.classList.add('view-edit-btn');
-                                // Link para a página de registro, passando o ID do banco de dados
-                                editLink.href = `registro_funcionario.html?id=${func.id}`;
-                                editLink.textContent = 'Ver / Editar';
-                                editLink.title = 'Ver ou editar cadastro completo';
-                                actionsDiv.appendChild(editLink);
+                                const viewDetailsLink = document.createElement('a'); // RENOMEADO para viewDetailsLink
+                                viewDetailsLink.classList.add('view-edit-btn');
+                                // AGORA APONTA PARA A NOVA PÁGINA DE DETALHES
+                                viewDetailsLink.href = `detalhes_funcionario.html?id=${func.id}`; 
+                                viewDetailsLink.textContent = 'Ver Detalhes'; // Texto mudado
+                                viewDetailsLink.title = 'Ver detalhes completos do funcionário';
+                                actionsDiv.appendChild(viewDetailsLink);
 
                                 infoDiv.appendChild(actionsDiv);
                                 card.appendChild(infoDiv);
@@ -323,20 +314,17 @@
                         }
                         console.log("Quadro de funcionários carregado do banco de dados.");
                     } else {
-                        // Exibe mensagem de erro se a API retornar um problema
                         console.error('Erro na API ao buscar funcionários:', result);
                         noEmployeesMessage.style.display = 'block';
                         noEmployeesMessage.textContent = `Erro ao carregar funcionários: ${result.error || 'Erro desconhecido.'}`;
                     }
                 } catch (error) {
-                    // Erro de rede ou outro erro inesperado
                     console.error('Erro de rede ou servidor ao buscar funcionários:', error);
                     noEmployeesMessage.style.display = 'block';
                     noEmployeesMessage.textContent = `Erro de conexão. Verifique sua internet ou tente mais tarde.`;
                 }
             }
 
-            // --- Chamada para carregar e exibir funcionários ao carregar a página ---
             loadAndDisplayEmployees();
         });
     </script>

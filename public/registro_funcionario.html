@@ -411,24 +411,51 @@
             document.getElementById('telefone').value = employee.phone || '';
             document.getElementById('email').value = employee.email || '';
 
-            // Campos de endereço
-            // Nota: O campo 'address' no DB é uma concatenação.
-            // Aqui vamos tentar preencher os campos separados de volta.
-            // Para isso, precisaria de uma lógica de "desconcatenar" ou salvar separado no DB.
-            // Por enquanto, vou preencher os campos separados com o que temos.
-            // Se o 'address' do DB contém "Logradouro, Numero - Complemento", você precisaria de parsing.
-            // Por simplicidade, vou usar os campos separados do DB se existirem, ou tentar parsing básico.
-            // O ideal é que logradouro, numero, bairro, cidade, estado, complemento fossem campos separados no DB.
-            // Se eles estiverem todos no campo 'address' do DB, este preenchimento será limitado.
-            // Para o nosso DB schema atual, eles SÃO campos separados.
-            document.getElementById('logradouro').value = employee.address_street || ''; // Se tiver campo separado
-            document.getElementById('numero').value = employee.address_number || '';     // Se tiver campo separado
-            document.getElementById('complemento').value = employee.address_complement || ''; // Se tiver campo separado
+            // Preenchimento dos campos de endereço individuais
+            // Note que seu schema tem 'address' como texto combinado, mas também tem campos individuais (cep, city, state, neighborhood).
+            // Para logradouro, numero e complemento que são parte do 'address' combinado no DB, precisaríamos de parsing se você os salvou apenas em 'address'.
+            // Assumindo que você SALVARÁ logradouro, numero, complemento em campos separados no DB no futuro ou extrairá de 'address'.
+            // POR ENQUANTO, preenchemos com os campos individuais do DB:
+            // O campo 'address' do DB contém "Logradouro, Número - Complemento".
+            // Para preenchê-los de volta nos campos separados, precisaríamos de uma lógica de parsing mais complexa.
+            // Para o teste atual, o importante é que os campos do DB que SÃO individuais (cep, city, state, neighborhood) serão preenchidos.
+            // O 'address' no schema (do DB) é a concatenação do frontend.
+            // Aqui estamos tentando "desconcatenar" para preencher, se esses campos individuais existissem no employee object.
+            // Como eles não existem individualmente no schema ATUAL além do 'address' concatenado,
+            // esta parte precisa de ajuste no SCHEMA ou um parsing do campo 'address' no frontend.
+
+            // temporarily, let's parse the 'address' field from the DB if it contains a comma and a dash for complement
+            const fullAddressFromDB = employee.address || '';
+            let parsedStreet = '';
+            let parsedNumber = '';
+            let parsedComplement = '';
+
+            const parts = fullAddressFromDB.split(',');
+            if (parts.length > 0) {
+                parsedStreet = parts[0].trim();
+                if (parts.length > 1) {
+                    const numAndComp = parts[1].trim();
+                    const numCompParts = numAndComp.split(' - ');
+                    if (numCompParts.length > 0) {
+                        parsedNumber = numCompParts[0].trim();
+                        if (numCompParts.length > 1) {
+                            parsedComplement = numCompParts[1].trim();
+                        }
+                    } else {
+                        parsedNumber = numAndComp; // No complement
+                    }
+                }
+            }
+            document.getElementById('logradouro').value = parsedStreet;
+            document.getElementById('numero').value = parsedNumber;
+            document.getElementById('complemento').value = parsedComplement;
+
+
             document.getElementById('bairro').value = employee.neighborhood || '';
             document.getElementById('cidade').value = employee.city || '';
             document.getElementById('estado').value = employee.state || '';
             document.getElementById('cep').value = employee.cep || '';
-            if (employee.cep) buscarEnderecoPorCEP(employee.cep); // Tenta buscar CEP para preencher o resto
+            if (employee.cep) buscarEnderecoPorCEP(employee.cep);
 
             // Dados Contratuais
             document.getElementById('cargo').value = employee.contractRole || '';
@@ -447,7 +474,7 @@
             document.getElementById('upload-aso-info').textContent = employee.asoDoc ? `Arquivo: ${employee.asoDoc}` : '';
             document.getElementById('upload-contrato-info').textContent = employee.contractDoc ? `Arquivo: ${employee.contractDoc}` : '';
             document.getElementById('upload-identidade-info').textContent = employee.identityDoc ? `Arquivo: ${employee.identityDoc}` : '';
-
+            
             document.getElementById('observacoes').value = employee.observations || '';
 
             // Opcional: Desabilitar CPF para edição se ele for a chave primária
@@ -548,7 +575,7 @@
                     // Em caso de edição, talvez redirecionar para o quadro de funcionários
                     if (currentEmployeeId) {
                          setTimeout(() => {
-                             window.location.href = 'quadrodefuncionarios.html';
+                             window.location.href = 'detalhes_funcionario.html?id=' + currentEmployeeId; // Redireciona para detalhes após edição
                          }, 1500);
                     }
                 } else {
