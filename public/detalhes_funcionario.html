@@ -115,8 +115,7 @@
                 </div>
                 <div class="info-item full-width">
                     <strong>Endereço:</strong>
-                    <span id="address-display">Carregando...</span>
-                </div>
+                    <span id="address-display">Carregando...</span> </div>
                 <div class="info-item">
                     <strong>CEP:</strong>
                     <span id="cep-display">Carregando...</span>
@@ -239,9 +238,9 @@
             document.getElementById('phone-display').textContent = employee.phone || 'Não informado';
             document.getElementById('email-display').textContent = employee.email || 'Não informado';
 
-            // Reconstruir endereço concatenado para exibição
-            const fullAddress = `${employee.address_street || ''}, ${employee.address_number || ''}`.trim().replace(/^, /, '') + (employee.address_complement ? ` - ${employee.address_complement}` : '');
-            document.getElementById('address-display').textContent = fullAddress || 'Não informado';
+            // ATUALIZADO: Exibe o campo 'address' completo como ele vem do DB
+            document.getElementById('address-display').textContent = employee.address || 'Não informado'; 
+
             document.getElementById('cep-display').textContent = employee.cep || 'Não informado';
             document.getElementById('neighborhood-display').textContent = employee.neighborhood || 'Não informado';
             document.getElementById('city-display').textContent = employee.city || 'Não informado';
@@ -273,10 +272,11 @@
             }
 
             // Documentos (apenas o nome do arquivo, com link se disponível)
-            document.getElementById('aso-doc-display').innerHTML = employee.asoDoc ? `<a href="<span class="math-inline">\{employee\.asoDoc\}" target\="\_blank"\>Ver ASO \(</span>{employee.asoDoc})</a>` : 'Nenhum';
-            document.getElementById('contract-doc-display').innerHTML = employee.contractDoc ? `<a href="<span class="math-inline">\{employee\.contractDoc\}" target\="\_blank"\>Ver Contrato \(</span>{employee.contractDoc})</a>` : 'Nenhum';
-            document.getElementById('identity-doc-display').innerHTML = employee.identityDoc ? `<a href="<span class="math-inline">\{employee\.identityDoc\}" target\="\_blank"\>Ver Identidade \(</span>{employee.identityDoc})</a>` : 'Nenhum';
-
+            // No futuro, estas URLs seriam para o armazenamento real dos arquivos.
+            document.getElementById('aso-doc-display').innerHTML = employee.asoDoc ? `<a href="${employee.asoDoc}" target="_blank">Ver ASO (${employee.asoDoc})</a>` : 'Nenhum';
+            document.getElementById('contract-doc-display').innerHTML = employee.contractDoc ? `<a href="${employee.contractDoc}" target="_blank">Ver Contrato (${employee.contractDoc})</a>` : 'Nenhum';
+            document.getElementById('identity-doc-display').innerHTML = employee.identityDoc ? `<a href="${employee.identityDoc}" target="_blank">Ver Identidade (${employee.identityDoc})</a>` : 'Nenhum';
+            
             document.getElementById('observations-display').textContent = employee.observations || 'Nenhuma';
 
             // Atualiza links de ação
@@ -335,7 +335,7 @@
                 return;
             }
 
-            if (confirm(`Tem certeza que deseja EXCLUIR o funcionário ID <span class="math-inline">\{currentEmployeeId\} \(</span>{document.getElementById('full-name-display').textContent})? Esta ação é irreversível.`)) {
+            if (confirm(`Tem certeza que deseja EXCLUIR o funcionário ID ${currentEmployeeId} (${document.getElementById('full-name-display').textContent})? Esta ação é irreversível.`)) {
                 showFeedback('Excluindo funcionário...', 'info');
                 try {
                     // TODO: Implementar API de exclusão (DELETE /api/delete-employee?id=...)
