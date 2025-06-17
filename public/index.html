@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@nhost/nhost-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@nhost/nhost-js@2/dist/nhost.umd.min.js"></script>
     <style>
         /* --- Variáveis CSS (Amarelo como Primário) --- */
         :root {
@@ -169,18 +169,6 @@
             const passwordInput = document.getElementById('password');
             const loginButton = document.getElementById('login-button');
             const errorMessageDiv = document.getElementById('error-message');
-            // A referência a 'openingSound' foi removida, pois a tag de áudio foi comentada/removida
-            // const openingSound = document.getElementById('opening-sound');
-
-            // O bloco de reprodução de áudio foi removido, pois a tag de áudio foi comentada/removida
-            /*
-            if (openingSound) {
-                openingSound.volume = 0.4;
-                openingSound.play().catch(error => {
-                    console.warn("Autoplay do som bloqueado pelo navegador:", error.message);
-                });
-            }
-            */
 
             loginForm.addEventListener('submit', async (event) => {
                 event.preventDefault();
@@ -219,6 +207,8 @@
                         // Define o papel do usuário. 'user' para logados, 'anonymous' se a sessão for anônima (menos comum aqui)
                         localStorage.setItem('userRole', user.isAnonymous ? 'anonymous' : 'user'); 
 
+                        // Adicionado para depuração: confirma que o redirecionamento será executado
+                        console.log("Login Nhost bem-sucedido. Redirecionando para página inicial..."); 
                         // Redireciona para o dashboard
                         window.location.href = '/pagina_inicial.html'; // Adiciona a barra '/' para garantir que o caminho seja a partir da raiz do site
 
