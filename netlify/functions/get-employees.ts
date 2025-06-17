@@ -10,8 +10,8 @@ export default async (req: Request, context: Context) => {
 
     try {
         // Buscar todos os funcionários da tabela 'employees'
-        // O .all() retorna todos os registros
-        const allEmployees = await db.select().from(employees).all();
+        // CORREÇÃO: Usar .execute() em vez de .all() para a execução da query
+        const allEmployees = await db.select().from(employees).execute();
 
         return new Response(JSON.stringify({
             message: 'Funcionários buscados com sucesso!',
