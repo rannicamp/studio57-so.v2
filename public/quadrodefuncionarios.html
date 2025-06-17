@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quadro de Funcionários - Sistema Studio 57</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        /* --- Variáveis CSS (Paleta Atualizada) --- */
+        :root {
+            --font-body: 'Roboto', sans-serif;
+            --font-heading: 'Montserrat', sans-serif;
+            --color-primary: #ffe57b; /* Amarelo Paleta */
+            --color-primary-dark: #fdda4a; /* Amarelo Escuro Paleta */
+            --color-danger: #ff5757; /* Vermelho Paleta */
+            --color-danger-dark: #f03a3a; /* Vermelho Escuro (Aproximado) */
+            --color-success: #c1ff72; /* Verde Paleta */
+            --color-success-dark: #a0e650; /* Verde Escuro (Aproximado) */
+            --color-info: #38b6ff; /* Azul Paleta */
+            --color-info-dark: #1f9ff0; /* Azul Escuro (Aproximado) */
+            --color-warning: #ffe57b; /* Warning usa o Amarelo Paleta */
+            --color-warning-dark: #fdda4a;
+            --color-light: #f8f9fa;
+            --color-medium-light-gray: #d9d9d9; /* Cinza Claro Paleta */
+            --color-dark-gray: #737373; /* Cinza Escuro Paleta */
+            --color-dark: #343a40; /* Cinza bem escuro para texto principal */
+            --color-black: #000000; /* Preto Paleta */
+            --color-muted: #737373; /* Muted usa o cinza escuro da paleta */
+            --color-white: #ffffff; /* Branco Paleta */
+            --color-border: #d9d9d9; /* Borda usa o cinza claro da paleta */
+            --color-border-focus: var(--color-primary-dark); /* Foco usa amarelo escuro */
+            --color-input-bg: #ffffff;
+            --color-input-disabled-bg: #e9ecef; /* Cinza leve para disabled */
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+            --border-radius-sm: 4px;
+            --border-radius-md: 8px;
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 15px;
+            --spacing-lg: 20px;
+            --spacing-xl: 30px;
+            --photo-size-small: 80px; /* Tamanho da foto no card */
+        }
+
+        /* --- Estilos Gerais --- */
+        body {
+            font-family: var(--font-body); line-height: 1.6; margin: var(--spacing-lg); background-color: var(--color-light); color: var(--color-dark); font-size: 16px;
+        }
+        h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); color: var(--color-dark); margin-top: 1.5em; margin-bottom: 0.8em; }
+        h2 { font-size: 1.6em; border-bottom: 1px solid var(--color-border); padding-bottom: var(--spacing-sm); }
+        h3 { font-size: 1.3em; color: var(--color-dark-gray); margin-top: var(--spacing-lg); }
+        button, input, select, textarea { font-family: inherit; font-size: 1em; }
+        * { box-sizing: border-box; }
+        a { color: var(--color-info); text-decoration: none; }
+        a:hover { color: var(--color-info-dark); }
+
+        /* --- Estrutura Principal e Cabeçalho --- */
+        .main-container { background-color: var(--color-white); padding: var(--spacing-xl); border-radius: var(--border-radius-md); box-shadow: var(--shadow-md); max-width: 95%; margin: var(--spacing-xl) auto; border: 1px solid var(--color-border); }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-xl); border-bottom: 1px solid var(--color-border); padding-bottom: var(--spacing-md); gap: var(--spacing-md); }
+        .header-left { flex-shrink: 0; }
+        .header-center { flex-grow: 1; text-align: center; }
+        .header-right { flex-shrink: 0; min-width: 200px; text-align: right; display: flex; align-items: center; justify-content: flex-end; gap: var(--spacing-sm); }
+        .studio57-logo { display: inline-block; max-height: 50px; width: auto; vertical-align: middle; }
+        .page-header h1 { margin-bottom: 0; font-weight: 600; color: var(--color-dark); font-size: 1.5em; line-height: 1.2; }
+        #current-datetime { font-family: var(--font-body); font-size: 0.9em; color: var(--color-muted); white-space: nowrap; }
+        .back-link { display: inline-block; color: var(--color-info); text-decoration: none; font-weight: 500; margin-right: var(--spacing-lg); padding: var(--spacing-xs) var(--spacing-sm); border: 1px solid transparent; border-radius: var(--border-radius-sm); transition: all 0.2s ease; }
+        .back-link:hover { color: var(--color-info-dark); background-color: var(--color-light); border-color: var(--color-border); }
+
+        /* --- Grid de Cards de Funcionários --- */
+        .employee-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Cards responsivos */
+            gap: var(--spacing-lg);
+            margin-top: var(--spacing-lg);
+        }
+
+        /* --- Card de Funcionário --- */
+        .employee-card {
+            background-color: var(--color-white);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-lg);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            gap: var(--spacing-lg);
+            align-items: flex-start; /* Alinha foto e infos no topo */
+        }
+        .employee-photo {
+            flex-shrink: 0;
+            width: var(--photo-size-small);
+            height: var(--photo-size-small);
+            border-radius: 50%; /* Foto redonda */
+            background-color: var(--color-medium-light-gray); /* Placeholder */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-white);
+            font-size: 2em;
+            overflow: hidden; /* Caso tenha imagem real no futuro */
+            /* Adicionar estilo para img se for usar foto real */
+            /* img { width: 100%; height: 100%; object-fit: cover; } */
+        }
+        .employee-info {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs); /* Espaço entre linhas de info */
+        }
+        .employee-info h4 { /* Nome */
+            margin: 0 0 var(--spacing-xs) 0;
+            font-size: 1.2em;
+            color: var(--color-dark);
+        }
+        .employee-info p {
+            margin: 0;
+            font-size: 0.9em;
+            color: var(--color-muted);
+            line-height: 1.4;
+        }
+        .employee-info p strong {
+            color: var(--color-dark-gray);
+            min-width: 100px; /* Alinhamento dos valores */
+            display: inline-block;
+        }
+        .employee-actions {
+            margin-top: var(--spacing-md);
+            padding-top: var(--spacing-md);
+            border-top: 1px solid var(--color-light);
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-sm);
+            justify-content: flex-end; /* Alinha botões à direita */
+        }
+        .employee-actions button, .employee-actions a {
+            font-family: var(--font-heading);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--border-radius-sm);
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+            font-size: 0.85em;
+            font-weight: 500;
+            text-align: center;
+            line-height: 1.5;
+        }
+        /* Cores dos botões de ação do card */
+        .employee-actions .view-edit-btn { background-color: var(--color-info); color: white; border-color: var(--color-info-dark); }
+        .employee-actions .view-edit-btn:hover { background-color: var(--color-info-dark); }
+        .employee-actions .upload-btn { background-color: var(--color-success); color: var(--color-dark); border-color: var(--color-success-dark); }
+        .employee-actions .upload-btn:hover { background-color: var(--color-success-dark); }
+
+        /* Mensagem se não houver funcionários */
+        #no-employees-message {
+            text-align: center;
+            color: var(--color-muted);
+            padding: var(--spacing-xl);
+            font-style: italic;
+        }
+
+        /* --- Rodapé --- */
+        .legal-footer { margin-top: var(--spacing-xl); padding-top: var(--spacing-lg); text-align: center; font-size: 0.8em; color: var(--color-muted); border-top: 1px solid #eee; }
+        .legal-footer p { margin-bottom: 0; }
+
+        /* --- Print --- */
+        @media print {
+            body { margin: 10mm; font-size: 9pt; background-color: #fff !important; color: #000 !important; }
+            .main-container { max-width: 100%; box-shadow: none; border: none; padding: 0; margin: 0; }
+            .page-header, .legal-footer, .employee-actions button, .employee-actions a, .back-link { display: none !important; }
+            h2 { font-size: 1.1em; border-bottom: 1px solid #999; padding-bottom: 3px; margin-bottom: 8px; }
+            .employee-grid { grid-template-columns: 1fr; gap: 8mm; } /* Uma coluna na impressão */
+            .employee-card { box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; gap: var(--spacing-md); }
+            .employee-photo { width: 60px; height: 60px; font-size: 1.5em; }
+            .employee-info h4 { font-size: 1.1em; }
+            .employee-info p { font-size: 0.85em; }
+        }
+
+    </style>
+</head>
+<body>
+    <main class="main-container">
+        <header class="page-header">
+            <div class="header-left">
+                <a href="dashboard.html" class="back-link" title="Voltar ao Dashboard">← Voltar</a>
+                <img src="https://studio57.arq.br/wp-content/uploads/2025/04/STUDIO-57-PRETO-RETANGULO.png" alt="Logo Studio 57" class="studio57-logo">
+            </div>
+            <div class="header-center"> <h1>Quadro de Funcionários</h1> </div>
+            <div class="header-right"> <span id="current-datetime">--/--/---- --:--:--</span> </div>
+        </header>
+
+        <section>
+            <h2>Funcionários Cadastrados</h2>
+            <div style="margin-bottom: var(--spacing-lg);">
+                 <a href="registro_funcionario.html" style="display: inline-block; padding: 10px 15px; background-color: var(--color-primary); color: var(--color-dark); border-radius: var(--border-radius-sm); font-weight: 500; text-decoration: none; border: 1px solid var(--color-primary-dark);">+ Adicionar Novo Funcionário</a>
+            </div>
+
+            <div class="employee-grid" id="employee-grid-container">
+                <p id="no-employees-message" style="display: none;">Nenhum funcionário cadastrado ainda.</p>
+            </div>
+        </section>
+
+        <footer class="legal-footer">
+            <p> © 2025 Studio 57 Arquitetura e Incorporação - CNPJ: 41.464.589/0001-66. Todos os direitos reservados. </p>
+        </footer>
+    </main>
+
+    <script>
+        // --- Data/Hora Atual ---
+        const currentDatetimeSpan = document.getElementById('current-datetime');
+        let dateTimeInterval;
+        function updateDateTime() { if(!currentDatetimeSpan)return;const now=new Date;const formattedDate=now.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric"});const formattedTime=now.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit",second:"2-digit"});currentDatetimeSpan.textContent=`${formattedDate} ${formattedTime}` }
+        updateDateTime();
+        if (dateTimeInterval) clearInterval(dateTimeInterval);
+        dateTimeInterval = setInterval(updateDateTime, 1000);
+
+        // --- Carregar e Exibir Funcionários ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const gridContainer = document.getElementById('employee-grid-container');
+            const noEmployeesMessage = document.getElementById('no-employees-message');
+            // Por enquanto, os dados virão do localStorage. No futuro, do banco de dados real.
+            const storageKey = 'studio57_funcionarios'; 
+            let funcionarios = [];
+
+            // Carrega funcionários do localStorage
+            try {
+                const savedData = localStorage.getItem(storageKey);
+                if (savedData) {
+                    funcionarios = JSON.parse(savedData);
+                    if (!Array.isArray(funcionarios)) {
+                        console.warn("Dado salvo em localStorage não é um array. Resetando.");
+                        funcionarios = [];
+                    }
+                }
+            } catch (e) {
+                console.error("Erro ao ler funcionários do localStorage:", e);
+                funcionarios = []; // Garante que é um array em caso de erro
+            }
+
+            // Limpa o container antes de adicionar
+            gridContainer.innerHTML = '';
+
+            // Mostra mensagem se não houver funcionários
+            if (funcionarios.length === 0) {
+                if (noEmployeesMessage) noEmployeesMessage.style.display = 'block';
+            } else {
+                if (noEmployeesMessage) noEmployeesMessage.style.display = 'none';
+
+                // Cria um card para cada funcionário
+                funcionarios.forEach(func => {
+                    // Aqui, em um sistema real, você buscaria os dados completos do funcionário pelo ID/CPF
+                    // e preencheria o card com informações do DB. Por enquanto, usamos os dados do localStorage.
+                    if (!func || !func.id || !func.nome_completo) {
+                        console.warn("Registro de funcionário inválido encontrado:", func);
+                        return; // Pula registro inválido
+                    }
+
+                    const card = document.createElement('div');
+                    card.classList.add('employee-card');
+                    card.dataset.employeeId = func.id; // Guarda o ID (CPF)
+
+                    // --- Foto Placeholder ---
+                    // No futuro, aqui você buscaria a URL da foto real do funcionário
+                    const photoDiv = document.createElement('div');
+                    photoDiv.classList.add('employee-photo');
+                    // Pega as iniciais do nome para o placeholder
+                    const initials = func.nome_completo.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+                    photoDiv.textContent = initials || '?'; // Mostra iniciais ou '?'
+                    card.appendChild(photoDiv);
+
+                    // --- Informações ---
+                    const infoDiv = document.createElement('div');
+                    infoDiv.classList.add('employee-info');
+
+                    const nameH4 = document.createElement('h4');
+                    nameH4.textContent = func.nome_completo || 'Nome não informado';
+                    infoDiv.appendChild(nameH4);
+
+                    const cargoP = document.createElement('p');
+                    cargoP.innerHTML = `<strong>Cargo:</strong> ${func.cargo || 'Não informado'}`;
+                    infoDiv.appendChild(cargoP);
+
+                    const telefoneP = document.createElement('p');
+                    telefoneP.innerHTML = `<strong>Telefone:</strong> ${func.telefone || 'Não informado'}`;
+                    infoDiv.appendChild(telefoneP);
+
+                    // --- Placeholders para dados agregados ---
+                    const faltasP = document.createElement('p');
+                    faltasP.innerHTML = `<strong>Faltas (Diário):</strong> --`; // Placeholder
+                    infoDiv.appendChild(faltasP);
+
+                    const horasP = document.createElement('p');
+                    horasP.innerHTML = `<strong>Horas Trab. (Mês):</strong> --:--`; // Placeholder
+                    infoDiv.appendChild(horasP);
+
+                    // --- Ações ---
+                    const actionsDiv = document.createElement('div');
+                    actionsDiv.classList.add('employee-actions');
+
+                    const uploadBtn = document.createElement('button');
+                    uploadBtn.classList.add('upload-btn');
+                    uploadBtn.textContent = 'Adic. Documento';
+                    uploadBtn.title = 'Adicionar documento para este funcionário';
+                    uploadBtn.onclick = () => {
+                        // Simula a ação - no futuro abriria um modal ou iria para outra página
+                        alert(`Funcionalidade "Adicionar Documento" para ${func.nome_completo} (ID: ${func.id}) a ser implementada com backend.`);
+                    };
+                    actionsDiv.appendChild(uploadBtn);
+
+                    const editLink = document.createElement('a');
+                    editLink.classList.add('view-edit-btn');
+                    // Link para a página de registro, passando o ID (CPF) como parâmetro (exemplo)
+                    // A página de registro precisaria ser adaptada para ler este parâmetro e carregar os dados
+                    editLink.href = `registro_funcionario.html?id=${func.id}`; // <--- LINK CORRIGIDO AQUI
+                    editLink.textContent = 'Ver / Editar';
+                    editLink.title = 'Ver ou editar cadastro completo';
+                    actionsDiv.appendChild(editLink);
+
+                    infoDiv.appendChild(actionsDiv);
+                    card.appendChild(infoDiv);
+                    gridContainer.appendChild(card);
+                });
+            }
+            console.log("Quadro de funcionários carregado.");
+        });
+    </script>
+</body>
+</html>
