@@ -4,14 +4,10 @@ import { employees } from '../../db/schema'; // Caminho para o seu db/schema.ts
 import { eq } from 'drizzle-orm'; // Importe 'eq' para comparações de igualdade
 
 export default async (req: Request, context: Context) => {
-    // Obter o ID do funcionário da URL se for uma operação de atualização (PUT)
     const url = new URL(req.url);
     const employeeId = url.searchParams.get('id');
-
     let method = req.method;
 
-    // Se o método for PUT e não houver ID, ou se o ID for inválido, retornar erro.
-    // Ou se o método for POST e houver ID, isso pode ser um problema (mas o frontend não deve fazer isso).
     if (method === 'PUT' && (!employeeId || isNaN(parseInt(employeeId)))) {
         return new Response(JSON.stringify({ error: 'ID do funcionário inválido ou ausente para atualização.' }), {
             status: 400,
@@ -34,7 +30,7 @@ export default async (req: Request, context: Context) => {
             });
         }
 
-        // Preparar os dados para inserção ou atualização
+        // Mapear os dados do corpo para o esquema do banco de dados
         const employeeData = {
             fullName: body.fullName,
             cpf: body.cpf,
@@ -42,7 +38,11 @@ export default async (req: Request, context: Context) => {
             birthDate: body.birthDate,
             phone: body.phone,
             email: body.email,
-            address: body.address,
+            // NOVOS CAMPOS DE ENDEREÇO SEPARADOS
+            addressStreet: body.addressStreet,
+            addressNumber: body.addressNumber,
+            addressComplement: body.addressComplement,
+            // O CAMPO 'address' ANTIGO FOI REMOVIDO NO SCHEMA, ENTÃO NÃO O SALVAMOS MAIS AQUI
             cep: body.cep,
             city: body.city,
             state: body.state,
@@ -63,18 +63,16 @@ export default async (req: Request, context: Context) => {
 
         let result;
         if (method === 'POST') {
-            // Lógica para CRIAR um novo funcionário
             result = await db.insert(employees).values(employeeData).returning();
             return new Response(JSON.stringify({
                 message: 'Funcionário cadastrado com sucesso!',
                 employee: result[0]
             }), {
-                status: 201, // 201 Created
+                status: 201,
                 headers: { 'Content-Type': 'application/json' },
             });
         } else if (method === 'PUT') {
-            // Lógica para ATUALIZAR um funcionário existente
-            const idToUpdate = parseInt(employeeId as string); // Converte para número
+            const idToUpdate = parseInt(employeeId as string);
             result = await db.update(employees)
                              .set(employeeData)
                              .where(eq(employees.id, idToUpdate))
@@ -91,21 +89,18 @@ export default async (req: Request, context: Context) => {
                 message: 'Funcionário atualizado com sucesso!',
                 employee: result[0]
             }), {
-                status: 200, // 200 OK
+                status: 200,
                 headers: { 'Content-Type': 'application/json' },
             });
         }
 
-        // Fallback caso algum método inesperado passe
         return new Response('Unhandled Method', { status: 405 });
-
 
     } catch (error) {
         console.error('Erro no processamento da solicitação (cadastro/atualização) de funcionário:', error);
-        // Em caso de erro de CPF duplicado (unique constraint), pode ser um erro específico do DB
-        if (error && (error as any).code === '23505') { // PostgreSQL error code for unique_violation
+        if (error && (error as any).code === '23505') {
             return new Response(JSON.stringify({ error: 'CPF já cadastrado. Por favor, use um CPF único.' }), {
-                status: 409, // 409 Conflict
+                status: 409,
                 headers: { 'Content-Type': 'application/json' },
             });
         }
@@ -117,6 +112,6 @@ export default async (req: Request, context: Context) => {
 };
 
 export const config: Config = {
-  path: '/api/create-employee', // A API responderá a POST e PUT no mesmo caminho
-  method: ['POST', 'PUT'], // Agora aceita ambos os métodos
+  path: '/api/create-employee',
+  method: ['POST', 'PUT'],
 };

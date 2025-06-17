@@ -412,44 +412,10 @@
             document.getElementById('email').value = employee.email || '';
 
             // Preenchimento dos campos de endereço individuais
-            // Note que seu schema tem 'address' como texto combinado, mas também tem campos individuais (cep, city, state, neighborhood).
-            // Para logradouro, numero e complemento que são parte do 'address' combinado no DB, precisaríamos de parsing se você os salvou apenas em 'address'.
-            // Assumindo que você SALVARÁ logradouro, numero, complemento em campos separados no DB no futuro ou extrairá de 'address'.
-            // POR ENQUANTO, preenchemos com os campos individuais do DB:
-            // O campo 'address' do DB contém "Logradouro, Número - Complemento".
-            // Para preenchê-los de volta nos campos separados, precisaríamos de uma lógica de parsing mais complexa.
-            // Para o teste atual, o importante é que os campos do DB que SÃO individuais (cep, city, state, neighborhood) serão preenchidos.
-            // O 'address' no schema (do DB) é a concatenação do frontend.
-            // Aqui estamos tentando "desconcatenar" para preencher, se esses campos individuais existissem no employee object.
-            // Como eles não existem individualmente no schema ATUAL além do 'address' concatenado,
-            // esta parte precisa de ajuste no SCHEMA ou um parsing do campo 'address' no frontend.
-
-            // temporarily, let's parse the 'address' field from the DB if it contains a comma and a dash for complement
-            const fullAddressFromDB = employee.address || '';
-            let parsedStreet = '';
-            let parsedNumber = '';
-            let parsedComplement = '';
-
-            const parts = fullAddressFromDB.split(',');
-            if (parts.length > 0) {
-                parsedStreet = parts[0].trim();
-                if (parts.length > 1) {
-                    const numAndComp = parts[1].trim();
-                    const numCompParts = numAndComp.split(' - ');
-                    if (numCompParts.length > 0) {
-                        parsedNumber = numCompParts[0].trim();
-                        if (numCompParts.length > 1) {
-                            parsedComplement = numCompParts[1].trim();
-                        }
-                    } else {
-                        parsedNumber = numAndComp; // No complement
-                    }
-                }
-            }
-            document.getElementById('logradouro').value = parsedStreet;
-            document.getElementById('numero').value = parsedNumber;
-            document.getElementById('complemento').value = parsedComplement;
-
+            // Agora, com os campos separados no DB, podemos preencher diretamente
+            document.getElementById('logradouro').value = employee.addressStreet || ''; // NOVO CAMPO
+            document.getElementById('numero').value = employee.addressNumber || '';     // NOVO CAMPO
+            document.getElementById('complemento').value = employee.addressComplement || ''; // NOVO CAMPO
 
             document.getElementById('bairro').value = employee.neighborhood || '';
             document.getElementById('cidade').value = employee.city || '';
@@ -466,7 +432,7 @@
 
             // Dados de Pagamento
             document.getElementById('forma-pagamento').value = employee.paymentMethod || '';
-            togglePaymentFields(); // Garante que os campos PIX/Banco sejam exibidos/escondidos
+            togglePaymentFields();
             document.getElementById('chave-pix').value = employee.pixKey || '';
             document.getElementById('dados-bancarios').value = employee.bankDetails || '';
 
@@ -474,7 +440,7 @@
             document.getElementById('upload-aso-info').textContent = employee.asoDoc ? `Arquivo: ${employee.asoDoc}` : '';
             document.getElementById('upload-contrato-info').textContent = employee.contractDoc ? `Arquivo: ${employee.contractDoc}` : '';
             document.getElementById('upload-identidade-info').textContent = employee.identityDoc ? `Arquivo: ${employee.identityDoc}` : '';
-            
+
             document.getElementById('observacoes').value = employee.observations || '';
 
             // Opcional: Desabilitar CPF para edição se ele for a chave primária
@@ -483,28 +449,25 @@
 
 
         async function handleFormSubmit(event) {
-            event.preventDefault(); // Impede o envio padrão do formulário
+            event.preventDefault();
             showFeedback('Enviando dados...', 'info');
 
             const form = event.target;
             const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
 
-            // Processar os uploads de arquivos para URL (nome do arquivo por enquanto)
             data.asoDoc = asoInput.files[0] ? asoInput.files[0].name : (document.getElementById('upload-aso-info').textContent.replace('Arquivo: ', '') || null);
             data.contractDoc = contratoInput.files[0] ? contratoInput.files[0].name : (document.getElementById('upload-contrato-info').textContent.replace('Arquivo: ', '') || null);
             data.identityDoc = identidadeInput.files[0] ? identidadeInput.files[0].name : (document.getElementById('upload-identidade-info').textContent.replace('Arquivo: ', '') || null);
 
-            delete data.foto_funcionario; // Foto é tratada separadamente
+            delete data.foto_funcionario;
 
-            // Tratar campos vazios ou nulos
             for (const key in data) {
                 if (data[key] === '') {
                     data[key] = null;
                 }
             }
 
-            // Mapear campos do formulário para o schema do banco de dados
             const employeeData = {
                 fullName: data['nome_completo'],
                 cpf: data['cpf'],
@@ -512,8 +475,10 @@
                 birthDate: data['data_nascimento'],
                 phone: data['telefone'],
                 email: data['email'],
-                // Concatenar campos de endereço para o campo 'address' no schema do DB
-                address: `${data['logradouro'] || ''}, ${data['numero'] || ''}`.trim().replace(/^, /, '') + (data['complemento'] ? ` - ${data['complemento']}` : ''),
+                // ENVIANDO OS NOVOS CAMPOS SEPARADOS PARA O BACKEND
+                addressStreet: data['logradouro'],
+                addressNumber: data['numero'],
+                addressComplement: data['complemento'],
                 cep: data['cep'],
                 city: data['cidade'],
                 state: data['estado'],
@@ -532,7 +497,6 @@
                 observations: data['observacoes'],
             };
 
-            // Remover campos que não são relevantes dependendo da forma de pagamento
             if (employeeData.paymentMethod !== 'pix') {
                 delete employeeData.pixKey;
             }
@@ -544,9 +508,9 @@
                 let url = '/api/create-employee';
                 let method = 'POST';
 
-                if (currentEmployeeId) { // Se estiver em modo de edição
-                    url = `/api/create-employee?id=${currentEmployeeId}`; // Usar a mesma API, mas com ID
-                    method = 'PUT'; // Usaremos PUT para atualização
+                if (currentEmployeeId) {
+                    url = `/api/create-employee?id=${currentEmployeeId}`;
+                    method = 'PUT';
                 }
 
                 const response = await fetch(url, {
@@ -562,8 +526,7 @@
                 if (response.ok) {
                     showFeedback(`Funcionário ${currentEmployeeId ? 'atualizado' : 'cadastrado'} com sucesso!`, 'success');
                     console.log(`Funcionário ${currentEmployeeId ? 'atualizado' : 'cadastrado'}:`, result.employee);
-                    // Opcional: Redirecionar ou limpar o formulário após o sucesso
-                    if (!currentEmployeeId) { // Só limpa se for um novo cadastro
+                    if (!currentEmployeeId) {
                         form.reset();
                         limparCamposEndereco();
                         handlePhotoPreview({ target: { files: [] } });
@@ -572,10 +535,9 @@
                         document.getElementById('upload-contrato-info').textContent = '';
                         document.getElementById('upload-identidade-info').textContent = '';
                     }
-                    // Em caso de edição, talvez redirecionar para o quadro de funcionários
                     if (currentEmployeeId) {
                          setTimeout(() => {
-                             window.location.href = 'detalhes_funcionario.html?id=' + currentEmployeeId; // Redireciona para detalhes após edição
+                             window.location.href = 'detalhes_funcionario.html?id=' + currentEmployeeId;
                          }, 1500);
                     }
                 } else {
@@ -588,13 +550,12 @@
             }
         }
 
-        // Funções para carregar dados para edição
         async function loadEmployeeDataForEdit() {
             const urlParams = new URLSearchParams(window.location.search);
             const employeeId = urlParams.get('id');
 
             if (employeeId) {
-                currentEmployeeId = employeeId; // Armazena o ID para uso no submit
+                currentEmployeeId = employeeId;
                 document.querySelector('h1').textContent = 'Editar Funcionário';
                 showFeedback(`Carregando dados para edição do funcionário com ID: ${employeeId}...`, 'info');
 
@@ -610,7 +571,6 @@
                         if (result.employee) {
                             fillFormWithEmployeeData(result.employee);
                             showFeedback('Dados do funcionário carregados com sucesso!', 'success');
-                            // Opcional: Desabilitar o campo CPF se ele for usado como identificador único
                             // document.getElementById('cpf').readOnly = true;
                         } else {
                             showFeedback('Funcionário não encontrado.', 'error');
@@ -626,12 +586,11 @@
                 }
             } else {
                 document.querySelector('h1').textContent = 'Cadastro de Funcionários';
-                currentEmployeeId = null; // Garante que não está em modo de edição
+                currentEmployeeId = null;
             }
         }
 
         function handleFormReset() {
-            // Lógica adicional de reset se precisar de algo específico além do form.reset()
             limparCamposEndereco();
             handlePhotoPreview({ target: { files: [] } });
             togglePaymentFields();
@@ -639,9 +598,9 @@
             document.getElementById('upload-contrato-info').textContent = '';
             document.getElementById('upload-identidade-info').textContent = '';
             showFeedback('Formulário limpo.', 'info');
-            currentEmployeeId = null; // Garante que não está mais em modo de edição após reset
-            document.querySelector('h1').textContent = 'Cadastro de Funcionários'; // Reseta o título
-            // document.getElementById('cpf').readOnly = false; // Habilita o CPF novamente
+            currentEmployeeId = null;
+            document.querySelector('h1').textContent = 'Cadastro de Funcionários';
+            // document.getElementById('cpf').readOnly = false;
         }
 
 
@@ -670,7 +629,7 @@
             cepInput?.addEventListener('input', () => {
                 const cepValue = cepInput.value.replace(/\D/g, "");
                 clearTimeout(cepTimeout);
-                if (cepStatusSpan) { cepStatusSpan.textContent = ""; cepStatusSpan.className = ""; } // Limpa status ao digitar
+                if (cepStatusSpan) { cepStatusSpan.textContent = ""; cepStatusSpan.className = ""; }
                 if (cepValue.length === 8) {
                     cepTimeout = setTimeout(() => { buscarEnderecoPorCEP(cepValue); }, 500);
                 }
@@ -680,8 +639,8 @@
             cadastroForm?.addEventListener('reset', handleFormReset);
 
             // Inicializações Finais
-            togglePaymentFields(); // Garante que os campos de pagamento sejam exibidos corretamente ao carregar
-            loadEmployeeDataForEdit(); // CHAMA A FUNÇÃO QUE CARREGA OS DADOS SE FOR EDIÇÃO
+            togglePaymentFields();
+            loadEmployeeDataForEdit();
             console.log("Cadastro de Funcionários adaptado ao backend inicializado.");
         });
     </script>

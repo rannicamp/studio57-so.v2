@@ -8,7 +8,11 @@ export const employees = pgTable('employees', {
   birthDate: varchar('birth_date', { length: 10 }), // Formato YYYY-MM-DD
   phone: varchar('phone', { length: 15 }), // Formato (00) 00000-0000
   email: text('email'),
-  address: text('address'), // Concatenar logradouro, número, etc.
+  // NOVOS CAMPOS PARA ENDEREÇO SEPARADO
+  addressStreet: text('address_street'), // Logradouro
+  addressNumber: text('address_number'), // Número
+  addressComplement: text('address_complement'), // Complemento
+  // O CAMPO 'address' ORIGINAL FOI REMOVIDO PARA USARMOS OS SEPARADOS
   cep: varchar('cep', { length: 9 }),
   city: text('city'),
   state: varchar('state', { length: 2 }),
@@ -28,21 +32,8 @@ export const employees = pgTable('employees', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
-// Se você tiver a tabela 'posts' ou outras, adicione-as aqui também.
-// Exemplo:
-// export const posts = pgTable('posts', {
-//   id: serial('id').primaryKey(),
-//   title: text('title').notNull(),
-//   content: text('content'),
-//   createdAt: timestamp('created_at').defaultNow(),
-// });
-
-// É uma boa prática exportar todos os seus schemas em um único objeto
-// para que você possa importá-los facilmente em outros arquivos
-// e o Drizzle possa inferir os tipos corretamente.
-// Por favor, mantenha apenas as tabelas que você realmente usará.
 export default {
     employees,
-    // Se tiver a tabela 'posts', adicione-a aqui:
+    // Se tiver outras tabelas como 'posts', adicione-as aqui:
     // posts,
 };
