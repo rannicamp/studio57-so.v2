@@ -21,11 +21,11 @@ export default async (req: Request, context: Context) => {
 
     try {
         // Buscar o funcionário pelo ID
-        // Usamos 'eq' para comparar a coluna 'id' com o employeeId fornecido
-        // e '.get()' para obter um único registro
-        const employee = await db.select().from(employees).where(eq(employees.id, parseInt(employeeId))).get();
+        // CORREÇÃO: Usar .execute() e pegar o primeiro elemento do array retornado
+        const employee = await db.select().from(employees).where(eq(employees.id, parseInt(employeeId))).execute();
 
-        if (!employee) {
+        // O .execute() retorna um array, então pegamos o primeiro elemento
+        if (!employee || employee.length === 0) { // Verifica se o array está vazio ou nulo
             return new Response(JSON.stringify({ error: 'Funcionário não encontrado.' }), {
                 status: 404, // 404 Not Found
                 headers: { 'Content-Type': 'application/json' },
@@ -34,7 +34,7 @@ export default async (req: Request, context: Context) => {
 
         return new Response(JSON.stringify({
             message: 'Funcionário buscado com sucesso!',
-            employee: employee
+            employee: employee[0] // Retorna o primeiro elemento do array
         }), {
             status: 200, // 200 OK
             headers: { 'Content-Type': 'application/json' },
