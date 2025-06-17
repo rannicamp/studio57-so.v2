@@ -114,8 +114,17 @@
                     <span id="email-display">Carregando...</span>
                 </div>
                 <div class="info-item full-width">
-                    <strong>Endereço:</strong>
-                    <span id="address-display">Carregando...</span> </div>
+                    <strong>Logradouro:</strong>
+                    <span id="address-street-display">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <strong>Número:</strong>
+                    <span id="address-number-display">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <strong>Complemento:</strong>
+                    <span id="address-complement-display">Carregando...</span>
+                </div>
                 <div class="info-item">
                     <strong>CEP:</strong>
                     <span id="cep-display">Carregando...</span>
@@ -238,9 +247,11 @@
             document.getElementById('phone-display').textContent = employee.phone || 'Não informado';
             document.getElementById('email-display').textContent = employee.email || 'Não informado';
 
-            // ATUALIZADO: Exibe o campo 'address' completo como ele vem do DB
-            document.getElementById('address-display').textContent = employee.address || 'Não informado'; 
-
+            // AGORA EXIBINDO OS CAMPOS DE ENDEREÇO SEPARADAMENTE
+            document.getElementById('address-street-display').textContent = employee.addressStreet || 'Não informado';
+            document.getElementById('address-number-display').textContent = employee.addressNumber || 'Não informado';
+            document.getElementById('address-complement-display').textContent = employee.addressComplement || 'Não informado';
+            
             document.getElementById('cep-display').textContent = employee.cep || 'Não informado';
             document.getElementById('neighborhood-display').textContent = employee.neighborhood || 'Não informado';
             document.getElementById('city-display').textContent = employee.city || 'Não informado';
@@ -254,7 +265,6 @@
 
             document.getElementById('payment-method-display').textContent = employee.paymentMethod || 'Não informado';
 
-            // Exibe ou esconde campos condicionais de pagamento
             const pixKeyItem = document.getElementById('pix-key-item');
             const bankDetailsItem = document.getElementById('bank-details-item');
 
@@ -271,20 +281,16 @@
                 bankDetailsItem.style.display = 'none';
             }
 
-            // Documentos (apenas o nome do arquivo, com link se disponível)
-            // No futuro, estas URLs seriam para o armazenamento real dos arquivos.
             document.getElementById('aso-doc-display').innerHTML = employee.asoDoc ? `<a href="${employee.asoDoc}" target="_blank">Ver ASO (${employee.asoDoc})</a>` : 'Nenhum';
             document.getElementById('contract-doc-display').innerHTML = employee.contractDoc ? `<a href="${employee.contractDoc}" target="_blank">Ver Contrato (${employee.contractDoc})</a>` : 'Nenhum';
             document.getElementById('identity-doc-display').innerHTML = employee.identityDoc ? `<a href="${employee.identityDoc}" target="_blank">Ver Identidade (${employee.identityDoc})</a>` : 'Nenhum';
             
             document.getElementById('observations-display').textContent = employee.observations || 'Nenhuma';
 
-            // Atualiza links de ação
             editEmployeeBtn.href = `registro_funcionario.html?id=${employee.id}`;
-            viewTimesheetBtn.href = `folha de ponto.html?employeeId=${employee.id}`; // Link provisório
+            viewTimesheetBtn.href = `folha de ponto.html?employeeId=${employee.id}`;
         }
 
-        // Função para carregar os dados do funcionário ao carregar a página
         async function loadEmployeeDetails() {
             const urlParams = new URLSearchParams(window.location.search);
             const employeeId = urlParams.get('id');
@@ -328,7 +334,6 @@
             }
         }
 
-        // Função para excluir funcionário (será implementada depois)
         async function deleteEmployee() {
             if (!currentEmployeeId) {
                 alert('Nenhum funcionário selecionado para exclusão.');
@@ -338,7 +343,6 @@
             if (confirm(`Tem certeza que deseja EXCLUIR o funcionário ID ${currentEmployeeId} (${document.getElementById('full-name-display').textContent})? Esta ação é irreversível.`)) {
                 showFeedback('Excluindo funcionário...', 'info');
                 try {
-                    // TODO: Implementar API de exclusão (DELETE /api/delete-employee?id=...)
                     const response = await fetch(`/api/delete-employee?id=${currentEmployeeId}`, {
                         method: 'DELETE',
                     });
@@ -347,7 +351,7 @@
                         showFeedback('Funcionário excluído com sucesso!', 'success');
                         console.log(`Funcionário ID ${currentEmployeeId} excluído.`);
                         setTimeout(() => {
-                            window.location.href = 'quadrodefuncionarios.html'; // Redireciona de volta
+                            window.location.href = 'quadrodefuncionarios.html';
                         }, 1500);
                     } else {
                         const errorResult = await response.json();
@@ -361,15 +365,12 @@
             }
         }
 
-
-        // --- Event Listeners e Inicialização ---
         document.addEventListener('DOMContentLoaded', () => {
             updateDateTime();
-            setInterval(updateDateTime, 1000); // Atualiza a cada segundo
+            setInterval(updateDateTime, 1000);
 
-            loadEmployeeDetails(); // Chama para carregar os detalhes do funcionário
+            loadEmployeeDetails();
 
-            // Event Listener para o botão de exclusão
             deleteEmployeeBtn.addEventListener('click', deleteEmployee);
         });
     </script>
