@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Empresas - Sistema Studio 57</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" xintegrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/global.css"> <!-- LINK PARA CSS GLOBAL -->
+
+    <style>
+        /* Estilos ESPECÍFICOS da Listagem de Empresas que NÃO estão no global.css */
+        .company-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem; /* gap-6 */
+            margin-top: 1.5rem; /* mt-6 */
+        }
+        .company-card {
+            background-color: var(--color-white);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-md);
+            padding: 1.5rem; /* p-6 */
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem; /* gap-3 */
+        }
+        .company-card h3 {
+            margin: 0;
+            font-size: 1.125rem; /* text-lg */
+            color: var(--color-primary-dark);
+            border-bottom: 1px solid var(--color-medium-light-gray);
+            padding-bottom: 0.5rem;
+        }
+        .company-card p {
+            margin: 0;
+            font-size: 0.875rem; /* text-sm */
+            color: var(--color-dark-gray);
+        }
+        .company-card p strong {
+            color: var(--color-dark);
+            font-weight: 500;
+        }
+        .company-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem; /* gap-2 */
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--color-medium-light-gray);
+        }
+        .company-actions .btn {
+            font-size: 0.8rem; /* text-xs */
+            padding: 0.375rem 0.75rem; /* px-3 py-1.5 */
+        }
+        #no-companies-message {
+            text-align: center;
+            color: var(--color-muted);
+            padding: 2rem;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER SERÁ CARREGADO AQUI VIA JS -->
+    <div id="header-placeholder"></div>
+
+    <div class="page-wrapper">
+        <!-- SIDEBAR SERÁ CARREGADA AQUI VIA JS -->
+        <div id="sidebar-placeholder"></div>
+
+        <main class="main-content" id="main-content-area">
+            <div id="feedback" class="hidden"></div>
+
+            <section class="section">
+                <h2>Empresas Cadastradas</h2>
+                <div style="margin-bottom: 1.5rem;">
+                    <a href="cadastro_empresa.html" class="btn btn-primary"><i class="fas fa-plus"></i> Adicionar Nova Empresa</a>
+                </div>
+
+                <div class="company-grid" id="company-grid-container">
+                    <p id="no-companies-message">Carregando empresas...</p>
+                </div>
+            </section>
+
+            <footer class="legal-footer">
+                <p> © 2025 Studio 57 Arquitetura e Incorporação - CNPJ: 41.464.589/0001-66. Todos os direitos reservados. </p>
+            </footer>
+        </main>
+    </div>
+    
+    <script src="js/common_ui.js"></script> <!-- LINK PARA JS COMUM -->
+    <script>
+        // --- Seletores DOM Específicos da Página ---
+        const companyGridContainer = document.getElementById('company-grid-container');
+        const noCompaniesMessage = document.getElementById('no-companies-message');
+
+        // --- Funções Específicas da Página ---
+
+        /**
+         * Formata o CNPJ para exibição.
+         * @param {string} cnpj - O CNPJ sem formatação.
+         * @returns {string} CNPJ formatado ou o original se inválido.
+         */
+        function formatCnpj(cnpj) {
+            if (!cnpj) return 'Não informado';
+            cnpj = cnpj.replace(/\D/g, ''); // Remove caracteres não numéricos
+            if (cnpj.length === 14) {
+                return cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
+            }
+            return cnpj; // Retorna original se não tem 14 dígitos
+        }
+
+        /**
+         * Carrega as empresas do backend e as exibe na grade.
+         */
+        async function loadAndDisplayCompanies() {
+            companyGridContainer.innerHTML = ''; // Limpa antes de carregar
+            noCompaniesMessage.textContent = 'Carregando empresas...';
+            noCompaniesMessage.classList.remove('hidden'); // Garante que a mensagem de carregamento seja visível
+
+            try {
+                // Usa a função apiFetch global do common_ui.js
+                const result = await window.commonUi.apiFetch('/api/companies', {
+                    method: 'GET',
+                });
+
+                if (result && result.companies) {
+                    const companies = result.companies;
+
+                    if (companies.length === 0) {
+                        noCompaniesMessage.textContent = 'Nenhuma empresa cadastrada ainda.';
+                        noCompaniesMessage.classList.remove('hidden');
+                    } else {
+                        noCompaniesMessage.classList.add('hidden'); // Esconde a mensagem se houver empresas
+                        companies.forEach(company => {
+                            const card = document.createElement('div');
+                            card.className = 'company-card';
+                            card.dataset.id = company.id; // Guarda o ID para edição/exclusão
+
+                            card.innerHTML = `
+                                <h3>${company.nomeFantasia || company.razaoSocial || 'Empresa Sem Nome'}</h3>
+                                <p><strong>CNPJ:</strong> ${formatCnpj(company.cnpj)}</p>
+                                <p><strong>Razão Social:</strong> ${company.razaoSocial || 'Não informado'}</p>
+                                <p><strong>Telefone:</strong> ${company.telefone || 'Não informado'}</p>
+                                <p><strong>Email:</strong> ${company.email || 'Não informado'}</p>
+                                <p><strong>Endereço:</strong> ${company.addressStreet || ''} ${company.addressNumber || ''}, ${company.neighborhood || ''}, ${company.city || ''} - ${company.state || ''} ${company.cep || ''}</p>
+                                <div class="company-actions">
+                                    <a href="cadastro_empresa.html?id=${company.id}" class="btn btn-primary btn-sm"><i class="fas fa-edit"></i> Editar</a>
+                                    <button type="button" class="btn btn-danger btn-sm delete-company-btn" data-id="${company.id}"><i class="fas fa-trash-alt"></i> Excluir</button>
+                                </div>
+                            `;
+                            companyGridContainer.appendChild(card);
+                        });
+                        console.log("Lista de empresas carregada do banco de dados.");
+                    }
+                } else {
+                    noCompaniesMessage.textContent = `Erro ao carregar empresas: ${result.error || 'Erro desconhecido.'}`;
+                    noCompaniesMessage.classList.remove('hidden');
+                    console.error('Erro na API ao buscar empresas:', result);
+                }
+            } catch (error) {
+                noCompaniesMessage.textContent = `Erro de conexão ao carregar empresas. Verifique sua internet.`;
+                noCompaniesMessage.classList.remove('hidden');
+                console.error('Erro de rede ou servidor ao buscar empresas:', error);
+            }
+        }
+
+        /**
+         * Função para excluir uma empresa.
+         * Será chamada quando o botão de exclusão for clicado.
+         * @param {number} companyId - O ID da empresa a ser excluída.
+         */
+        async function deleteCompany(companyId) {
+            if (!confirm("Tem certeza que deseja EXCLUIR esta empresa? Esta ação é irreversível e pode afetar empreendimentos e funcionários vinculados.")) {
+                return;
+            }
+
+            try {
+                window.commonUi.showFeedback('Excluindo empresa...', 'info');
+                // Usa a função apiFetch global para chamar a API DELETE /api/companies?id=...
+                const result = await window.commonUi.apiFetch(`/api/companies?id=${companyId}`, {
+                    method: 'DELETE',
+                });
+
+                if (result && result.deletedId) {
+                    window.commonUi.showFeedback('Empresa excluída com sucesso!', 'success');
+                    // Remove o card da empresa da UI
+                    document.querySelector(`.company-card[data-id="${companyId}"]`)?.remove();
+                    // Se não houver mais empresas, mostra a mensagem
+                    if (companyGridContainer.children.length === 0) {
+                         noCompaniesMessage.textContent = 'Nenhuma empresa cadastrada ainda.';
+                         noCompaniesMessage.classList.remove('hidden');
+                    }
+                } else {
+                    window.commonUi.showFeedback(`Erro ao excluir empresa: ${result.error || 'Erro desconhecido.'}`, 'error');
+                }
+            } catch (error) {
+                console.error('Erro na requisição DELETE para empresa:', error);
+            }
+        }
+
+
+        // --- Event Listeners e Inicialização ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            // common_ui.js já cuida do carregamento de header/sidebar, data/hora e user info.
+            // E também da verificação de autenticação.
+            if (!window.commonUi || !window.commonUi.checkAuth || !window.commonUi.checkAuth()) {
+                return; // commonUi.checkAuth já lida com o redirecionamento
+            }
+
+            // Lógica específica para o back-link desta página
+            const backLink = document.querySelector('.back-link');
+            if (backLink) {
+                backLink.href = 'dashboard.html'; // Ou para o dashboard
+                backLink.classList.remove('hidden'); // Mostra o botão de voltar
+            }
+
+            await loadAndDisplayCompanies(); // Carrega e exibe as empresas ao carregar a página
+
+            // Adiciona listener para botões de exclusão (delegado)
+            companyGridContainer.addEventListener('click', (event) => {
+                const deleteButton = event.target.closest('.delete-company-btn');
+                if (deleteButton) {
+                    const companyId = deleteButton.dataset.id;
+                    if (companyId) {
+                        deleteCompany(companyId);
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+```
+
+**Explicação das Mudanças:**
+
+1.  **Estrutura da Página**: Adaptei o HTML para ter um cabeçalho, barra lateral (via placeholders), área de conteúdo principal com um título, um botão "Adicionar Nova Empresa", e uma área para a grade de empresas.
+2.  **Estilos Específicos**: Adicionei CSS específico para o layout dos cards de empresa (`.company-grid`, `.company-card`) e para os botões de ação dentro dos cards.
+3.  **JavaScript (`loadAndDisplayCompanies`)**:
+    * Faz uma requisição `GET` para `/api/companies` (utilizando `window.commonUi.apiFetch`).
+    * Itera sobre a lista de `companies` retornada.
+    * Para cada empresa, cria dinamicamente um `div` com a classe `company-card` e preenche seus detalhes (Razão Social, CNPJ formatado, telefone, e-mail, endereço).
+    * Adiciona botões "Editar" (que aponta para `cadastro_empresa.html?id=...`) e "Excluir" a cada card.
+    * Gerencia a mensagem "Carregando empresas..." e "Nenhuma empresa cadastrada ainda.".
+4.  **JavaScript (`deleteCompany`)**:
+    * Implementa a lógica para chamar a API `DELETE /api/companies?id=...` quando o botão "Excluir" é clicado.
+    * Inclui uma confirmação para o usuário antes da exclusão.
+    * Após a exclusão, remove o card da interface e exibe feedback.
+
+---
+
+### **Próximos Passos (Deploy e Teste Completo):**
+
+1.  **Salve o novo arquivo `public/lista_empresas.html`**.
+2.  **Atualize os links na barra lateral (`public/includes/sidebar.html`)** para incluir o link para `lista_empresas.html`. Isso é importante para navegar facilmente.
+
+    **Ação:** Por favor, **apague todo o conteúdo atual do seu Canvas `public/includes/sidebar.html - Componente Barra Lateral` e cole o novo conteúdo completo abaixo**:
+
+    
+    ```html
+    <nav class="sidebar">
+        <ul class="nav-menu">
+            <li><a href="dashboard.html" class="nav-link" data-page-title="Dashboard"><i class="fas fa-tachometer-alt"></i><span class="link-text">Dashboard</span></a></li>
+            <li class="section-title-sidebar"><span>Administrativo</span></li>
+            <li><a href="cadastro_empresa.html" class="nav-link" data-page-title="Cadastro de Empresas"><i class="fas fa-building"></i><span class="link-text">Cadastro de Empresas</span></a></li>
+            <li><a href="lista_empresas.html" class="nav-link" data-page-title="Empresas Cadastradas"><i class="fas fa-list-alt"></i><span class="link-text">Empresas Cadastradas</span></a></li> <!-- NOVO LINK AQUI -->
+            <li><a href="folha_ponto.html" class="nav-link" data-page-title="Folha de Ponto"><i class="fas fa-clock"></i><span class="link-text">Folha de Ponto</span></a></li>
+            <li><a href="registro_funcionario.html" class="nav-link" data-page-title="Registro de Funcionário"><i class="fas fa-user-plus"></i><span class="link-text">Registro de Funcionário</span></a></li>
+            <li><a href="quadrodefuncionarios.html" class="nav-link" data-page-title="Quadro de Funcionários"><i class="fas fa-users"></i><span class="link-text">Quadro de Funcionários</span></a></li>
+            <li class="section-title-sidebar"><span>Obras</span></li>
+            <li><a href="diariodeobras.html" class="nav-link" data-page-title="Diário de Obras"><i class="fas fa-book"></i><span class="link-text">Diário de Obras</span></a></li>
+            <li><a href="orcamento_frontend.html" class="nav-link" data-page-title="Orçamento"><i class="fas fa-calculator"></i><span class="link-text">Orçamento</span></a></li>
+            <li><a href="gantt.html" class="nav-link" data-page-title="Cronograma (Gantt)"><i class="fas fa-tasks"></i><span class="link-text">Cronograma (Gantt)</span></a></li>
+            <li><a href="#" class="nav-link" data-page-title="Materiais"><i class="fas fa-boxes-stacked"></i><span class="link-text">Materiais</span></a></li>
+            <li class="section-title-sidebar"><span>Comercial</span></li>
+            <li><a href="#" class="nav-link" data-page-title="Tabela de Vendas"><i class="fas fa-tags"></i><span class="link-text">Tabela de Vendas</span></a></li>
+            <li><a href="#" class="nav-link" data-page-title="Simulador de Pagamento"><i class="fas fa-percentage"></i><span class="link-text">Simulador de Pagamento</span></a></li>
+            <li class="section-title-sidebar"><span>Ferramentas</span></li>
+            <li><a href="mapa_mental.html" class="nav-link" data-page-title="Mapa Mental"><i class="fas fa-project-diagram"></i><span class="link-text">Mapa Mental</span></a></li>
+            <li class="mt-auto pt-4 border-t border-gray-100"><a href="#" id="logout-link" class="nav-link logout-link"><i class="fas fa-sign-out-alt"></i><span class="link-text">Sair</span></a></li>
+        </ul>
+    </nav>
+    
