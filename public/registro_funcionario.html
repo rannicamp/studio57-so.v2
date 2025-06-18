@@ -4,289 +4,195 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro de Funcionários - Sistema Studio 57</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" xintegrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/global.css"> <!-- LINK PARA CSS GLOBAL -->
+
     <style>
-        /* --- Variáveis CSS (Paleta Atualizada) --- */
-        :root {
-            --font-body: 'Roboto', sans-serif;
-            --font-heading: 'Montserrat', sans-serif;
-            --color-primary: #ffe57b; /* Amarelo Paleta */
-            --color-primary-dark: #fdda4a; /* Amarelo Escuro Paleta */
-            --color-danger: #ff5757; /* Vermelho Paleta */
-            --color-danger-dark: #f03a3a; /* Vermelho Escuro (Aproximado) */
-            --color-success: #c1ff72; /* Verde Paleta */
-            --color-success-dark: #a0e650; /* Verde Escuro (Aproximado) */
-            --color-info: #38b6ff; /* Azul Paleta */
-            --color-info-dark: #1f9ff0; /* Azul Escuro (Aproximado) */
-            --color-warning: #ffe57b; /* Warning usa o Amarelo Paleta */
-            --color-warning-dark: #fdda4a;
-            --color-light: #f8f9fa;
-            --color-medium-light-gray: #d9d9d9; /* Cinza Claro Paleta */
-            --color-dark-gray: #737373; /* Cinza Escuro Paleta */
-            --color-dark: #343a40; /* Cinza bem escuro para texto principal */
-            --color-black: #000000; /* Preto Paleta */
-            --color-muted: #737373; /* Muted usa o cinza escuro da paleta */
-            --color-white: #ffffff; /* Branco Paleta */
-            --color-border: #d9d9d9; /* Borda usa o cinza claro da paleta */
-            --color-border-focus: var(--color-primary-dark); /* Foco usa amarelo escuro */
-            --color-input-bg: #ffffff;
-            --color-input-disabled-bg: #e9ecef; /* Cinza leve para disabled */
-            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
-            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
-            --border-radius-sm: 4px;
-            --border-radius-md: 8px;
-            --spacing-xs: 4px;
-            --spacing-sm: 8px;
-            --spacing-md: 15px;
-            --spacing-lg: 20px;
-            --spacing-xl: 30px;
-            --photo-preview-size: 150px; /* Tamanho da área da foto */
-        }
-
-        /* --- Estilos Gerais --- */
-        body {
-            font-family: var(--font-body); line-height: 1.6; margin: var(--spacing-lg); background-color: var(--color-light); color: var(--color-dark); font-size: 16px;
-        }
-        h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); color: var(--color-dark); margin-top: 1.5em; margin-bottom: 0.8em; }
-        h2 { font-size: 1.6em; border-bottom: 1px solid var(--color-border); padding-bottom: var(--spacing-sm); }
-        h3 { font-size: 1.3em; color: var(--color-dark-gray); margin-top: var(--spacing-lg); margin-bottom: var(--spacing-lg); }
-        button, input, select, textarea { font-family: inherit; font-size: 1em; }
-        * { box-sizing: border-box; }
-
-        /* --- Estrutura Principal e Cabeçalho --- */
-        .main-container { background-color: var(--color-white); padding: var(--spacing-xl); border-radius: var(--border-radius-md); box-shadow: var(--shadow-md); max-width: 900px; margin: var(--spacing-xl) auto; border: 1px solid var(--color-border); }
-        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-xl); border-bottom: 1px solid var(--color-border); padding-bottom: var(--spacing-md); gap: var(--spacing-md); }
-        .header-left { flex-shrink: 0; }
-        .header-center { flex-grow: 1; text-align: center; }
-        .header-right { flex-shrink: 0; min-width: 200px; text-align: right; display: flex; align-items: center; justify-content: flex-end; gap: var(--spacing-sm); }
-        .studio57-logo { display: inline-block; max-height: 50px; width: auto; vertical-align: middle; }
-        .page-header h1 { margin: 0; font-weight: 600; color: var(--color-dark); font-size: 1.5em; line-height: 1.2; }
-        #current-datetime { font-family: var(--font-body); font-size: 0.9em; color: var(--color-muted); white-space: nowrap; }
-
-        /* --- Seções e Formulários --- */
-        section { margin-bottom: var(--spacing-xl); }
-        label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 0.9em; color: var(--color-dark); font-family: var(--font-heading); }
-        label.required::after { content: " *"; color: var(--color-danger); font-weight: bold; }
-        input[type="text"], input[type="date"], input[type="number"], input[type="email"], input[type="tel"], select, textarea, input[type="file"] {
-            width: 100%; padding: 10px var(--spacing-md); margin-bottom: var(--spacing-lg); border: 1px solid var(--color-border); border-radius: var(--border-radius-sm); box-sizing: border-box; background-color: var(--color-input-bg); transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out; line-height: 1.5; font-size: 0.95em;
-        }
-        input[type="text"], input[type="date"], input[type="number"], input[type="email"], input[type="tel"], select { height: 44px; }
-        input[type="file"] { padding: 8px; height: auto; }
-        textarea { resize: vertical; min-height: 80px; height: auto; }
-        input:focus, select:focus, textarea:focus { border-color: var(--color-primary); outline: 0; box-shadow: 0 0 0 0.2rem rgba(255, 229, 123, 0.45); }
-        input:disabled, select:disabled, button:disabled, textarea:disabled, input[readonly] { background-color: var(--color-input-disabled-bg) !important; opacity: 0.7; cursor: not-allowed !important; }
-        input[readonly]:focus { box-shadow: none; border-color: var(--color-border); }
-
-        /* --- Grid Layout --- */
-        .input-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--spacing-md) var(--spacing-lg); }
-        .input-grid.address-grid { grid-template-columns: 1fr 1fr; }
-        .grid-col-span-2 { grid-column: span 2; }
-
-         /* Layout Dados Pessoais com Foto */
-        .personal-data-layout { display: flex; flex-wrap: wrap; gap: var(--spacing-xl); }
-        .photo-section { flex-shrink: 0; width: var(--photo-preview-size); text-align: center; }
+        /* Estilos ESPECÍFICOS do Cadastro de Funcionários que NÃO estão no global.css */
+        .personal-data-layout { display: flex; flex-wrap: wrap; gap: 1.5rem; }
+        .photo-section { flex-shrink: 0; width: 150px; text-align: center; }
         .info-section { flex-grow: 1; }
-        #photo-preview-container { width: var(--photo-preview-size); height: var(--photo-preview-size); border: 1px dashed var(--color-border); border-radius: var(--border-radius-sm); background-color: var(--color-light); display: flex; align-items: center; justify-content: center; margin-bottom: var(--spacing-sm); overflow: hidden; position: relative; }
+        #photo-preview-container { width: 150px; height: 150px; border: 1px dashed var(--color-border); border-radius: var(--border-radius-sm); background-color: var(--color-light); display: flex; align-items: center; justify-content: center; margin-bottom: 0.5rem; overflow: hidden; position: relative; }
         #photo-preview-img { display: block; width: 100%; height: 100%; object-fit: cover; }
-         #photo-placeholder { font-size: 3em; color: var(--color-muted); }
-        #foto-funcionario-label { display: inline-block; padding: 8px 12px; background-color: var(--color-info); color: white; border-radius: var(--border-radius-sm); cursor: pointer; font-size: 0.9em; transition: background-color 0.2s ease; margin-top: var(--spacing-sm); border: 1px solid var(--color-info-dark); }
+        #photo-placeholder { font-size: 3em; color: var(--color-muted); }
+        /* Ajuste do botão de upload de foto para usar estilo .btn */
+        #foto-funcionario-label { display: inline-flex; align-items: center; justify-content: center; padding: 0.6rem 1.2rem; background-color: var(--color-info); color: white; border-radius: var(--border-radius-md); cursor: pointer; font-size: 0.9em; transition: background-color 0.2s ease; border: 1px solid var(--color-info); }
         #foto-funcionario-label:hover { background-color: var(--color-info-dark); }
-        #foto-funcionario { display: none; }
+        #foto-funcionario { display: none; } /* Esconde o input original */
 
-        /* Botão Buscar CEP */
-        .cep-container { display: flex; align-items: flex-start; gap: var(--spacing-sm); }
-        .cep-container input { flex-grow: 1; margin-bottom: var(--spacing-lg); }
-        .cep-container button { margin-top: 27px; height: 44px; flex-shrink: 0; padding: 10px var(--spacing-md); }
-        button.info { background-color: var(--color-info); color: white; border-color: var(--color-info); }
-        button.info:hover:not(:disabled) { background-color: var(--color-info-dark); }
-
-         /* --- Botões de Ação Principais --- */
-         .main-actions { display: flex; flex-wrap: wrap; gap: var(--spacing-md); margin-top: var(--spacing-xl); justify-content: center; padding-top: var(--spacing-lg); border-top: 1px solid var(--color-border); }
-         .main-actions button { font-family: var(--font-heading); padding: 12px var(--spacing-xl); border-radius: var(--border-radius-sm); border: 1px solid transparent; cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease; font-size: 1em; font-weight: 500; flex-grow: 1; min-width: 200px; }
-         .main-actions button.success { background-color: var(--color-primary); color: var(--color-dark); border-color: var(--color-primary-dark); }
-         .main-actions button.success:hover:not(:disabled) { background-color: var(--color-primary-dark); border-color: var(--color-primary-dark); }
-         .main-actions button.secondary { background-color: var(--color-muted); color: white; border-color: var(--color-muted); }
-         .main-actions button.secondary:hover:not(:disabled) { background-color: var(--color-dark-gray); border-color: var(--color-dark-gray); }
-
-        /* --- Rodapé --- */
-        .legal-footer { margin-top: var(--spacing-xl); padding-top: var(--spacing-lg); text-align: center; font-size: 0.8em; color: var(--color-muted); border-top: 1px solid #eee; }
+        .cep-container { display: flex; align-items: flex-start; gap: 0.5rem; }
+        .cep-container input { flex-grow: 1; margin-bottom: 1rem; }
+        .cep-container .btn { margin-top: 1.625rem; height: 44px; flex-shrink: 0; } /* Ajuste de margem para alinhar com input */
+        
+        .main-actions { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1.5rem; justify-content: center; padding-top: 1rem; border-top: 1px solid var(--color-border); }
+        .main-actions .btn { flex-grow: 1; min-width: 200px; padding: 0.75rem 1.5rem; }
+        
+        .legal-footer { margin-top: 1.5rem; padding-top: 1rem; text-align: center; font-size: 0.8em; color: var(--color-muted); border-top: 1px solid #eee; }
         .legal-footer p { margin-bottom: 0; }
-
-        /* --- Campos Condicionais --- */
         .conditional-field { display: none; }
         .conditional-field.visible { display: block; }
-
-        /* --- Estilo para o preview do nome do arquivo --- */
-        .file-upload-info { font-size: 0.85em; color: var(--color-muted); margin-top: -10px; margin-bottom: var(--spacing-lg); display: block; min-height: 1.2em; }
-
-        /* --- Mensagem de Status CEP --- */
-        #cep-status { font-size: 0.85em; color: var(--color-muted); margin-top: -10px; margin-bottom: var(--spacing-lg); min-height: 1.2em; }
-        #cep-status.loading { color: var(--color-info); }
-        #cep-status.error { color: var(--color-danger); }
-        #cep-status.success { color: var(--color-success-dark); }
-
-         /* --- Mensagem de Feedback --- */
-         #feedback-message { padding: var(--spacing-md); margin-bottom: var(--spacing-lg); border-radius: var(--border-radius-sm); font-weight: 500; text-align: center; display: none; }
-         #feedback-message.success { background-color: var(--color-success); color: var(--color-dark); border: 1px solid var(--color-success-dark); }
-         #feedback-message.error { background-color: #ffebee; color: var(--color-danger-dark); border: 1px solid var(--color-danger); }
-         #feedback-message.info { background-color: #e0f7ff; color: var(--color-info-dark); border: 1px solid var(--color-info); }
-         #feedback-message.warning { background-color: #fffbeb; color: var(--color-warning-dark); border: 1px solid var(--color-warning); }
-
-        /* --- Print --- */
-        @media print { /* Estilos de impressão mantidos */ }
-
+        .file-upload-info { font-size: 0.85em; color: var(--color-dark-gray); margin-top: 0.5rem; display: block; min-height: 1.2em; }
+        #cep-status { font-size: 0.85em; color: var(--color-muted); margin-top: 0.5rem; display: block; min-height: 1.2em; }
     </style>
 </head>
 <body>
-    <main class="main-container">
-        <header class="page-header">
-            <div class="header-left"> <img src="https://studio57.arq.br/wp-content/uploads/2025/04/STUDIO-57-PRETO-RETANGULO.png" alt="Logo Studio 57" class="studio57-logo"> </div>
-            <div class="header-center"> <h1>Cadastro de Funcionários</h1> </div>
-            <div class="header-right"> <span id="current-datetime">--/--/---- --:--:--</span> </div>
-        </header>
+    <!-- HEADER SERÁ CARREGADO AQUI VIA JS -->
+    <div id="header-placeholder"></div>
 
-        <div id="feedback-message"></div>
+    <div class="page-wrapper">
+        <!-- SIDEBAR SERÁ CARREGADA AQUI VIA JS -->
+        <div id="sidebar-placeholder"></div>
 
-        <form id="cadastro-funcionario-form" enctype="multipart/form-data">
-            <section>
-                <h2>Dados Pessoais</h2>
-                <div class="personal-data-layout">
-                     <div class="photo-section">
-                         <div id="photo-preview-container">
-                             <span id="photo-placeholder">📷</span> <img id="photo-preview-img" src="#" alt="Foto do Funcionário" style="display: none;">
+        <main class="main-content" id="main-content-area">
+            <div id="feedback" class="hidden"></div> <!-- Agora gerenciado por common_ui.js, começa hidden -->
+
+            <form id="cadastro-funcionario-form" enctype="multipart/form-data">
+                <section class="section">
+                    <h2>Dados Pessoais</h2>
+                    <div class="personal-data-layout">
+                         <div class="photo-section">
+                             <div id="photo-preview-container">
+                                 <span id="photo-placeholder">📷</span> <img id="photo-preview-img" src="#" alt="Foto do Funcionário" style="display: none;">
+                             </div>
+                             <label for="foto-funcionario" id="foto-funcionario-label"><i class="fas fa-camera"></i> Carregar Foto</label>
+                             <input type="file" id="foto-funcionario" name="foto_funcionario" accept="image/*" style="display: none;">
                          </div>
-                         <label for="foto-funcionario" id="foto-funcionario-label">Carregar Foto</label>
-                         <input type="file" id="foto-funcionario" name="foto_funcionario" accept="image/*" style="display: none;">
-                     </div>
-                     <div class="info-section">
-                         <div class="input-grid">
-                             <div class="grid-col-span-2"> <label for="nome-completo" class="required">Nome Completo:</label> <input type="text" id="nome-completo" name="nome_completo" required> </div>
-                             <div> <label for="cpf" class="required">CPF:</label> <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00" required> </div>
-                             <div> <label for="rg">RG:</label> <input type="text" id="rg" name="rg"> </div>
-                             <div> <label for="data-nascimento">Data de Nascimento:</label> <input type="date" id="data-nascimento" name="data_nascimento"> </div>
-                             <div> <label for="telefone">Telefone:</label> <input type="tel" id="telefone" name="telefone" placeholder="(00) 00000-0000"> </div>
-                             <div> <label for="email">Email:</label> <input type="email" id="email" name="email"> </div>
+                         <div class="info-section">
+                             <div class="form-grid">
+                                 <div class="grid-col-span-2 form-group"> <label for="nome-completo" class="required">Nome Completo:</label> <input type="text" id="nome-completo" name="nome_completo" required> </div>
+                                 <div class="form-group"> <label for="cpf" class="required">CPF:</label> <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00" required> </div>
+                                 <div class="form-group"> <label for="rg">RG:</label> <input type="text" id="rg" name="rg"> </div>
+                                 <div class="form-group"> <label for="data-nascimento">Data de Nascimento:</label> <input type="date" id="data-nascimento" name="data_nascimento"> </div>
+                                 <div class="form-group"> <label for="telefone">Telefone:</label> <input type="tel" id="telefone" name="telefone" placeholder="(00) 00000-0000"> </div>
+                                 <div class="form-group"> <label for="email">Email:</label> <input type="email" id="email" name="email"> </div>
+                             </div>
                          </div>
+                    </div>
+                </section>
+
+                 <section class="section">
+                    <h2>Associação de Empresa e Empreendimento</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="empresa-id" class="required">Empresa Contratante:</label>
+                            <select id="empresa-id" name="empresa_id" required>
+                                <option value="">-- Selecione a Empresa --</option>
+                                <!-- Empresas serão carregadas aqui via JS -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="empreendimento-atual-id">Empreendimento Alocado (Opcional):</label>
+                            <select id="empreendimento-atual-id" name="empreendimento_atual_id">
+                                <option value="">-- Nenhum Empreendimento --</option>
+                                <!-- Empreendimentos serão carregados aqui via JS -->
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                 <section class="section">
+                    <h2>Endereço</h2>
+                     <div class="form-grid address-grid">
+                        <div class="cep-container grid-col-span-2 form-group">
+                            <div> <label for="cep" class="required">CEP:</label> <input type="text" id="cep" name="cep" placeholder="00000-000" required maxlength="9"> <span id="cep-status"></span> </div>
+                            <button type="button" id="buscar-cep-btn" class="btn btn-info"><i class="fas fa-search"></i> Buscar</button>
+                        </div>
+                        <div class="grid-col-span-2 form-group"> <label for="logradouro" class="required">Logradouro (Rua/Av.):</label> <input type="text" id="logradouro" name="address_street" required> </div>
+                        <div class="form-group"> <label for="numero" class="required">Número:</label> <input type="text" id="numero" name="address_number" required> </div>
+                        <div class="form-group"> <label for="complemento">Complemento:</label> <input type="text" id="complemento" name="address_complement" placeholder="Apto, Bloco, etc."> </div>
+                        <div class="form-group"> <label for="bairro" class="required">Bairro:</label> <input type="text" id="bairro" name="neighborhood" required> </div>
+                        <div class="form-group"> <label for="cidade" class="required">Cidade:</label> <input type="text" id="cidade" name="city" required> </div>
+                        <div class="form-group"> <label for="estado" class="required">Estado (UF):</label> <input type="text" id="estado" name="state" required maxlength="2"> </div>
                      </div>
-                </div>
-            </section>
+                </section>
 
-             <section>
-                <h2>Associação de Empresa e Empreendimento</h2>
-                <div class="input-grid">
-                    <div>
-                        <label for="empresa-id" class="required">Empresa Contratante:</label>
-                        <select id="empresa-id" name="empresa_id" required>
-                            <option value="">-- Selecione a Empresa --</option>
-                            <!-- Empresas serão carregadas aqui via JS -->
-                        </select>
+                <section class="section">
+                    <h2>Dados Contratuais</h2>
+                    <div class="form-grid">
+                        <div class="form-group"> <label for="cargo" class="required">Cargo / Função:</label> <input type="text" id="cargo" name="cargo" required> </div>
+                        <div class="form-group"> <label for="data-admissao" class="required">Data de Admissão:</label> <input type="date" id="data-admissao" name="data_admissao" required> </div>
+                        <div class="form-group"> <label for="salario-base">Salário Base (R$):</label> <input type="number" id="salario-base" name="salario_base" step="0.01" placeholder="Ex: 1980.00"> </div>
+                        <div class="form-group"> <label for="salario-total">Salário Total (R$):</label> <input type="number" id="salario-total" name="salario_total" step="0.01" placeholder="Ex: 3300.00"> </div>
+                        <div class="form-group"> <label for="valor-dia">Valor Dia (R$):</label> <input type="number" id="valor-dia" name="valor_dia" step="0.01" placeholder="Ex: 150.00"> </div>
                     </div>
-                    <div>
-                        <label for="empreendimento-atual-id">Empreendimento Alocado (Opcional):</label>
-                        <select id="empreendimento-atual-id" name="empreendimento_atual_id">
-                            <option value="">-- Nenhum Empreendimento --</option>
-                            <!-- Empreendimentos serão carregados aqui via JS -->
-                        </select>
-                    </div>
-                </div>
-            </section>
+                </section>
 
-             <section>
-                <h2>Endereço</h2>
-                 <div class="input-grid address-grid">
-                    <div class="cep-container grid-col-span-2">
-                        <div> <label for="cep" class="required">CEP:</label> <input type="text" id="cep" name="cep" placeholder="00000-000" required maxlength="9"> <span id="cep-status"></span> </div>
-                        <button type="button" id="buscar-cep-btn" class="info">Buscar</button>
+                <section class="section">
+                    <h2>Dados de Pagamento</h2>
+                    <div class="form-grid">
+                         <div class="form-group">
+                             <label for="forma-pagamento">Forma de Pagamento:</label>
+                             <select id="forma-pagamento" name="forma_pagamento">
+                                 <option value="">-- Selecione --</option>
+                                 <option value="pix">PIX</option>
+                                 <option value="deposito">Depósito Bancário</option>
+                                 <option value="dinheiro">Dinheiro</option>
+                             </select>
+                         </div>
+                         <div id="chave-pix-container" class="conditional-field form-group">
+                             <label for="chave-pix">Chave PIX:</label>
+                             <input type="text" id="chave-pix" name="chave_pix" placeholder="CPF, CNPJ, Email, Telefone ou Aleatória">
+                         </div>
                     </div>
-                    <div class="grid-col-span-2"> <label for="logradouro" class="required">Logradouro (Rua/Av.):</label> <input type="text" id="logradouro" name="address_street" required> </div>
-                    <div> <label for="numero" class="required">Número:</label> <input type="text" id="numero" name="address_number" required> </div>
-                    <div> <label for="complemento">Complemento:</label> <input type="text" id="complemento" name="address_complement" placeholder="Apto, Bloco, etc."> </div>
-                    <div> <label for="bairro" class="required">Bairro:</label> <input type="text" id="bairro" name="neighborhood" required> </div>
-                    <div> <label for="cidade" class="required">Cidade:</label> <input type="text" id="cidade" name="city" required> </div>
-                    <div> <label for="estado" class="required">Estado (UF):</label> <input type="text" id="estado" name="state" required maxlength="2"> </div>
+                    <div id="dados-bancarios-container" class="conditional-field form-group">
+                         <label for="dados-bancarios">Dados Bancários (Banco, Agência, Conta):</label>
+                         <textarea id="dados-bancarios" name="dados_bancarios" rows="3"></textarea>
+                    </div>
+                </section>
+
+                <section class="section">
+                    <h2>Documentos</h2>
+                    <p style="font-size: 0.9em; color: var(--color-muted); margin-top: -0.5em; margin-bottom: 1em;">O cadastro pode ser salvo com documentos pendentes, mas o funcionário será marcado com pendência.</p>
+                    <div class="form-grid">
+                         <div class="form-group">
+                             <label for="upload-aso">ASO:</label>
+                             <input type="file" id="upload-aso" name="upload_aso" accept=".pdf, image/*" class="file-input-styled"/>
+                             <label for="upload-aso" class="btn btn-secondary"><i class="fas fa-upload"></i> Selecionar ASO</label>
+                              <span id="upload-aso-info" class="file-upload-info"></span>
+                         </div>
+                         <div class="form-group">
+                             <label for="upload-contrato">Contrato de Trabalho:</label>
+                              <input type="file" id="upload-contrato" name="upload_contrato" accept=".pdf, .doc, .docx, image/*" class="file-input-styled"/>
+                              <label for="upload-contrato" class="btn btn-secondary"><i class="fas fa-upload"></i> Selecionar Contrato</label>
+                              <span id="upload-contrato-info" class="file-upload-info"></span>
+                         </div>
+                         <div class="form-group">
+                             <label for="upload-identidade">Documento Identidade (com Foto):</label>
+                              <input type="file" id="upload-identidade" name="upload_identidade" accept=".pdf, image/*" class="file-input-styled"/>
+                              <label for="upload-identidade" class="btn btn-secondary"><i class="fas fa-upload"></i> Selecionar Identidade</label>
+                             <span id="upload-identidade-info" class="file-upload-info"></span>
+                         </div>
+                    </div>
+                </section>
+
+                 <section class="section">
+                     <h2>Observações</h2>
+                     <div class="form-group">
+                         <label for="observacoes">Observações Adicionais:</label>
+                         <textarea id="observacoes" name="observacoes" rows="3" placeholder="Alguma observação sobre o funcionário, contratação ou documentos..."></textarea>
+                     </div>
+                 </section>
+
+                 <div class="main-actions">
+                     <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Salvar Cadastro</button>
+                     <button type="reset" class="btn btn-secondary"><i class="fas fa-undo"></i> Limpar Formulário</button>
                  </div>
-            </section>
+            </form>
 
-            <section>
-                <h2>Dados Contratuais</h2>
-                <div class="input-grid">
-                    <div> <label for="cargo" class="required">Cargo / Função:</label> <input type="text" id="cargo" name="cargo" required> </div>
-                    <div> <label for="data-admissao" class="required">Data de Admissão:</label> <input type="date" id="data-admissao" name="data_admissao" required> </div>
-                    <div> <label for="salario-base">Salário Base (R$):</label> <input type="number" id="salario-base" name="salario_base" step="0.01" placeholder="Ex: 1980.00"> </div>
-                    <div> <label for="salario-total">Salário Total (R$):</label> <input type="number" id="salario-total" name="salario_total" step="0.01" placeholder="Ex: 3300.00"> </div>
-                    <div> <label for="valor-dia">Valor Dia (R$):</label> <input type="number" id="valor-dia" name="valor_dia" step="0.01" placeholder="Ex: 150.00"> </div>
-                </div>
-            </section>
+            <footer class="legal-footer">
+                <p> © 2025 Studio 57 Arquitetura e Incorporação - CNPJ: 41.464.589/0001-66. Todos os direitos reservados. </p>
+            </footer>
+        </main>
 
-            <section>
-                <h2>Dados de Pagamento</h2>
-                <div class="input-grid">
-                     <div>
-                         <label for="forma-pagamento">Forma de Pagamento:</label>
-                         <select id="forma-pagamento" name="forma_pagamento">
-                             <option value="">-- Selecione --</option>
-                             <option value="pix">PIX</option>
-                             <option value="deposito">Depósito Bancário</option>
-                             <option value="dinheiro">Dinheiro</option>
-                         </select>
-                     </div>
-                     <div id="chave-pix-container" class="conditional-field">
-                         <label for="chave-pix">Chave PIX:</label>
-                         <input type="text" id="chave-pix" name="chave_pix" placeholder="CPF, CNPJ, Email, Telefone ou Aleatória">
-                     </div>
-                </div>
-                <div id="dados-bancarios-container" class="conditional-field">
-                     <label for="dados-bancarios">Dados Bancários (Banco, Agência, Conta):</label>
-                     <textarea id="dados-bancarios" name="dados_bancarios" rows="3"></textarea>
-                </div>
-            </section>
-
-            <section>
-                <h2>Documentos</h2>
-                <p style="font-size: 0.9em; color: var(--color-muted); margin-top: -0.5em; margin-bottom: 1em;">O cadastro pode ser salvo com documentos pendentes, mas o funcionário será marcado com pendência.</p>
-                <div class="input-grid">
-                     <div>
-                         <label for="upload-aso">ASO:</label>
-                         <input type="file" id="upload-aso" name="upload_aso" accept=".pdf, image/*">
-                          <span id="upload-aso-info" class="file-upload-info"></span>
-                     </div>
-                     <div>
-                         <label for="upload-contrato">Contrato de Trabalho:</label>
-                          <input type="file" id="upload-contrato" name="upload_contrato" accept=".pdf, .doc, .docx, image/*">
-                          <span id="upload-contrato-info" class="file-upload-info"></span>
-                     </div>
-                     <div>
-                         <label for="upload-identidade">Documento Identidade (com Foto):</label>
-                          <input type="file" id="upload-identidade" name="upload_identidade" accept=".pdf, image/*">
-                         <span id="upload-identidade-info" class="file-upload-info"></span>
-                     </div>
-                </div>
-            </section>
-
-             <section>
-                 <h2>Observações</h2>
-                 <div>
-                     <label for="observacoes">Observações Adicionais:</label>
-                     <textarea id="observacoes" name="observacoes" rows="3" placeholder="Alguma observação sobre o funcionário, contratação ou documentos..."></textarea>
-                 </div>
-             </section>
-
-             <div class="main-actions">
-                 <button type="submit" class="success">Salvar Cadastro</button>
-                 <button type="reset" class="secondary">Limpar Formulário</button>
-             </div>
-        </form>
-
-        <footer class="legal-footer">
-            <p> © 2025 Studio 57 Arquitetura e Incorporação - CNPJ: 41.464.589/0001-66. Todos os direitos reservados. </p>
-        </footer>
-    </main>
-
+    </div>
+    <script src="js/common_ui.js"></script> <!-- LINK PARA JS COMUM -->
     <script>
-        // --- Seletores Globais ---
-        const currentDatetimeSpan = document.getElementById('current-datetime');
+        // --- Seletores Globais (adaptados para common_ui.js) ---
+        // Removido feedbackMessageDiv daqui, agora é gerenciado globalmente via commonUi
         const fotoInput = document.getElementById('foto-funcionario');
         const fotoPreviewImg = document.getElementById('photo-preview-img');
         const fotoPlaceholder = document.getElementById('photo-placeholder');
@@ -303,24 +209,18 @@
         const complementoInput = document.getElementById('complemento');
         const cepStatusSpan = document.getElementById('cep-status');
         const cadastroForm = document.getElementById('cadastro-funcionario-form');
-        const feedbackMessageDiv = document.getElementById('feedback-message');
         const asoInput = document.getElementById('upload-aso');
         const contratoInput = document.getElementById('upload-contrato');
         const identidadeInput = document.getElementById('upload-identidade');
-        const empresaSelect = document.getElementById('empresa-id'); // NOVO: Seleção de Empresa
-        const empreendimentoSelect = document.getElementById('empreendimento-atual-id'); // NOVO: Seleção de Empreendimento
-        let dateTimeInterval;
+        const empresaSelect = document.getElementById('empresa-id');
+        const empreendimentoSelect = document.getElementById('empreendimento-atual-id');
+        
         let cepTimeout = null;
         let currentEmployeeId = null;
 
-        // --- Funções Auxiliares ---
-        function updateDateTime() {
-            if (!currentDatetimeSpan) return;
-            const now = new Date();
-            const formattedDate = now.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
-            const formattedTime = now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-            currentDatetimeSpan.textContent = `${formattedDate} ${formattedTime}`;
-        }
+        // --- Funções Auxiliares (adaptadas para common_ui.js) ---
+        // updateDateTime (usar commonUi.updateDateTime), showFeedback (usar commonUi.showFeedback), apiFetch (usar commonUi.apiFetch)
+        // foram movidas para common_ui.js.
 
         function handlePhotoPreview(event) {
             const file = event.target.files[0];
@@ -364,17 +264,13 @@
             if (estadoInput) estadoInput.value = "";
             if (numeroInput) numeroInput.value = "";
             if (complementoInput) complementoInput.value = "";
-            if (cepStatusSpan) cepStatusSpan.textContent = "";
-            if (cepStatusSpan) cepStatusSpan.className = "";
+            if (cepStatusSpan) { cepStatusSpan.textContent = ""; cepStatusSpan.classList.add("hidden"); } // Esconde o status
         }
 
         async function buscarEnderecoPorCEP(cepValue) {
             if (!cepValue) return;
 
-            if (cepStatusSpan) {
-                cepStatusSpan.textContent = "Buscando...";
-                cepStatusSpan.className = "loading";
-            }
+            if (cepStatusSpan) { cepStatusSpan.textContent = "Buscando..."; cepStatusSpan.classList.remove("hidden"); cepStatusSpan.classList.remove("text-red-600", "text-green-600"); cepStatusSpan.classList.add("text-blue-600"); }
             limparCamposEndereco();
 
             try {
@@ -395,33 +291,15 @@
                 if (cidadeInput) cidadeInput.value = data.localidade || "";
                 if (estadoInput) estadoInput.value = data.uf || "";
 
-                if (cepStatusSpan) {
-                    cepStatusSpan.textContent = "Endereço encontrado!";
-                    cepStatusSpan.className = "success";
-                }
+                if (cepStatusSpan) { cepStatusSpan.textContent = "Endereço encontrado!"; cepStatusSpan.classList.remove("text-blue-600"); cepStatusSpan.classList.add("text-green-600"); setTimeout(() => cepStatusSpan.classList.add("hidden"), 2000); }
                 numeroInput?.focus();
-            } catch (error) {
+            }
+            catch (error) {
                 console.error("Erro ao buscar CEP:", error);
-                if (cepStatusSpan) {
-                    cepStatusSpan.textContent = `Erro: ${error.message}`;
-                    cepStatusSpan.className = "error";
-                }
+                if (cepStatusSpan) { cepStatusSpan.textContent = `Erro: ${error.message}`; cepStatusSpan.classList.remove("text-blue-600"); cepStatusSpan.classList.add("text-red-600"); }
                 limparCamposEndereco();
                 cepInput?.focus();
             }
-        }
-
-        function showFeedback(message, type = 'success') {
-            if (!feedbackMessageDiv) return;
-            feedbackMessageDiv.textContent = message;
-            feedbackMessageDiv.className = '';
-            feedbackMessageDiv.classList.add(type);
-            feedbackMessageDiv.style.display = 'block';
-            setTimeout(() => {
-                if (feedbackMessageDiv.textContent === message) {
-                    feedbackMessageDiv.style.display = 'none';
-                }
-            }, 5000);
         }
 
         // Função para preencher o formulário com dados de um funcionário
@@ -433,7 +311,6 @@
             document.getElementById('telefone').value = employee.phone || '';
             document.getElementById('email').value = employee.email || '';
 
-            // Preenchimento dos campos de endereço individuais
             document.getElementById('logradouro').value = employee.addressStreet || '';
             document.getElementById('numero').value = employee.addressNumber || '';
             document.getElementById('complemento').value = employee.addressComplement || '';
@@ -445,90 +322,89 @@
             if (employee.cep) buscarEnderecoPorCEP(employee.cep);
 
             // Associação de Empresa e Empreendimento
-            // Garante que o select já esteja preenchido antes de tentar setar o valor
-            if (empresaSelect && employee.empresaId) empresaSelect.value = employee.empresaId;
-            if (empreendimentoSelect && employee.empreendimentoAtualId) empreendimentoSelect.value = employee.empreendimentoAtualId;
+            // A pré-seleção será feita após o carregamento dos selects em Promise.all
+            if (empresaSelect) empresaSelect.value = employee.empresaId;
+            if (empreendimentoSelect) empreendimentoSelect.value = employee.empreendimentoAtualId;
 
-            // Dados Contratuais
             document.getElementById('cargo').value = employee.contractRole || '';
             document.getElementById('data-admissao').value = employee.admissionDate || '';
             document.getElementById('salario-base').value = employee.baseSalary || '';
             document.getElementById('salario-total').value = employee.totalSalary || '';
             document.getElementById('valor-dia').value = employee.dailyValue || '';
 
-            // Dados de Pagamento
             document.getElementById('forma-pagamento').value = employee.paymentMethod || '';
             togglePaymentFields();
             document.getElementById('chave-pix').value = employee.pixKey || '';
             document.getElementById('dados-bancarios').value = employee.bankDetails || '';
 
-            // Documentos (apenas o nome do arquivo, sem carregar o arquivo real)
             document.getElementById('upload-aso-info').textContent = employee.asoDoc ? `Arquivo: ${employee.asoDoc}` : '';
             document.getElementById('upload-contrato-info').textContent = employee.contractDoc ? `Arquivo: ${employee.contractDoc}` : '';
             document.getElementById('upload-identidade-info').textContent = employee.identityDoc ? `Arquivo: ${employee.identityDoc}` : '';
             
             document.getElementById('observacoes').value = employee.observations || '';
-
-            // Opcional: Desabilitar CPF para edição se ele for a chave primária
-            // document.getElementById('cpf').readOnly = true;
         }
 
 
         async function handleFormSubmit(event) {
             event.preventDefault();
-            showFeedback('Enviando dados...', 'info');
+            // showFeedback('Enviando dados...', 'info'); // Substituído por commonUi.showFeedback
+            window.commonUi.showFeedback('Enviando dados...', 'info');
+
 
             const form = event.target;
             const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
 
-            // Validação de Empresa Contratante (agora que é um select obrigatório)
             if (!data['empresa_id'] || data['empresa_id'] === "") {
-                showFeedback('Por favor, selecione a Empresa Contratante.', 'error');
+                window.commonUi.showFeedback('Por favor, selecione a Empresa Contratante.', 'error');
                 empresaSelect.focus();
                 return;
             }
 
-            data.asoDoc = asoInput.files[0] ? asoInput.files[0].name : (document.getElementById('upload-aso-info').textContent.replace('Arquivo: ', '') || null);
-            data.contractDoc = contratoInput.files[0] ? contratoInput.files[0].name : (document.getElementById('upload-contrato-info').textContent.replace('Arquivo: ', '') || null);
-            data.identityDoc = identidadeInput.files[0] ? identidadeInput.files[0].name : (document.getElementById('upload-identidade-info').textContent.replace('Arquivo: ', '') || null);
+            // Para uploads de arquivo, você está pegando o nome do arquivo, mas a lógica de upload real precisaria ser implementada
+            // e retornaria URLs que seriam salvas no DB. Por enquanto, os nomes de arquivo são strings.
+            const asoFileName = asoInput.files[0] ? asoInput.files[0].name : (document.getElementById('upload-aso-info').textContent.replace('Arquivo: ', '') || null);
+            const contratoFileName = contratoInput.files[0] ? contratoInput.files[0].name : (document.getElementById('upload-contrato-info').textContent.replace('Arquivo: ', '') || null);
+            const identidadeFileName = identidadeInput.files[0] ? identidadeInput.files[0].name : (document.getElementById('upload-identidade-info').textContent.replace('Arquivo: ', '') || null);
 
-            delete data.foto_funcionario;
+            delete data.foto_funcionario; // A foto é um arquivo, não um dado de texto direto no formulário
 
+
+            // Ajusta valores vazios para null para o banco de dados
+            const cleanedData = {};
             for (const key in data) {
-                if (data[key] === '') {
-                    data[key] = null;
-                }
+                cleanedData[key] = data[key] === '' ? null : data[key];
             }
 
+
             const employeeData = {
-                fullName: data['nome_completo'],
-                cpf: data['cpf'],
-                rg: data['rg'],
-                birthDate: data['data_nascimento'],
-                phone: data['telefone'],
-                email: data['email'],
-                addressStreet: data['logradouro'],
-                addressNumber: data['numero'],
-                addressComplement: data['complemento'],
-                cep: data['cep'],
-                city: data['cidade'],
-                state: data['estado'],
-                neighborhood: data['bairro'],
-                empresaId: parseInt(data['empresa_id']), // Agora vem do select
-                empreendimentoAtualId: data['empreendimento_atual_id'] ? parseInt(data['empreendimento_atual_id']) : null,
-                contractRole: data['cargo'],
-                admissionDate: data['data_admissao'],
-                baseSalary: data['salario_base'],
-                totalSalary: data['salario_total'],
-                dailyValue: data['valor_dia'],
-                paymentMethod: data['forma_pagamento'],
-                pixKey: data['chave_pix'],
-                bankDetails: data['dados_bancarios'],
-                asoDoc: data.asoDoc,
-                contractDoc: data.contractDoc,
-                identityDoc: data.identityDoc,
-                observations: data['observacoes'],
+                fullName: cleanedData['nome_completo'],
+                cpf: cleanedData['cpf'],
+                rg: cleanedData['rg'],
+                birthDate: cleanedData['data_nascimento'],
+                phone: cleanedData['telefone'],
+                email: cleanedData['email'],
+                addressStreet: cleanedData['address_street'],
+                addressNumber: cleanedData['numero'],
+                addressComplement: cleanedData['complemento'],
+                cep: cleanedData['cep'],
+                city: cleanedData['cidade'],
+                state: cleanedData['estado'],
+                neighborhood: cleanedData['bairro'],
+                empresaId: parseInt(cleanedData['empresa_id']),
+                empreendimentoAtualId: cleanedData['empreendimento_atual_id'] ? parseInt(cleanedData['empreendimento_atual_id']) : null,
+                contractRole: cleanedData['cargo'],
+                admissionDate: cleanedData['data_admissao'],
+                baseSalary: cleanedData['salario_base'],
+                totalSalary: cleanedData['salario_total'],
+                dailyValue: cleanedData['valor_dia'],
+                paymentMethod: cleanedData['forma_pagamento'],
+                pixKey: cleanedData['chave_pix'],
+                bankDetails: cleanedData['dados_bancarios'],
+                asoDoc: asoFileName, // Usando o nome do arquivo
+                contractDoc: contratoFileName,
+                identityDoc: identidadeFileName,
+                observations: cleanedData['observacoes'],
             };
 
             if (employeeData.paymentMethod !== 'pix') {
@@ -547,43 +423,34 @@
                     method = 'PUT';
                 }
 
-                const response = await fetch(url, {
+                // Usando a função apiFetch do common_ui.js
+                const result = await window.commonUi.apiFetch(url, {
                     method: method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
                     body: JSON.stringify(employeeData),
                 });
 
-                const result = await response.json();
-
-                if (response.ok) {
-                    showFeedback(`Funcionário ${currentEmployeeId ? 'atualizado' : 'cadastrado'} com sucesso!`, 'success');
+                if (result) { // A função apiFetch já lida com o response.ok
+                    window.commonUi.showFeedback(`Funcionário ${currentEmployeeId ? 'atualizado' : 'cadastrado'} com sucesso!`, 'success');
                     console.log(`Funcionário ${currentEmployeeId ? 'atualizado' : 'cadastrado'}:`, result.employee);
                     if (!currentEmployeeId) {
                         form.reset();
                         limparCamposEndereco();
-                        handlePhotoPreview({ target: { files: [] } });
+                        handlePhotoPreview({ target: { files: [] } }); // Limpa preview da foto
                         togglePaymentFields();
+                        // Limpa info dos uploads
                         document.getElementById('upload-aso-info').textContent = '';
                         document.getElementById('upload-contrato-info').textContent = '';
                         document.getElementById('upload-identidade-info').textContent = '';
-                        // Recarrega empresas e empreendimentos para novos cadastros
-                        loadCompaniesIntoSelect();
-                        loadEmpreendimentosIntoSelect();
                     }
                     if (currentEmployeeId) {
                          setTimeout(() => {
                              window.location.href = 'detalhes_funcionario.html?id=' + currentEmployeeId;
                          }, 1500);
                     }
-                } else {
-                    showFeedback(`Erro ao ${currentEmployeeId ? 'atualizar' : 'cadastrar'}: ${result.error || 'Erro desconhecido.'}`, 'error');
-                    console.error('Erro na API:', result);
                 }
             } catch (error) {
-                showFeedback('Erro de rede ou servidor ao tentar operação.', 'error');
-                console.error('Erro na requisição fetch:', error);
+                // Erros já são tratados e exibidos por commonUi.apiFetch
+                console.error('Erro na requisição fetch (handleFormSubmit):', error);
             }
         }
 
@@ -595,31 +462,24 @@
             if (employeeId) {
                 currentEmployeeId = employeeId;
                 document.querySelector('h1').textContent = 'Editar Funcionário';
-                showFeedback(`Carregando dados para edição do funcionário com ID: ${employeeId}...`, 'info');
+                window.commonUi.showFeedback(`Carregando dados para edição do funcionário com ID: ${employeeId}...`, 'info');
 
                 try {
-                    const response = await fetch(`/api/get-employee-by-id?id=${employeeId}`, {
+                    // Usando a função apiFetch do common_ui.js
+                    const result = await window.commonUi.apiFetch(`/api/get-employee-by-id?id=${employeeId}`, {
                         method: 'GET',
-                        headers: { 'Content-Type': 'application/json' },
                     });
 
-                    const result = await response.json();
-
-                    if (response.ok) {
-                        if (result.employee) {
-                            fillFormWithEmployeeData(result.employee);
-                            showFeedback('Dados do funcionário carregados com sucesso!', 'success');
-                            // document.getElementById('cpf').readOnly = true;
-                        } else {
-                            showFeedback('Funcionário não encontrado.', 'error');
-                            console.error('Funcionário não encontrado:', result);
-                        }
+                    if (result && result.employee) {
+                        // Armazena o funcionário para ser usado após o carregamento dos selects em Promise.all
+                        window.employeeDataToFill = result.employee;
+                        window.commonUi.showFeedback('Dados do funcionário carregados com sucesso!', 'success');
                     } else {
-                        showFeedback(`Erro ao carregar dados: ${result.error || 'Erro desconhecido.'}`, 'error');
-                        console.error('Erro na API ao carregar funcionário:', result);
+                        window.commonUi.showFeedback('Funcionário não encontrado.', 'error');
+                        console.error('Funcionário não encontrado:', result);
                     }
                 } catch (error) {
-                    showFeedback('Erro de rede ou servidor ao carregar dados do funcionário.', 'error');
+                    // Erros já são tratados e exibidos por commonUi.apiFetch
                     console.error('Erro na requisição fetch para carregar funcionário:', error);
                 }
             } else {
@@ -635,24 +495,22 @@
             document.getElementById('upload-aso-info').textContent = '';
             document.getElementById('upload-contrato-info').textContent = '';
             document.getElementById('upload-identidade-info').textContent = '';
-            showFeedback('Formulário limpo.', 'info');
+            window.commonUi.showFeedback('Formulário limpo.', 'info');
             currentEmployeeId = null;
             document.querySelector('h1').textContent = 'Cadastro de Funcionários';
-            // document.getElementById('cpf').readOnly = false;
-            // Recarrega selects após reset
+            // Recarrega selects após reset para garantir que estejam vazios ou preenchidos novamente
             loadCompaniesIntoSelect();
             loadEmpreendimentosIntoSelect();
         }
 
-        // NOVO: Função para carregar empresas no select
+        // Função para carregar empresas no select
         async function loadCompaniesIntoSelect() {
             try {
-                const response = await fetch('/api/companies', {
+                // Usando a função apiFetch do common_ui.js
+                const result = await window.commonUi.apiFetch('/api/companies', {
                     method: 'GET',
-                    headers: { 'Content-Type': 'application/json' },
                 });
-                const result = await response.json();
-                if (response.ok && result.companies) {
+                if (result && result.companies) {
                     empresaSelect.innerHTML = '<option value="">-- Selecione a Empresa --</option>';
                     result.companies.forEach(company => {
                         const option = document.createElement('option');
@@ -660,26 +518,27 @@
                         option.textContent = company.nomeFantasia || company.razaoSocial;
                         empresaSelect.appendChild(option);
                     });
+                    return result.companies; // Retorna as empresas carregadas
                 } else {
-                    console.error('Erro ao carregar empresas:', result.error || 'Erro desconhecido.');
-                    showFeedback('Erro ao carregar lista de empresas.', 'error');
+                    console.error('Erro ao carregar empresas: Nenhum dado retornado ou erro na API.');
+                    window.commonUi.showFeedback('Erro ao carregar lista de empresas.', 'error');
+                    return [];
                 }
             } catch (error) {
-                console.error('Erro de rede ao carregar empresas:', error);
-                showFeedback('Erro de conexão ao carregar empresas.', 'error');
+                // commonUi.apiFetch já mostra o erro
+                console.error('Erro de rede ao carregar empresas (loadCompaniesIntoSelect):', error);
+                return [];
             }
         }
 
-        // NOVO: Função para carregar empreendimentos no select (AINDA PRECISA DA API)
+        // Função para carregar empreendimentos no select (AINDA PRECISA DA API)
         async function loadEmpreendimentosIntoSelect() {
-            // Esta API para empreendimentos ainda não existe, então este select não será preenchido por enquanto
             try {
-                const response = await fetch('/api/empreendimentos', { // ESTA API AINDA NÃO FOI CRIADA
+                // Usando a função apiFetch do common_ui.js
+                const result = await window.commonUi.apiFetch('/api/empreendimentos', { // ESTA API AINDA NÃO FOI CRIADA
                     method: 'GET',
-                    headers: { 'Content-Type': 'application/json' },
                 });
-                const result = await response.json();
-                if (response.ok && result.empreendimentos) {
+                if (result && result.empreendimentos) {
                     empreendimentoSelect.innerHTML = '<option value="">-- Nenhum Empreendimento --</option>';
                     result.empreendimentos.forEach(empreendimento => {
                         const option = document.createElement('option');
@@ -687,20 +546,44 @@
                         option.textContent = empreendimento.nome;
                         empreendimentoSelect.appendChild(option);
                     });
+                    return result.empreendimentos; // Retorna os empreendimentos
                 } else {
                     console.warn('Nenhum empreendimento carregado ou erro:', result.error || 'Erro desconhecido.');
+                    return [];
                 }
             } catch (error) {
-                console.error('Erro de rede ao carregar empreendimentos:', error);
+                console.error('Erro de rede ao carregar empreendimentos (loadEmpreendimentosIntoSelect):', error);
+                return [];
             }
         }
 
 
         // --- Event Listeners e Inicialização ---
-        document.addEventListener('DOMContentLoaded', () => {
-            updateDateTime();
-            if (dateTimeInterval) clearInterval(dateTimeInterval);
-            dateTimeInterval = setInterval(updateDateTime, 1000);
+        document.addEventListener('DOMContentLoaded', async () => {
+            // common_ui.js já cuida da inicialização de data/hora e user info.
+
+            // Carrega os componentes reutilizáveis (Header e Sidebar)
+            // Esta função foi movida para o escopo global ou um setup inicial.
+            // Para páginas que não têm um setup de layout específico no init, podemos chamar aqui:
+            if (window.loadReusableComponents) { // Supondo que você crie uma função global em common_ui.js ou em um script de layout
+                await window.loadReusableComponents();
+            } else {
+                // Fallback ou aviso se a função não for encontrada
+                console.warn("loadReusableComponents não encontrada. Header/Sidebar podem não carregar.");
+            }
+
+            // Verifica autenticação (usando a função do common_ui)
+            if (!window.commonUi || !window.commonUi.checkAuth || !window.commonUi.checkAuth()) {
+                return; // commonUi.checkAuth já lida com o redirecionamento
+            }
+            
+            // Lógica específica para o back-link desta página
+            const backLink = document.querySelector('.back-link');
+            if (backLink) {
+                backLink.href = 'quadrodefuncionarios.html'; // De volta para o quadro de funcionários
+                backLink.classList.remove('hidden'); // Mostra o botão de voltar
+            }
+
 
             fotoInput?.addEventListener('change', handlePhotoPreview);
             formaPagamentoSelect?.addEventListener('change', togglePaymentFields);
@@ -713,7 +596,7 @@
                 if (cepValue && cepValue.length === 8) {
                     buscarEnderecoPorCEP(cepValue);
                 } else {
-                    if (cepStatusSpan) { cepStatusSpan.textContent = "CEP inválido. Digite 8 dígitos."; cepStatusSpan.className = "error"; }
+                    window.commonUi.showFeedback("CEP inválido. Digite 8 dígitos.", 'error'); 
                     limparCamposEndereco();
                 }
             });
@@ -721,7 +604,7 @@
             cepInput?.addEventListener('input', () => {
                 const cepValue = cepInput.value.replace(/\D/g, "");
                 clearTimeout(cepTimeout);
-                if (cepStatusSpan) { cepStatusSpan.textContent = ""; cepStatusSpan.className = ""; }
+                if (cepStatusSpan) { cepStatusSpan.textContent = ""; cepStatusSpan.classList.add("hidden"); } // Limpa status e esconde
                 if (cepValue.length === 8) {
                     cepTimeout = setTimeout(() => { buscarEnderecoPorCEP(cepValue); }, 500);
                 }
@@ -730,771 +613,21 @@
             cadastroForm?.addEventListener('submit', handleFormSubmit);
             cadastroForm?.addEventListener('reset', handleFormReset);
 
-            // Inicializações de selects e carregamento de dados
-            loadCompaniesIntoSelect(); // Carrega as empresas ao iniciar
-            loadEmpreendimentosIntoSelect(); // Carrega os empreendimentos ao iniciar (ainda sem API)
+            // Carrega todos os dados assíncronos em paralelo e depois preenche o formulário
+            await Promise.all([
+                loadCompaniesIntoSelect(), // Carrega as empresas
+                loadEmpreendimentosIntoSelect(), // Carrega os empreendimentos (ainda sem API, mas já tenta)
+                loadEmployeeDataForEdit() // Inicia o carregamento dos dados do funcionário para edição
+            ]);
+
+            // Se employeeDataToFill foi preenchido por loadEmployeeDataForEdit, agora preenchemos o formulário
+            if (window.employeeDataToFill) {
+                fillFormWithEmployeeData(window.employeeDataToFill);
+                delete window.employeeDataToFill; // Limpa o dado global após o uso
+            }
 
             togglePaymentFields();
-            loadEmployeeDataForEdit();
             console.log("Cadastro de Funcionários adaptado ao backend inicializado.");
-        });
-    </script>
-</body>
-</html>
-```
-
-**2.2. Atualizar `public/detalhes_funcionario.html` (Visualização de Detalhes do Funcionário)**
-
-* Esta página precisará exibir o nome da **Empresa Contratante** e o nome do **Empreendimento Alocado**, que agora virão do backend via `JOIN`.
-
-**Ação:** Apague todo o conteúdo atual do seu arquivo `public/detalhes_funcionario.html` e cole o novo conteúdo completo abaixo:
-
-```html
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detalhes do Funcionário - Sistema Studio 57</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --font-body: 'Roboto', sans-serif;
-            --font-heading: 'Montserrat', sans-serif;
-            --color-primary: #ffe57b; /* Amarelo Paleta */
-            --color-primary-dark: #fdda4a; /* Amarelo Escuro Paleta */
-            --color-danger: #ff5757;
-            --color-danger-dark: #f03a3a;
-            --color-success: #c1ff72;
-            --color-success-dark: #a0e650;
-            --color-info: #38b6ff;
-            --color-info-dark: #1f9ff0;
-            --color-light: #f8f9fa;
-            --color-dark: #343a40;
-            --color-muted: #737373;
-            --color-white: #ffffff;
-            --color-border: #d9d9d9;
-            --color-border-focus: var(--color-primary-dark);
-            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
-            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
-            --border-radius-sm: 4px;
-            --border-radius-md: 8px;
-            --spacing-xs: 4px;
-            --spacing-sm: 8px;
-            --spacing-md: 15px;
-            --spacing-lg: 20px;
-            --spacing-xl: 30px;
-            --photo-preview-size-large: 180px;
-        }
-        body { font-family: var(--font-body); line-height: 1.6; margin: var(--spacing-lg); background-color: var(--color-light); color: var(--color-dark); font-size: 16px; }
-        h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); color: var(--color-dark); margin-top: 1.5em; margin-bottom: 0.8em; }
-        h2 { font-size: 1.6em; border-bottom: 1px solid var(--color-border); padding-bottom: var(--spacing-sm); }
-        .main-container { background-color: var(--color-white); padding: var(--spacing-xl); border-radius: var(--border-radius-md); box-shadow: var(--shadow-md); max-width: 950px; margin: var(--spacing-xl) auto; border: 1px solid var(--color-border); }
-        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-xl); border-bottom: 1px solid var(--color-border); padding-bottom: var(--spacing-md); gap: var(--spacing-md); }
-        .header-left { flex-shrink: 0; }
-        .header-center { flex-grow: 1; text-align: center; }
-        .header-right { flex-shrink: 0; min-width: 200px; text-align: right; display: flex; align-items: center; justify-content: flex-end; gap: var(--spacing-sm); }
-        .studio57-logo { display: inline-block; max-height: 50px; width: auto; vertical-align: middle; }
-        .page-header h1 { margin-bottom: 0; font-weight: 600; color: var(--color-dark); font-size: 1.5em; line-height: 1.2; }
-        #current-datetime { font-family: var(--font-body); font-size: 0.9em; color: var(--color-muted); white-space: nowrap; }
-        .back-link { display: inline-block; color: var(--color-info); text-decoration: none; font-weight: 500; margin-right: var(--spacing-lg); padding: var(--spacing-xs) var(--spacing-sm); border: 1px solid transparent; border-radius: var(--border-radius-sm); transition: all 0.2s ease; }
-        .back-link:hover { color: var(--color-info-dark); background-color: var(--color-light); border-color: var(--color-border); }
-        .employee-details-layout { display: flex; flex-wrap: wrap; gap: var(--spacing-xl); margin-bottom: var(--spacing-xl); }
-        .employee-details-photo { flex-shrink: 0; width: var(--photo-preview-size-large); height: var(--photo-preview-size-large); border-radius: 50%; background-color: var(--color-medium-light-gray); display: flex; align-items: center; justify-content: center; color: var(--color-white); font-size: 4em; overflow: hidden; margin-bottom: var(--spacing-md); }
-        .employee-details-info { flex-grow: 1; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--spacing-md) var(--spacing-lg); }
-        .info-item { margin-bottom: var(--spacing-sm); }
-        .info-item strong { display: block; font-size: 0.9em; color: var(--color-dark-gray); margin-bottom: 2px; }
-        .info-item span { display: block; font-size: 1.1em; color: var(--color-dark); }
-        .info-item.full-width { grid-column: 1 / -1; } /* Para itens que ocupam a largura total */
-        .employee-actions-area { display: flex; flex-wrap: wrap; gap: var(--spacing-md); margin-top: var(--spacing-xl); padding-top: var(--spacing-lg); border-top: 1px solid var(--color-border); justify-content: center; }
-        .employee-actions-area button, .employee-actions-area a { font-family: var(--font-heading); padding: 12px var(--spacing-xl); border-radius: var(--border-radius-sm); border: 1px solid transparent; cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease; font-size: 1em; font-weight: 500; flex-grow: 1; min-width: 180px; text-align: center; }
-        .employee-actions-area .edit-btn { background-color: var(--color-primary); color: var(--color-dark); border-color: var(--color-primary-dark); }
-        .employee-actions-area .edit-btn:hover { background-color: var(--color-primary-dark); }
-        .employee-actions-area .delete-btn { background-color: var(--color-danger); color: white; border-color: var(--color-danger-dark); }
-        .employee-actions-area .delete-btn:hover { background-color: var(--color-danger-dark); }
-        .employee-actions-area .secondary-btn { background-color: var(--color-muted); color: white; border-color: var(--color-muted); }
-        .employee-actions-area .secondary-btn:hover { background-color: var(--color-dark-gray); }
-
-        #feedback-message { padding: var(--spacing-md); margin-bottom: var(--spacing-lg); border-radius: var(--border-radius-sm); font-weight: 500; text-align: center; display: none; }
-        #feedback-message.success { background-color: var(--color-success); color: var(--color-dark); border: 1px solid var(--color-success-dark); }
-        #feedback-message.error { background-color: #ffebee; color: var(--color-danger-dark); border: 1px solid var(--color-danger); }
-        #feedback-message.info { background-color: #e0f7ff; color: var(--color-info-dark); border: 1px solid var(--color-info); }
-        /* Rodapé */
-        .legal-footer { margin-top: var(--spacing-xl); padding-top: var(--spacing-lg); text-align: center; font-size: 0.8em; color: var(--color-muted); border-top: 1px solid #eee; }
-    </style>
-</head>
-<body>
-    <main class="main-container">
-        <header class="page-header">
-            <div class="header-left">
-                <a href="quadrodefuncionarios.html" class="back-link" title="Voltar ao Quadro de Funcionários">← Voltar</a>
-                <img src="https://studio57.arq.br/wp-content/uploads/2025/04/STUDIO-57-PRETO-RETANGULO.png" alt="Logo Studio 57" class="studio57-logo">
-            </div>
-            <div class="header-center"> <h1 id="page-title">Detalhes do Funcionário</h1> </div>
-            <div class="header-right"> <span id="current-datetime">--/--/---- --:--:--</span> </div>
-        </header>
-
-        <div id="feedback-message"></div>
-
-        <section class="employee-details-layout">
-            <div class="employee-details-photo" id="employee-photo-initials">?</div>
-            <div class="employee-details-info">
-                <div class="info-item">
-                    <strong>Nome Completo:</strong>
-                    <span id="full-name-display">Carregando...</span>
-                </div>
-                <div class="info-item">
-                    <strong>CPF:</strong>
-                    <span id="cpf-display">Carregando...</span>
-                </div>
-                <div class="info-item">
-                    <strong>RG:</strong>
-                    <span id="rg-display">Carregando...</span>
-                </div>
-                <div class="info-item">
-                    <strong>Data de Nascimento:</strong>
-                    <span id="birth-date-display">Carregando...</span>
-                </div>
-                <div class="info-item">
-                    <strong>Telefone:</strong>
-                    <span id="phone-display">Carregando...</span>
-                </div>
-                <div class="info-item">
-                    <strong>Email:</strong>
-                    <span id="email-display">Carregando...</span>
-                </div>
-                <!-- NOVOS CAMPOS DE ENDEREÇO SEPARADOS PARA EXIBIÇÃO MAIS DETALHADA -->
-                <div class="info-item full-width">
-                    <strong>Logradouro:</strong>
-                    <span id="address-street-display">Carregando...</span>
-                </div>
-                <div class="info-item">
-                    <strong>Número:</strong>
-                    <span id="address-number-display">Carregando...</span>
-                </div>
-                <div class="info-item">
-                    <strong>Complemento:</strong>
-                    <span id="address-complement-display">Carregando...</span>
-                </div>
-                <div class="info-item">
-                    <strong>CEP:</strong>
-                    <span id="cep-display">Carregando...</span>
-                </div>
-                 <div class="info-item">
-                    <strong>Bairro:</strong>
-                    <span id="neighborhood-display">Carregando...</span>
-                </div>
-                <div class="info-item">
-                    <strong>Cidade:</strong>
-                    <span id="city-display">Carregando...</span>
-                </div>
-                <div class="info-item">
-                    <strong>Estado (UF):</strong>
-                    <span id="state-display">Carregando...</span>
-                </div>
-                <!-- FIM DOS NOVOS CAMPOS DE ENDEREÇO -->
-
-                <!-- NOVOS CAMPOS: EMPRESA E EMPREENDIMENTO -->
-                <div class="info-item full-width">
-                    <strong>Empresa Contratante:</strong>
-                    <span id="empresa-contratante-display">Carregando...</span>
-                </div>
-                <div class="info-item full-width">
-                    <strong>Empreendimento Alocado:</strong>
-                    <span id="empreendimento-alocado-display">Carregando...</span>
-                </div>
-                <!-- FIM DOS NOVOS CAMPOS -->
-
-                <div class="info-item">
-                    <strong>Cargo / Função:</strong>
-                    <span id="contract-role-display">Carregando...</span>
-                </div>
-                <div class="info-item">
-                    <strong>Data de Admissão:</strong>
-                    <span id="admission-date-display">Carregando...</span>
-                </div>
-                <div class="info-item">
-                    <strong>Salário Base (R$):</strong>
-                    <span id="base-salary-display">Carregando...</span>
-                </div>
-                <div class="info-item">
-                    <strong>Salário Total (R$):</strong>
-                    <span id="total-salary-display">Carregando...</span>
-                </div>
-                <div class="info-item">
-                    <strong>Valor Dia (R$):</strong>
-                    <span id="daily-value-display">Carregando...</span>
-                </div>
-                <div class="info-item">
-                    <strong>Forma de Pagamento:</strong>
-                    <span id="payment-method-display">Carregando...</span>
-                </div>
-                <div class="info-item" id="pix-key-item" style="display: none;">
-                    <strong>Chave PIX:</strong>
-                    <span id="pix-key-display">Carregando...</span>
-                </div>
-                <div class="info-item full-width" id="bank-details-item" style="display: none;">
-                    <strong>Dados Bancários:</strong>
-                    <span id="bank-details-display">Carregando...</span>
-                </div>
-                 <div class="info-item full-width">
-                    <strong>Observações:</strong>
-                    <span id="observations-display">Carregando...</span>
-                </div>
-                <!-- Documentos -->
-                 <div class="info-item full-width">
-                    <strong>ASO:</strong>
-                    <span id="aso-doc-display"></span>
-                </div>
-                <div class="info-item full-width">
-                    <strong>Contrato de Trabalho:</strong>
-                    <span id="contract-doc-display"></span>
-                </div>
-                <div class="info-item full-width">
-                    <strong>Documento Identidade:</strong>
-                    <span id="identity-doc-display"></span>
-                </div>
-            </div>
-        </section>
-
-        <div class="employee-actions-area">
-            <a href="#" id="edit-employee-btn" class="edit-btn">✏️ Editar Cadastro</a>
-            <button type="button" id="delete-employee-btn" class="delete-btn">🗑️ Excluir Funcionário</button>
-            <a href="#" id="view-timesheet-btn" class="secondary-btn">🗓️ Ver Folha de Ponto</a>
-            <!-- Adicione mais botões para outras funcionalidades aqui -->
-        </div>
-
-        <footer class="legal-footer">
-            <p> © 2025 Studio 57 Arquitetura e Incorporação - CNPJ: 41.464.589/0001-66. Todos os direitos reservados. </p>
-        </footer>
-    </main>
-
-    <script>
-        // --- Seletores Globais ---
-        const currentDatetimeSpan = document.getElementById('current-datetime');
-        const feedbackMessageDiv = document.getElementById('feedback-message');
-        const employeePhotoInitials = document.getElementById('employee-photo-initials');
-        const editEmployeeBtn = document.getElementById('edit-employee-btn');
-        const deleteEmployeeBtn = document.getElementById('delete-employee-btn');
-        const viewTimesheetBtn = document.getElementById('view-timesheet-btn');
-
-        // NOVOS SELETORES PARA EXIBIÇÃO DA EMPRESA E EMPREENDIMENTO
-        const empresaContratanteDisplay = document.getElementById('empresa-contratante-display');
-        const empreendimentoAlocadoDisplay = document.getElementById('empreendimento-alocado-display');
-
-        let currentEmployeeId = null;
-
-        // --- Funções Auxiliares ---
-        function updateDateTime() {
-            if (!currentDatetimeSpan) return;
-            const now = new Date();
-            const formattedDate = now.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
-            const formattedTime = now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-            currentDatetimeSpan.textContent = `${formattedDate} ${formattedTime}`;
-        }
-
-        function showFeedback(message, type = 'success') {
-            if (!feedbackMessageDiv) return;
-            feedbackMessageDiv.textContent = message;
-            feedbackMessageDiv.className = '';
-            feedbackMessageDiv.classList.add(type);
-            feedbackMessageDiv.style.display = 'block';
-            setTimeout(() => {
-                if (feedbackMessageDiv.textContent === message) {
-                    feedbackMessageDiv.style.display = 'none';
-                }
-            }, 5000);
-        }
-
-        // Função para preencher a exibição dos detalhes do funcionário
-        function displayEmployeeDetails(employee) {
-            document.getElementById('full-name-display').textContent = employee.fullName || 'Não informado';
-            employeePhotoInitials.textContent = employee.fullName ? employee.fullName.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() : '?';
-
-            document.getElementById('cpf-display').textContent = employee.cpf || 'Não informado';
-            document.getElementById('rg-display').textContent = employee.rg || 'Não informado';
-            document.getElementById('birth-date-display').textContent = employee.birthDate ? new Date(employee.birthDate + 'T00:00:00').toLocaleDateString('pt-BR') : 'Não informado';
-            document.getElementById('phone-display').textContent = employee.phone || 'Não informado';
-            document.getElementById('email-display').textContent = employee.email || 'Não informado';
-
-            document.getElementById('address-street-display').textContent = employee.addressStreet || 'Não informado';
-            document.getElementById('address-number-display').textContent = employee.addressNumber || 'Não informado';
-            document.getElementById('address-complement-display').textContent = employee.addressComplement || 'Não informado';
-            
-            document.getElementById('cep-display').textContent = employee.cep || 'Não informado';
-            document.getElementById('neighborhood-display').textContent = employee.neighborhood || 'Não informado';
-            document.getElementById('city-display').textContent = employee.city || 'Não informado';
-            document.getElementById('state-display').textContent = employee.state || 'Não informado';
-
-            // Preenche Empresa Contratante e Empreendimento Alocado
-            // Note que estes campos vêm dos JOINs na Netlify Function get-employee-by-id
-            empresaContratanteDisplay.textContent = employee.empresaContratanteNome || 'Não informado';
-            empreendimentoAlocadoDisplay.textContent = employee.empreendimentoAlocadoNome || 'Não informado';
-
-            document.getElementById('contract-role-display').textContent = employee.contractRole || 'Não informado';
-            document.getElementById('admission-date-display').textContent = employee.admissionDate ? new Date(employee.admissionDate + 'T00:00:00').toLocaleDateString('pt-BR') : 'Não informado';
-            document.getElementById('base-salary-display').textContent = employee.baseSalary ? parseFloat(employee.baseSalary).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'Não informado';
-            document.getElementById('total-salary-display').textContent = employee.totalSalary ? parseFloat(employee.totalSalary).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'Não informado';
-            document.getElementById('daily-value-display').textContent = employee.dailyValue ? parseFloat(employee.dailyValue).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'Não informado';
-
-            document.getElementById('payment-method-display').textContent = employee.paymentMethod || 'Não informado';
-
-            const pixKeyItem = document.getElementById('pix-key-item');
-            const bankDetailsItem = document.getElementById('bank-details-item');
-
-            if (employee.paymentMethod === 'pix') {
-                pixKeyItem.style.display = 'block';
-                document.getElementById('pix-key-display').textContent = employee.pixKey || 'Não informado';
-                bankDetailsItem.style.display = 'none';
-            } else if (employee.paymentMethod === 'deposito') {
-                bankDetailsItem.style.display = 'block';
-                document.getElementById('bank-details-display').textContent = employee.bankDetails || 'Não informado';
-                pixKeyItem.style.display = 'none';
-            } else {
-                pixKeyItem.style.display = 'none';
-                bankDetailsItem.style.display = 'none';
-            }
-
-            document.getElementById('aso-doc-display').innerHTML = employee.asoDoc ? `<a href="${employee.asoDoc}" target="_blank">Ver ASO (${employee.asoDoc})</a>` : 'Nenhum';
-            document.getElementById('contract-doc-display').innerHTML = employee.contractDoc ? `<a href="${employee.contractDoc}" target="_blank">Ver Contrato (${employee.contractDoc})</a>` : 'Nenhum';
-            document.getElementById('identity-doc-display').innerHTML = employee.identityDoc ? `<a href="${employee.identityDoc}" target="_blank">Ver Identidade (${employee.identityIdoc})</a>` : 'Nenhum';
-            
-            document.getElementById('observations-display').textContent = employee.observations || 'Nenhuma';
-
-            editEmployeeBtn.href = `registro_funcionario.html?id=${employee.id}`;
-            viewTimesheetBtn.href = `folha de ponto.html?employeeId=${employee.id}`;
-        }
-
-        async function loadEmployeeDetails() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const employeeId = urlParams.get('id');
-
-            if (!employeeId) {
-                showFeedback('ID do funcionário não fornecido na URL.', 'error');
-                document.querySelector('h1').textContent = 'Erro';
-                return;
-            }
-
-            currentEmployeeId = employeeId;
-            showFeedback(`Carregando detalhes do funcionário com ID: ${employeeId}...`, 'info');
-
-            try {
-                const response = await fetch(`/api/get-employee-by-id?id=${employeeId}`, {
-                    method: 'GET',
-                    headers: { 'Content-Type': 'application/json' },
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    if (result.employee) {
-                        displayEmployeeDetails(result.employee);
-                        showFeedback('Detalhes do funcionário carregados com sucesso!', 'success');
-                        document.querySelector('h1').textContent = `Detalhes de ${result.employee.fullName}`;
-                    } else {
-                        showFeedback('Funcionário não encontrado.', 'error');
-                        console.error('Funcionário não encontrado:', result);
-                        document.querySelector('h1').textContent = 'Funcionário Não Encontrado';
-                    }
-                } else {
-                    showFeedback(`Erro ao carregar detalhes: ${result.error || 'Erro desconhecido.'}`, 'error');
-                    console.error('Erro na API ao carregar funcionário:', result);
-                    document.querySelector('h1').textContent = 'Erro ao Carregar Detalhes';
-                }
-            } catch (error) {
-                showFeedback('Erro de rede ou servidor ao carregar detalhes do funcionário.', 'error');
-                console.error('Erro na requisição fetch para carregar funcionário:', error);
-                document.querySelector('h1').textContent = 'Erro de Conexão';
-            }
-        }
-
-        async function deleteEmployee() {
-            if (!currentEmployeeId) {
-                alert('Nenhum funcionário selecionado para exclusão.');
-                return;
-            }
-
-            if (confirm(`Tem certeza que deseja EXCLUIR o funcionário ID ${currentEmployeeId} (${document.getElementById('full-name-display').textContent})? Esta ação é irreversível.`)) {
-                showFeedback('Excluindo funcionário...', 'info');
-                try {
-                    const response = await fetch(`/api/delete-employee?id=${currentEmployeeId}`, {
-                        method: 'DELETE',
-                    });
-
-                    if (response.ok) {
-                        showFeedback('Funcionário excluído com sucesso!', 'success');
-                        console.log(`Funcionário ID ${currentEmployeeId} excluído.`);
-                        setTimeout(() => {
-                            window.location.href = 'quadrodefuncionarios.html';
-                        }, 1500);
-                    } else {
-                        const errorResult = await response.json();
-                        showFeedback(`Erro ao excluir: ${errorResult.error || 'Erro desconhecido.'}`, 'error');
-                        console.error('Erro na API de exclusão:', errorResult);
-                    }
-                } catch (error) {
-                    showFeedback('Erro de rede ou servidor ao excluir funcionário.', 'error');
-                    console.error('Erro na requisição fetch para exclusão:', error);
-                }
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            updateDateTime();
-            setInterval(updateDateTime, 1000);
-
-            loadEmployeeDetails();
-
-            deleteEmployeeBtn.addEventListener('click', deleteEmployee);
-        });
-    </script>
-</body>
-</html>
-```
-
----
-
-**2.3. Atualizar `public/quadrodefuncionarios.html` (Listagem de Funcionários)**
-
-* Esta página também pode exibir o nome da Empresa Contratante e, futuramente, permitir filtros por empresa.
-
-**Ação:** Apague todo o conteúdo atual do seu arquivo `public/quadrodefuncionarios.html` e cole o novo conteúdo completo abaixo:
-
-```html
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quadro de Funcionários - Sistema Studio 57</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
-    <style>
-        /* --- Variáveis CSS (Paleta Atualizada) --- */
-        :root {
-            --font-body: 'Roboto', sans-serif;
-            --font-heading: 'Montserrat', sans-serif;
-            --color-primary: #ffe57b; /* Amarelo Paleta */
-            --color-primary-dark: #fdda4a; /* Amarelo Escuro Paleta */
-            --color-danger: #ff5757; /* Vermelho Paleta */
-            --color-danger-dark: #f03a3a; /* Vermelho Escuro (Aproximado) */
-            --color-success: #c1ff72; /* Verde Paleta */
-            --color-success-dark: #a0e650; /* Verde Escuro (Aproximado) */
-            --color-info: #38b6ff; /* Azul Paleta */
-            --color-info-dark: #1f9ff0; /* Azul Escuro (Aproximado) */
-            --color-warning: #ffe57b; /* Warning usa o Amarelo Paleta */
-            --color-warning-dark: #fdda4a;
-            --color-light: #f8f9fa;
-            --color-medium-light-gray: #d9d9d9; /* Cinza Claro Paleta */
-            --color-dark-gray: #737373; /* Cinza Escuro Paleta */
-            --color-dark: #343a40; /* Cinza bem escuro para texto principal */
-            --color-black: #000000; /* Preto Paleta */
-            --color-muted: #737373; /* Muted usa o cinza escuro da paleta */
-            --color-white: #ffffff; /* Branco Paleta */
-            --color-border: #d9d9d9; /* Borda usa o cinza claro da paleta */
-            --color-border-focus: var(--color-primary-dark); /* Foco usa amarelo escuro */
-            --color-input-bg: #ffffff;
-            --color-input-disabled-bg: #e9ecef; /* Cinza leve para disabled */
-            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
-            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
-            --border-radius-sm: 4px;
-            --border-radius-md: 8px;
-            --spacing-xs: 4px;
-            --spacing-sm: 8px;
-            --spacing-md: 15px;
-            --spacing-lg: 20px;
-            --spacing-xl: 30px;
-            --photo-size-small: 80px; /* Tamanho da foto no card */
-        }
-
-        /* --- Estilos Gerais --- */
-        body {
-            font-family: var(--font-body); line-height: 1.6; margin: var(--spacing-lg); background-color: var(--color-light); color: var(--color-dark); font-size: 16px;
-        }
-        h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); color: var(--color-dark); margin-top: 1.5em; margin-bottom: 0.8em; }
-        h2 { font-size: 1.6em; border-bottom: 1px solid var(--color-border); padding-bottom: var(--spacing-sm); }
-        h3 { font-size: 1.3em; color: var(--color-dark-gray); margin-top: var(--spacing-lg); }
-        button, input, select, textarea { font-family: inherit; font-size: 1em; }
-        * { box-sizing: border-box; }
-        a { color: var(--color-info); text-decoration: none; }
-        a:hover { color: var(--color-info-dark); }
-
-        /* --- Estrutura Principal e Cabeçalho --- */
-        .main-container { background-color: var(--color-white); padding: var(--spacing-xl); border-radius: var(--border-radius-md); box-shadow: var(--shadow-md); max-width: 95%; margin: var(--spacing-xl) auto; border: 1px solid var(--color-border); }
-        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-xl); border-bottom: 1px solid var(--color-border); padding-bottom: var(--spacing-md); gap: var(--spacing-md); }
-        .header-left { flex-shrink: 0; }
-        .header-center { flex-grow: 1; text-align: center; }
-        .header-right { flex-shrink: 0; min-width: 200px; text-align: right; display: flex; align-items: center; justify-content: flex-end; gap: var(--spacing-sm); }
-        .studio57-logo { display: inline-block; max-height: 50px; width: auto; vertical-align: middle; }
-        .page-header h1 { margin-bottom: 0; font-weight: 600; color: var(--color-dark); font-size: 1.5em; line-height: 1.2; }
-        #current-datetime { font-family: var(--font-body); font-size: 0.9em; color: var(--color-muted); white-space: nowrap; }
-        .back-link { display: inline-block; color: var(--color-info); text-decoration: none; font-weight: 500; margin-right: var(--spacing-lg); padding: var(--spacing-xs) var(--spacing-sm); border: 1px solid transparent; border-radius: var(--border-radius-sm); transition: all 0.2s ease; }
-        .back-link:hover { color: var(--color-info-dark); background-color: var(--color-light); border-color: var(--color-border); }
-
-        /* --- Grid de Cards de Funcionários --- */
-        .employee-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Cards responsivos */
-            gap: var(--spacing-lg);
-            margin-top: var(--spacing-lg);
-        }
-
-        /* --- Card de Funcionário --- */
-        .employee-card {
-            background-color: var(--color-white);
-            border: 1px solid var(--color-border);
-            border-radius: var(--border-radius-md);
-            padding: var(--spacing-lg);
-            box-shadow: var(--shadow-sm);
-            display: flex;
-            gap: var(--spacing-lg);
-            align-items: flex-start; /* Alinha foto e infos no topo */
-        }
-        .employee-photo {
-            flex-shrink: 0;
-            width: var(--photo-size-small);
-            height: var(--photo-size-small);
-            border-radius: 50%; /* Foto redonda */
-            background-color: var(--color-medium-light-gray); /* Placeholder */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--color-white);
-            font-size: 2em;
-            overflow: hidden; /* Caso tenha imagem real no futuro */
-            /* Adicionar estilo para img se for usar foto real */
-            /* img { width: 100%; height: 100%; object-fit: cover; } */
-        }
-        .employee-info {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing-xs); /* Espaço entre linhas de info */
-        }
-        .employee-info h4 { /* Nome */
-            margin: 0 0 var(--spacing-xs) 0;
-            font-size: 1.2em;
-            color: var(--color-dark);
-        }
-        .employee-info p {
-            margin: 0;
-            font-size: 0.9em;
-            color: var(--color-muted);
-            line-height: 1.4;
-        }
-        .employee-info p strong {
-            color: var(--color-dark-gray);
-            min-width: 100px; /* Alinhamento dos valores */
-            display: inline-block;
-        }
-        .employee-actions {
-            margin-top: var(--spacing-md);
-            padding-top: var(--spacing-md);
-            border-top: 1px solid var(--color-light);
-            display: flex;
-            flex-wrap: wrap;
-            gap: var(--spacing-sm);
-            justify-content: flex-end; /* Alinha botões à direita */
-        }
-        .employee-actions button, .employee-actions a {
-            font-family: var(--font-heading);
-            padding: var(--spacing-xs) var(--spacing-sm);
-            border-radius: var(--border-radius-sm);
-            border: 1px solid transparent;
-            cursor: pointer;
-            transition: background-color 0.2s ease, border-color 0.2s ease;
-            font-size: 0.85em;
-            font-weight: 500;
-            text-align: center;
-            line-height: 1.5;
-        }
-        /* Cores dos botões de ação do card */
-        .employee-actions .view-edit-btn { background-color: var(--color-info); color: white; border-color: var(--color-info-dark); }
-        .employee-actions .view-edit-btn:hover { background-color: var(--color-info-dark); }
-        .employee-actions .upload-btn { background-color: var(--color-success); color: var(--color-dark); border-color: var(--color-success-dark); }
-        .employee-actions .upload-btn:hover { background-color: var(--color-success-dark); }
-
-        /* Mensagem se não houver funcionários */
-        #no-employees-message {
-            text-align: center;
-            color: var(--color-muted);
-            padding: var(--spacing-xl);
-            font-style: italic;
-        }
-
-        /* --- Rodapé --- */
-        .legal-footer { margin-top: var(--spacing-xl); padding-top: var(--spacing-lg); text-align: center; font-size: 0.8em; color: var(--color-muted); border-top: 1px solid #eee; }
-        .legal-footer p { margin-bottom: 0; }
-
-        /* --- Print --- */
-        @media print {
-            body { margin: 10mm; font-size: 9pt; background-color: #fff !important; color: #000 !important; }
-            .main-container { max-width: 100%; box-shadow: none; border: none; padding: 0; margin: 0; }
-            .page-header, .legal-footer, .employee-actions button, .employee-actions a, .back-link { display: none !important; }
-            h2 { font-size: 1.1em; border-bottom: 1px solid #999; padding-bottom: 3px; margin-bottom: 8px; }
-            .employee-grid { grid-template-columns: 1fr; gap: 8mm; } /* Uma coluna na impressão */
-            .employee-card { box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; gap: var(--spacing-md); }
-            .employee-photo { width: 60px; height: 60px; font-size: 1.5em; }
-            .employee-info h4 { font-size: 1.1em; }
-            .employee-info p { font-size: 0.85em; }
-        }
-
-    </style>
-</head>
-<body>
-    <main class="main-container">
-        <header class="page-header">
-            <div class="header-left">
-                <a href="dashboard.html" class="back-link" title="Voltar ao Dashboard">← Voltar</a>
-                <img src="https://studio57.arq.br/wp-content/uploads/2025/04/STUDIO-57-PRETO-RETANGULO.png" alt="Logo Studio 57" class="studio57-logo">
-            </div>
-            <div class="header-center"> <h1>Quadro de Funcionários</h1> </div>
-            <div class="header-right"> <span id="current-datetime">--/--/---- --:--:--</span> </div>
-        </header>
-
-        <section>
-            <h2>Funcionários Cadastrados</h2>
-            <div style="margin-bottom: var(--spacing-lg);">
-                <a href="registro_funcionario.html" style="display: inline-block; padding: 10px 15px; background-color: var(--color-primary); color: var(--color-dark); border-radius: var(--border-radius-sm); font-weight: 500; text-decoration: none; border: 1px solid var(--color-primary-dark);">+ Adicionar Novo Funcionário</a>
-            </div>
-
-            <div class="employee-grid" id="employee-grid-container">
-                <p id="no-employees-message" style="display: none;">Nenhum funcionário cadastrado ainda.</p>
-            </div>
-        </section>
-
-        <footer class="legal-footer">
-            <p> © 2025 Studio 57 Arquitetura e Incorporação - CNPJ: 41.464.589/0001-66. Todos os direitos reservados. </p>
-        </footer>
-    </main>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const gridContainer = document.getElementById('employee-grid-container');
-            const noEmployeesMessage = document.getElementById('no-employees-message');
-
-            // --- Data/Hora Atual ---
-            const currentDatetimeSpan = document.getElementById('current-datetime');
-            let dateTimeInterval;
-            function updateDateTime() {
-                if(!currentDatetimeSpan) return;
-                const now = new Date();
-                const formattedDate = now.toLocaleDateString("pt-BR", {day:"2-digit", month:"2-digit", year:"numeric"});
-                const formattedTime = now.toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit", second:"2-digit"});
-                currentDatetimeSpan.textContent = `${formattedDate} ${formattedTime}`;
-            }
-            updateDateTime();
-            if (dateTimeInterval) clearInterval(dateTimeInterval);
-            dateTimeInterval = setInterval(updateDateTime, 1000);
-
-
-            // --- Função para Carregar e Exibir Funcionários do Backend ---
-            async function loadAndDisplayEmployees() {
-                gridContainer.innerHTML = '';
-                noEmployeesMessage.style.display = 'none';
-
-                try {
-                    const response = await fetch('/api/get-employees', {
-                        method: 'GET',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                    });
-
-                    const result = await response.json();
-
-                    if (response.ok) {
-                        const employees = result.employees;
-
-                        if (employees.length === 0) {
-                            noEmployeesMessage.style.display = 'block';
-                            noEmployeesMessage.textContent = 'Nenhum funcionário cadastrado ainda.';
-                        } else {
-                            employees.forEach(func => {
-                                if (!func || !func.id || !func.fullName) {
-                                    console.warn("Registro de funcionário inválido encontrado (faltando ID ou Nome Completo):", func);
-                                    return;
-                                }
-
-                                const card = document.createElement('div');
-                                card.classList.add('employee-card');
-                                card.dataset.employeeId = func.id;
-
-                                const photoDiv = document.createElement('div');
-                                photoDiv.classList.add('employee-photo');
-                                const initials = func.fullName ? func.fullName.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() : '?';
-                                photoDiv.textContent = initials;
-                                card.appendChild(photoDiv);
-
-                                const infoDiv = document.createElement('div');
-                                infoDiv.classList.add('employee-info');
-
-                                const nameH4 = document.createElement('h4');
-                                nameH4.textContent = func.fullName || 'Nome não informado';
-                                infoDiv.appendChild(nameH4);
-
-                                // Adiciona Empresa Contratante no card da lista
-                                const empresaP = document.createElement('p');
-                                empresaP.innerHTML = `<strong>Empresa:</strong> ${func.empresaContratanteNome || 'Não informado'}`;
-                                infoDiv.appendChild(empresaP);
-
-                                const cargoP = document.createElement('p');
-                                cargoP.innerHTML = `<strong>Cargo:</strong> ${func.contractRole || 'Não informado'}`;
-                                infoDiv.appendChild(cargoP);
-
-                                const telefoneP = document.createElement('p');
-                                telefoneP.innerHTML = `<strong>Telefone:</strong> ${func.phone || 'Não informado'}`;
-                                infoDiv.appendChild(telefoneP);
-
-                                const faltasP = document.createElement('p');
-                                faltasP.innerHTML = `<strong>Faltas (Diário):</strong> --`;
-                                infoDiv.appendChild(faltasP);
-
-                                const horasP = document.createElement('p');
-                                horasP.innerHTML = `<strong>Horas Trab. (Mês):</strong> --:--`;
-                                infoDiv.appendChild(horasP);
-
-                                const actionsDiv = document.createElement('div');
-                                actionsDiv.classList.add('employee-actions');
-
-                                const uploadBtn = document.createElement('button');
-                                uploadBtn.classList.add('upload-btn');
-                                uploadBtn.textContent = 'Adic. Documento';
-                                uploadBtn.title = 'Adicionar documento para este funcionário';
-                                uploadBtn.onclick = () => {
-                                    alert(`Funcionalidade "Adicionar Documento" para ${func.fullName} (ID: ${func.id}) a ser implementada com backend.`);
-                                };
-                                actionsDiv.appendChild(uploadBtn);
-
-                                const viewDetailsLink = document.createElement('a');
-                                viewDetailsLink.classList.add('view-edit-btn');
-                                viewDetailsLink.href = `detalhes_funcionario.html?id=${func.id}`; 
-                                viewDetailsLink.textContent = 'Ver Detalhes';
-                                viewDetailsLink.title = 'Ver detalhes completos do funcionário';
-                                actionsDiv.appendChild(viewDetailsLink);
-
-                                infoDiv.appendChild(actionsDiv);
-                                card.appendChild(infoDiv);
-                                gridContainer.appendChild(card);
-                            });
-                        }
-                        console.log("Quadro de funcionários carregado do banco de dados.");
-                    } else {
-                        console.error('Erro na API ao buscar funcionários:', result);
-                        noEmployeesMessage.style.display = 'block';
-                        noEmployeesMessage.textContent = `Erro ao carregar funcionários: ${result.error || 'Erro desconhecido.'}`;
-                    }
-                } catch (error) {
-                    console.error('Erro de rede ou servidor ao buscar funcionários:', error);
-                    noEmployeesMessage.style.display = 'block';
-                    noEmployeesMessage.textContent = `Erro de conexão. Verifique sua internet ou tente mais tarde.`;
-                }
-            }
-
-            loadAndDisplayEmployees();
         });
     </script>
 </body>
