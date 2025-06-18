@@ -1,14 +1,13 @@
 import type { Config, Context } from '@netlify/functions';
 import { db } from '../../db';
-import { employees } from '../../db/schema';
-import { eq } from 'drizzle-orm'; // Importe 'eq' para comparações de igualdade
+import { funcionarios, cadastroEmpresa, empreendimentos } from '../../db/schema'; // CORREÇÃO AQUI: de 'employees' para 'funcionarios'
+import { eq } from 'drizzle-orm';
 
 export default async (req: Request, context: Context) => {
     if (req.method !== 'GET') {
         return new Response('Method Not Allowed', { status: 405 });
     }
 
-    // Extrai o ID do funcionário da URL (ex: /api/get-employee-by-id?id=123)
     const url = new URL(req.url);
     const employeeId = url.searchParams.get('id');
 
@@ -20,28 +19,66 @@ export default async (req: Request, context: Context) => {
     }
 
     try {
-        // Buscar o funcionário pelo ID
-        // CORREÇÃO: Usar .execute() e pegar o primeiro elemento do array retornado
-        const employee = await db.select().from(employees).where(eq(employees.id, parseInt(employeeId))).execute();
+        const employee = await db.select({
+            id: funcionarios.id,
+            fullName: funcionarios.fullName,
+            cpf: funcionarios.cpf,
+            rg: funcionarios.rg,
+            birthDate: funcionarios.birthDate,
+            phone: funcionarios.phone,
+            email: funcionarios.email,
+            addressStreet: funcionarios.addressStreet,
+            addressNumber: funcionarios.addressNumber,
+            addressComplement: funcionarios.addressComplement,
+            cep: funcionarios.cep,
+            city: funcionarios.city,
+            state: funcionarios.state,
+            neighborhood: funcionarios.neighborhood,
+            contractRole: funcionarios.contractRole,
+            admissionDate: funcionarios.admissionDate,
+            baseSalary: funcionarios.baseSalary,
+            totalSalary: funcionarios.totalSalary,
+            dailyValue: funcionarios.dailyValue,
+            paymentMethod: funcionarios.paymentMethod,
+            pixKey: funcionarios.pixKey,
+            bankDetails: funcionarios.bankDetails,
+            asoDoc: funcionarios.asoDoc,
+            contractDoc: funcionarios.contractDoc,
+            identityDoc: funcionarios.identityDoc,
+            observations: funcionarios.observations,
+            createdAt: funcionarios.createdAt,
+            empresaContratanteNome: cadastroEmpresa.nomeFantasia,
+            empreendimentoAlocadoNome: empreendimentos.nome,
+        })
+        .from(funcionarios) // CORREÇÃO AQUI: de 'employees' para 'funcionarios'
+        .leftJoin(cadastroEmpresa, eq(funcionarios.empresaId, cadastroEmpresa.id)) // CORREÇÃO AQUI: de 'employees' para 'funcionarios'
+        .leftJoin(empreendimentos, eq(funcionarios.empreendimentoAtualId, empreendimentos.id)) // CORREÇÃO AQUI: de 'employees' para 'funcionarios'
+        .where(eq(funcionarios.id, parseInt(employeeId))) // CORREÇÃO AQUI: de 'employees' para 'funcionarios'
+        .execute();
 
-        // O .execute() retorna um array, então pegamos o primeiro elemento
-        if (!employee || employee.length === 0) { // Verifica se o array está vazio ou nulo
+        if (!employee || employee.length === 0) {
             return new Response(JSON.stringify({ error: 'Funcionário não encontrado.' }), {
-                status: 404, // 404 Not Found
+                status: 404,
                 headers: { 'Content-Type': 'application/json' },
             });
         }
 
         return new Response(JSON.stringify({
             message: 'Funcionário buscado com sucesso!',
-            employee: employee[0] // Retorna o primeiro elemento do array
+            employee: employee[0]
         }), {
-            status: 200, // 200 OK
+            status: 200,
             headers: { 'Content-Type': 'application/json' },
         });
 
     } catch (error) {
         console.error(`Erro ao buscar funcionário com ID ${employeeId}:`, error);
+        if (error && (error as any).code === '23503') {
+            return new Response(JSON.stringify({ error: 'Erro de ligação com empresa ou empreendimento. Verifique se os IDs existem.' }), {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
         return new Response(JSON.stringify({ error: 'Erro interno do servidor ao buscar funcionário.' }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' },
@@ -50,6 +87,6 @@ export default async (req: Request, context: Context) => {
 };
 
 export const config: Config = {
-  path: '/api/get-employee-by-id', // O caminho da API que você usará no frontend
+  path: '/api/get-employee-by-id',
   method: ['GET'],
 };

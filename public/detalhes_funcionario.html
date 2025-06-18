@@ -113,6 +113,7 @@
                     <strong>Email:</strong>
                     <span id="email-display">Carregando...</span>
                 </div>
+                <!-- NOVOS CAMPOS DE ENDEREÇO SEPARADOS PARA EXIBIÇÃO MAIS DETALHADA -->
                 <div class="info-item full-width">
                     <strong>Logradouro:</strong>
                     <span id="address-street-display">Carregando...</span>
@@ -141,6 +142,19 @@
                     <strong>Estado (UF):</strong>
                     <span id="state-display">Carregando...</span>
                 </div>
+                <!-- FIM DOS NOVOS CAMPOS DE ENDEREÇO -->
+
+                <!-- NOVOS CAMPOS: EMPRESA E EMPREENDIMENTO -->
+                <div class="info-item full-width">
+                    <strong>Empresa Contratante:</strong>
+                    <span id="empresa-contratante-display">Carregando...</span>
+                </div>
+                <div class="info-item full-width">
+                    <strong>Empreendimento Alocado:</strong>
+                    <span id="empreendimento-alocado-display">Carregando...</span>
+                </div>
+                <!-- FIM DOS NOVOS CAMPOS -->
+
                 <div class="info-item">
                     <strong>Cargo / Função:</strong>
                     <span id="contract-role-display">Carregando...</span>
@@ -177,7 +191,8 @@
                     <strong>Observações:</strong>
                     <span id="observations-display">Carregando...</span>
                 </div>
-                <div class="info-item full-width">
+                <!-- Documentos -->
+                 <div class="info-item full-width">
                     <strong>ASO:</strong>
                     <span id="aso-doc-display"></span>
                 </div>
@@ -196,7 +211,8 @@
             <a href="#" id="edit-employee-btn" class="edit-btn">✏️ Editar Cadastro</a>
             <button type="button" id="delete-employee-btn" class="delete-btn">🗑️ Excluir Funcionário</button>
             <a href="#" id="view-timesheet-btn" class="secondary-btn">🗓️ Ver Folha de Ponto</a>
-            </div>
+            <!-- Adicione mais botões para outras funcionalidades aqui -->
+        </div>
 
         <footer class="legal-footer">
             <p> © 2025 Studio 57 Arquitetura e Incorporação - CNPJ: 41.464.589/0001-66. Todos os direitos reservados. </p>
@@ -212,7 +228,11 @@
         const deleteEmployeeBtn = document.getElementById('delete-employee-btn');
         const viewTimesheetBtn = document.getElementById('view-timesheet-btn');
 
-        let currentEmployeeId = null; // ID do funcionário que está sendo visualizado
+        // NOVOS SELETORES PARA EXIBIÇÃO DA EMPRESA E EMPREENDIMENTO
+        const empresaContratanteDisplay = document.getElementById('empresa-contratante-display');
+        const empreendimentoAlocadoDisplay = document.getElementById('empreendimento-alocado-display');
+
+        let currentEmployeeId = null;
 
         // --- Funções Auxiliares ---
         function updateDateTime() {
@@ -247,7 +267,6 @@
             document.getElementById('phone-display').textContent = employee.phone || 'Não informado';
             document.getElementById('email-display').textContent = employee.email || 'Não informado';
 
-            // AGORA EXIBINDO OS CAMPOS DE ENDEREÇO SEPARADAMENTE
             document.getElementById('address-street-display').textContent = employee.addressStreet || 'Não informado';
             document.getElementById('address-number-display').textContent = employee.addressNumber || 'Não informado';
             document.getElementById('address-complement-display').textContent = employee.addressComplement || 'Não informado';
@@ -256,6 +275,10 @@
             document.getElementById('neighborhood-display').textContent = employee.neighborhood || 'Não informado';
             document.getElementById('city-display').textContent = employee.city || 'Não informado';
             document.getElementById('state-display').textContent = employee.state || 'Não informado';
+
+            // Preenche Empresa Contratante e Empreendimento Alocado
+            empresaContratanteDisplay.textContent = employee.empresaContratanteNome || 'Não informado';
+            empreendimentoAlocadoDisplay.textContent = employee.empreendimentoAlocadoNome || 'Não informado';
 
             document.getElementById('contract-role-display').textContent = employee.contractRole || 'Não informado';
             document.getElementById('admission-date-display').textContent = employee.admissionDate ? new Date(employee.admissionDate + 'T00:00:00').toLocaleDateString('pt-BR') : 'Não informado';
@@ -305,6 +328,7 @@
             showFeedback(`Carregando detalhes do funcionário com ID: ${employeeId}...`, 'info');
 
             try {
+                // A requisição GET já faz o JOIN para trazer os nomes das empresas/empreendimentos
                 const response = await fetch(`/api/get-employee-by-id?id=${employeeId}`, {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json' },
@@ -324,12 +348,12 @@
                     }
                 } else {
                     showFeedback(`Erro ao carregar detalhes: ${result.error || 'Erro desconhecido.'}`, 'error');
-                    console.error('Erro na API ao carregar detalhes do funcionário:', result);
+                    console.error('Erro na API ao carregar funcionário:', result);
                     document.querySelector('h1').textContent = 'Erro ao Carregar Detalhes';
                 }
             } catch (error) {
                 showFeedback('Erro de rede ou servidor ao carregar detalhes do funcionário.', 'error');
-                console.error('Erro na requisição fetch para carregar detalhes:', error);
+                console.error('Erro na requisição fetch para carregar funcionário:', error);
                 document.querySelector('h1').textContent = 'Erro de Conexão';
             }
         }

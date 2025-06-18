@@ -1,23 +1,46 @@
 import type { Config, Context } from '@netlify/functions';
-import { db } from '../../db'; // Caminho para o seu db/index.ts
-import { employees } from '../../db/schema'; // Caminho para o seu db/schema.ts
-import { sql } from 'drizzle-orm'; // Importe 'sql' para queries Drizzle
+import { db } from '../../db';
+import { funcionarios, cadastroEmpresa, empreendimentos } from '../../db/schema'; // CORREÇÃO AQUI: de 'employees' para 'funcionarios'
+import { eq } from 'drizzle-orm';
 
 export default async (req: Request, context: Context) => {
     if (req.method !== 'GET') {
         return new Response('Method Not Allowed', { status: 405 });
     }
 
+    const url = new URL(req.url);
+    const empresaId = url.searchParams.get('empresaId');
+    const empreendimentoId = url.searchParams.get('empreendimentoId');
+    
     try {
-        // Buscar todos os funcionários da tabela 'employees'
-        // CORREÇÃO: Usar .execute() em vez de .all() para a execução da query
-        const allEmployees = await db.select().from(employees).execute();
+        let employeesQuery = db.select({
+            id: funcionarios.id,
+            fullName: funcionarios.fullName,
+            cpf: funcionarios.cpf,
+            phone: funcionarios.phone,
+            contractRole: funcionarios.contractRole,
+            empresaContratanteNome: cadastroEmpresa.nomeFantasia,
+            empreendimentoAlocadoNome: empreendimentos.nome,
+        })
+        .from(funcionarios) // CORREÇÃO AQUI: de 'employees' para 'funcionarios'
+        .leftJoin(cadastroEmpresa, eq(funcionarios.empresaId, cadastroEmpresa.id)) // CORREÇÃO AQUI: de 'employees' para 'funcionarios'
+        .leftJoin(empreendimentos, eq(funcionarios.empreendimentoAtualId, empreendimentos.id)); // CORREÇÃO AQUI: de 'employees' para 'funcionarios'
+
+
+        if (empresaId) {
+            employeesQuery = employeesQuery.where(eq(funcionarios.empresaId, parseInt(empresaId))); // CORREÇÃO AQUI: de 'employees' para 'funcionarios'
+        }
+        if (empreendimentoId) {
+            employeesQuery = employeesQuery.where(eq(funcionarios.empreendimentoAtualId, parseInt(empreendimentoId))); // CORREÇÃO AQUI: de 'employees' para 'funcionarios'
+        }
+
+        const allEmployees = await employeesQuery.execute();
 
         return new Response(JSON.stringify({
             message: 'Funcionários buscados com sucesso!',
             employees: allEmployees
         }), {
-            status: 200, // 200 OK
+            status: 200,
             headers: { 'Content-Type': 'application/json' },
         });
 
@@ -31,6 +54,6 @@ export default async (req: Request, context: Context) => {
 };
 
 export const config: Config = {
-  path: '/api/get-employees', // O caminho da API que você usará no frontend
+  path: '/api/get-employees',
   method: ['GET'],
 };
