@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diário de Obras - Studio 57</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" xintegrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/global.css"> <!-- LINK PARA CSS GLOBAL -->
+
+    <style>
+        /* Estilos ESPECÍFICOS DO DIÁRIO DE OBRAS que NÃO estão no global.css */
+        .form-group-inline { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;}
+        .form-group-inline label { margin-bottom: 0; white-space: nowrap;}
+        .form-group-inline input, .form-group-inline select { flex-grow: 1; }
+        
+        /* Estilos específicos do clima */
+        #clima-api-display { padding: 1rem; border-radius: var(--radius-lg); background-color: #e0f2fe; margin-bottom: 1rem; border: 1px solid var(--color-info); }
+        #clima-manual-input { padding: 1rem; border-radius: var(--radius-lg); background-color: #fffbeb; margin-bottom: 1rem; border: 1px solid var(--color-warning); }
+        #clima-api-display h3, #clima-manual-input h3 { font-size: 1.1em; border-bottom: none; padding-bottom: 0; margin-bottom: 0.75rem; }
+        #clima-print-div { padding: 1rem; border-radius: var(--radius-lg); background-color: #dcfce7; color: var(--color-success-dark); border: 1px solid var(--color-success); }
+    </style>
+</head>
+<body>
+    <!-- HEADER SERÁ CARREGADO AQUI VIA JS -->
+    <div id="header-placeholder"></div>
+
+    <div class="page-wrapper">
+        <!-- SIDEBAR SERÁ CARREGADA AQUI VIA JS -->
+        <div id="sidebar-placeholder"></div>
+
+        <main class="main-content" id="main-content-area">
+            <div id="feedback" class="hidden"></div>
+
+            <form id="rdo-form">
+
+                <section class="section">
+                    <h2>Identificação do RDO</h2>
+                    <div class="form-grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="form-group">
+                            <label for="select-obra-rdo">Obra/Empreendimento*</label>
+                            <select id="select-obra-rdo" name="empreendimento_id" required>
+                                <option value="">-- Carregando Obras... --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="data-rdo">Data do RDO*</label>
+                            <input type="date" id="data-rdo" name="data_rdo" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="rdo-numero">Número do RDO</label>
+                            <input type="number" id="rdo-numero" name="rdo_numero" placeholder="Ex: 151" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="responsavel-tecnico">Responsável Técnico</label>
+                            <input type="text" id="responsavel-tecnico" name="responsavel_tecnico" readonly placeholder="Definido pela obra">
+                        </div>
+                        <div class="form-group md:col-span-2 lg:col-span-4">
+                            <label for="rdo-elaborado-por">RDO Elaborado por*</label>
+                            <input type="email" id="rdo-elaborado-por" name="elaborado_por" required readonly placeholder="Email do usuário logado">
+                        </div>
+                    </div>
+                </section>
+
+                <section class="section">
+                    <h2>Condições Climáticas</h2>
+                    <input type="hidden" id="clima-final" name="clima_final_json_str">
+                    <input type="hidden" id="clima-lat">
+                    <input type="hidden" id="clima-lon">
+
+                    <div id="clima-loading" class="text-center py-4 hidden">
+                        <i class="fas fa-spinner fa-spin fa-2x text-blue-500"></i>
+                        <p class="text-sm text-gray-600 mt-2">Carregando dados climáticos...</p>
+                    </div>
+
+                    <div id="clima-api-display" class="hidden p-4 border rounded-md bg-blue-50 mb-4">
+                        <h3 class="text-md font-semibold text-blue-700 mb-2">Dados da API (<span id="clima-local"></span>) 
+                            <button type="button" id="change-location-btn" class="text-xs text-blue-500 hover:underline ml-2">(Alterar Local Padrão)</button>
+                        </h3>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2 text-sm">
+                            <p><strong>Condição:</strong> <span id="clima-condicao">--</span></p>
+                            <p><strong>Descrição:</strong> <span id="clima-descricao">--</span></p>
+                            <p><strong>Temperatura:</strong> <span id="clima-temp">--</span> °C</p>
+                            <p><strong>Sensação:</strong> <span id="clima-sensacao">--</span> °C</p>
+                            <p><strong>Umidade:</strong> <span id="clima-umidade">--</span> %</p>
+                            <p><strong>Vento:</strong> <span id="clima-vento">--</span> km/h</p>
+                        </div>
+                        <div class="form-group mt-4">
+                            <label for="clima-praticavel-api">Serviços praticáveis com este clima?</label>
+                            <select id="clima-praticavel-api">
+                                <option value="Sim">Sim</option>
+                                <option value="Parcialmente">Parcialmente</option>
+                                <option value="Não">Não</option>
+                            </select>
+                        </div>
+                        <div class="mt-3 flex gap-2">
+                            <button type="button" id="confirmar-clima-api" class="btn btn-success btn-sm"><i class="fas fa-check"></i> Confirmar Clima da API</button>
+                            <button type="button" id="inserir-manual-btn" class="btn btn-secondary btn-sm"><i class="fas fa-edit"></i> Inserir Manualmente</button>
+                        </div>
+                    </div>
+
+                    <div id="clima-manual-input" class="hidden p-4 border rounded-md bg-yellow-50 mb-4">
+                        <h3 class="text-md font-semibold text-yellow-700 mb-2">Inserir Condições Climáticas Manualmente</h3>
+                        <div class="form-group">
+                            <label for="clima-manual-desc">Descrição do Clima*</label>
+                            <input type="text" id="clima-manual-desc" placeholder="Ex: Sol com pancadas de chuva à tarde">
+                        </div>
+                        <div class="form-group">
+                            <label for="clima-manual-praticavel">Serviços praticáveis com este clima?</label>
+                            <select id="clima-manual-praticavel">
+                                <option value="Sim">Sim</option>
+                                <option value="Parcialmente">Parcialmente</option>
+                                <option value="Não">Não</option>
+                            </select>
+                        </div>
+                        <div class="mt-3 flex gap-2">
+                            <button type="button" id="salvar-manual-btn" class="btn btn-success btn-sm"><i class="fas fa-save"></i> Salvar Clima Manual</button>
+                            <button type="button" id="cancelar-manual-btn" class="btn btn-secondary btn-sm"><i class="fas fa-times"></i> Cancelar</button>
+                        </div>
+                    </div>
+                    
+                    <div id="clima-status-msg" class="text-sm my-2 hidden"></div>
+
+                    <div id="clima-print-div" class="p-3 border rounded-md bg-green-50 text-green-700 hidden">
+                        <strong>Clima Registrado:</strong> <span id="clima-print-text"></span>
+                    </div>
+                </section>
+
+
+                <section class="section">
+                    <h2>Mão de Obra</h2>
+                    <div class="form-grid md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                        <div class="form-group lg:col-span-2">
+                            <label for="select-funcionario-mo">Funcionário</label>
+                            <select id="select-funcionario-mo">
+                                <option value="">-- Carregando Funcionários... --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="input-funcao-mo">Função*</label>
+                            <input type="text" id="input-funcao-mo" placeholder="Ex: Pedreiro" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="input-horas-mo">Horas Trabalhadas*</label>
+                            <input type="number" id="input-horas-mo" min="0" step="0.5" placeholder="Ex: 8" required>
+                        </div>
+                        <div class="form-group lg:col-start-4">
+                             <button type="button" id="add-mo-btn" class="btn btn-primary w-full"><i class="fas fa-plus"></i> Adicionar</button>
+                        </div>
+                    </div>
+                    <div id="mo-status-msg" class="text-sm mt-2 hidden"></div>
+                    <div class="table-container mt-4">
+                        <table class="table-default">
+                            <thead>
+                                <tr>
+                                    <th>Funcionário</th>
+                                    <th>Função</th>
+                                    <th class="text-right">Horas</th>
+                                    <th class="text-center">Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mao-obra-tbody">
+                                </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="section">
+                    <h2>Equipamentos Utilizados</h2>
+                     <div class="form-grid md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                        <div class="form-group lg:col-span-2">
+                            <label for="new-equipamento-nome">Nome do Equipamento*</label>
+                            <input type="text" id="new-equipamento-nome" placeholder="Ex: Betoneira" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="new-equipamento-qtd">Quantidade*</label>
+                            <input type="number" id="new-equipamento-qtd" min="1" value="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="new-equipamento-horas">Horas de Uso</label>
+                            <input type="number" id="new-equipamento-horas" min="0" step="0.5" placeholder="Ex: 4">
+                        </div>
+                         <div class="form-group lg:col-start-4">
+                            <button type="button" id="add-eq-btn" class="btn btn-primary w-full"><i class="fas fa-plus"></i> Adicionar</button>
+                        </div>
+                    </div>
+                     <div class="table-container mt-4">
+                        <table class="table-default">
+                            <thead>
+                                <tr>
+                                    <th>Equipamento</th>
+                                    <th class="text-right">Qtd.</th>
+                                    <th class="text-right">Horas Uso</th>
+                                    <th class="text-center">Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="equipamentos-tbody">
+                                </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="section">
+                    <h2>Materiais Recebidos</h2>
+                    <div class="form-grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end">
+                        <div class="form-group xl:col-span-2">
+                            <label for="mr-descricao">Descrição do Material*</label>
+                            <input type="text" id="mr-descricao" placeholder="Ex: Cimento CPII" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="mr-quantidade">Quantidade*</label>
+                            <input type="number" id="mr-quantidade" min="0" step="any" placeholder="Ex: 50" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="mr-fornecedor">Fornecedor</label>
+                            <input type="text" id="mr-fornecedor" placeholder="Ex: ABC Materiais">
+                        </div>
+                        <div class="form-group">
+                            <label for="mr-nf">Nota Fiscal (Nº)</label>
+                            <input type="text" id="mr-nf" placeholder="Ex: 12345">
+                        </div>
+                        <div class="form-group">
+                            <label for="mr-conformidade">Conformidade*</label>
+                            <select id="mr-conformidade">
+                                <option value="aprovado" selected>Aprovado</option>
+                                <option value="reprovado">Reprovado</option>
+                                <option value="parcial">Aprovação Parcial</option>
+                            </select>
+                        </div>
+                        <div class="form-group xl:col-start-6">
+                            <button type="button" id="add-mr-btn" class="btn btn-primary w-full"><i class="fas fa-plus"></i> Adicionar</button>
+                        </div>
+                    </div>
+                    <div class="table-container mt-4">
+                        <table class="table-default">
+                            <thead>
+                                <tr>
+                                    <th>Descrição</th>
+                                    <th class="text-right">Qtd.</th>
+                                    <th>Fornecedor</th>
+                                    <th>NF</th>
+                                    <th>Conformidade</th>
+                                    <th class="text-center">Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="materiais-recebidos-tbody">
+                                </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="section">
+                    <h2>Materiais Utilizados</h2>
+                    <div class="form-grid md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                        <div class="form-group lg:col-span-2">
+                            <label for="mu-descricao">Descrição do Material*</label>
+                            <input type="text" id="mu-descricao" placeholder="Ex: Areia Média" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="mu-quantidade">Quantidade Utilizada*</label>
+                            <input type="number" id="mu-quantidade" min="0" step="any" placeholder="Ex: 2 (m³)" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="mu-atividade">Atividade Relacionada</label>
+                            <input type="text" id="mu-atividade" placeholder="Ex: Fundação Bloco A">
+                        </div>
+                        <div class="form-group lg:col-start-4">
+                            <button type="button" id="add-mu-btn" class="btn btn-primary w-full"><i class="fas fa-plus"></i> Adicionar</button>
+                        </div>
+                    </div>
+                    <div class="table-container mt-4">
+                        <table class="table-default">
+                            <thead>
+                                <tr>
+                                    <th>Descrição</th>
+                                    <th class="text-right">Qtd. Utilizada</th>
+                                    <th>Atividade Relacionada</th>
+                                    <th class="text-center">Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="materiais-utilizados-tbody">
+                                </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="section">
+                    <h2>Atividades</h2>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h3>Atividades Planejadas e Status</h3>
+                            <div id="atividades-planejadas-gantt" class="p-4 border rounded-md min-h-[150px] bg-gray-50 text-sm">
+                                <p><em>Selecione uma obra e data para ver as atividades.</em></p>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="form-group">
+                                <label for="atividades-realizadas-desc">Descrição Detalhada das Atividades Realizadas Hoje*</label>
+                                <textarea id="atividades-realizadas-desc" name="atividades_realizadas_desc" rows="5" required placeholder="Detalhe o que foi feito em relação às atividades planejadas e outras tarefas executadas."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="desvios-cronograma">Desvios do Cronograma / Justificativas</label>
+                                <textarea id="desvios-cronograma" name="desvios_cronograma" rows="3" placeholder="Explique atrasos, adiantamentos ou impedimentos."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="section">
+                    <h2>Segurança do Trabalho e Meio Ambiente</h2>
+                    <div class="form-grid md:grid-cols-2 gap-6">
+                        <div class="form-group">
+                            <label for="obs-seguranca">Observações de Segurança</label>
+                            <textarea id="obs-seguranca" name="obs_seguranca" rows="3" placeholder="Ex: DDS realizado, uso de EPIs, incidentes, etc."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="obs-ambiental">Observações Ambientais</label>
+                            <textarea id="obs-ambiental" name="obs_ambiental" rows="3" placeholder="Ex: Destinação de resíduos, controle de poeira, etc."></textarea>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="section">
+                    <h2>Visitas e Fiscalizações</h2>
+                    <div class="form-grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 items-end">
+                        <div class="form-group">
+                            <label for="visita-nome">Nome do Visitante/Órgão*</label>
+                            <input type="text" id="visita-nome" required placeholder="Ex: João Silva (CREA)">
+                        </div>
+                        <div class="form-group">
+                            <label for="visita-motivo">Motivo da Visita*</label>
+                            <input type="text" id="visita-motivo" required placeholder="Ex: Fiscalização de Rotina">
+                        </div>
+                        <div class="form-group">
+                            <label for="visita-entrada">Horário de Entrada</label>
+                            <input type="time" id="visita-entrada">
+                        </div>
+                        <div class="form-group">
+                            <label for="visita-saida">Horário de Saída</label>
+                            <input type="time" id="visita-saida">
+                        </div>
+                        <div class="form-group xl:col-span-full">
+                            <label for="visita-obs">Observações da Visita</label>
+                            <textarea id="visita-obs" rows="2" placeholder="Detalhes, recomendações, pendências."></textarea>
+                        </div>
+                        <div class="form-group xl:col-start-5">
+                             <button type="button" id="add-visita-btn" class="btn btn-primary w-full"><i class="fas fa-user-plus"></i> Adicionar Visita</button>
+                        </div>
+                    </div>
+                    <div class="table-container mt-4">
+                        <table class="table-default">
+                            <thead>
+                                <tr>
+                                    <th>Nome/Órgão</th>
+                                    <th>Motivo</th>
+                                    <th>Entrada</th>
+                                    <th>Saída</th>
+                                    <th>Observações</th>
+                                    <th class="text-center">Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="visitas-tbody">
+                                </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="section">
+                    <h2>Ocorrências Gerais / Observações Adicionais</h2>
+                     <div class="form-group">
+                        <textarea id="ocorrencias-gerais" name="ocorrencias_gerais" rows="4" placeholder="Descreva quaisquer outras ocorrências, problemas, soluções, comentários ou observações relevantes do dia."></textarea>
+                    </div>
+                </section>
+
+                <section class="section">
+                    <h2>Registro Fotográfico</h2>
+                    <div class="form-group">
+                        <label for="photo-upload" class="file-input-styled-label">Selecionar Fotos (Máx. 10)</label>
+                        <input type="file" id="photo-upload" accept="image/*" multiple class="file-input-styled"/>
+                        <label for="photo-upload" class="btn btn-secondary"><i class="fas fa-image"></i> Selecionar Fotos</label>
+                        <span id="photo-count-info" class="file-upload-info">Nenhuma foto selecionada.</span>
+                    </div>
+                    <div id="photo-gallery" class="photo-gallery">
+                        </div>
+                </section>
+
+                <section class="section">
+                    <h2>Validação e Aprovação (Opcional)</h2>
+                    <div class="form-grid md:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label for="rdo-aprovado-por">RDO Aprovado por:</label>
+                            <input type="text" id="rdo-aprovado-por" name="aprovado_por" placeholder="Nome do aprovador">
+                        </div>
+                        <div class="form-group">
+                            <label for="rdo-data-aprovacao">Data da Aprovação:</label>
+                            <input type="date" id="rdo-data-aprovacao" name="data_aprovacao">
+                        </div>
+                    </div>
+                </section>
+
+                <section class="section bg-gray-50">
+                    <div class="flex flex-wrap justify-end gap-3">
+                        <button type="reset" class="btn btn-secondary"><i class="fas fa-undo"></i> Limpar Formulário</button>
+                        <button type="button" id="print-rdo-btn" class="btn btn-info"><i class="fas fa-print"></i> Imprimir RDO</button>
+                        <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Salvar RDO</button>
+                    </div>
+                </section>
+            </form>
+        </main>
+    </div>
+    <script src="js/common_ui.js"></script> <!-- LINK PARA JS COMUM -->
+    <script src="js/diario_de_obras_page.js" defer></script> <!-- JS ESPECÍFICO DA PÁGINA -->
+</body>
+</html>
+```
+
+---
+
+**2.1.2. Atualizar `public/diario_de_obras_page.js` (JavaScript específico da página do RDO)**
+
+* Este arquivo será adaptado para funcionar com o `common_ui.js` e para carregar os componentes HTML do cabeçalho e da barra lateral.
+
+**Ação:** Por favor, **apague todo o conteúdo atual do seu arquivo `public/js/diario_de_obras_page.js` e cole o novo conteúdo completo abaixo**:
+
+```javascript
+// public/js/diario_de_obras_page.js
+document.addEventListener('DOMContentLoaded', function () {
+    // --- CONFIGURAÇÕES GLOBAIS (algumas agora em common_ui.js.CONFIG) ---
+    const CONFIG = {
+        OPENWEATHER_API_KEY: 'SUA_CHAVE_API_OPENWEATHERMAP_AQUI' // ATENÇÃO: Substitua pela sua chave REAL
+    };
+    // Copia as configs de commonUi para uso local, se necessário
+    if (window.commonUi && window.commonUi.CONFIG) {
+        Object.assign(CONFIG, window.commonUi.CONFIG);
+    }
+
+    // --- SELETORES DO DOM (Completo) ---
+    const DOM = {
+        // Placeholder para Header e Sidebar
+        headerPlaceholder: document.getElementById('header-placeholder'),
+        sidebarPlaceholder: document.getElementById('sidebar-placeholder'),
+        backLink: document.querySelector('.back-link'), // Link de voltar no header
+
+        // Formulário e Identificação
+        rdoForm: document.getElementById('rdo-form'),
+        selectObraRdo: document.getElementById('select-obra-rdo'),
+        dataRdoInput: document.getElementById('data-rdo'),
+        rdoNumeroInput: document.getElementById('rdo-numero'),
+        responsavelTecnicoInput: document.getElementById('responsavel-tecnico'),
+        rdoElaboradoPorInput: document.getElementById('rdo-elaborado-por'),
+        feedbackDiv: document.getElementById('feedback'), // Agora gerenciado por common_ui.js
+
+        // Condições Climáticas
+        climaLoadingDiv: document.getElementById('clima-loading'),
+        climaApiDisplayDiv: document.getElementById('clima-api-display'),
+        climaLocalSpan: document.getElementById('clima-local'),
+        changeLocationBtn: document.getElementById('change-location-btn'),
+        climaCondicaoSpan: document.getElementById('clima-condicao'),
+        climaDescricaoSpan: document.getElementById('clima-descricao'),
+        climaTempSpan: document.getElementById('clima-temp'),
+        climaSensacaoSpan: document.getElementById('clima-sensacao'),
+        climaUmidadeSpan: document.getElementById('clima-umidade'),
+        climaVentoSpan: document.getElementById('clima-vento'),
+        climaLatInput: document.getElementById('clima-lat'), // Input hidden
+        climaLonInput: document.getElementById('clima-lon'), // Input hidden
+        climaPraticavelApiSelect: document.getElementById('clima-praticavel-api'),
+        confirmarClimaApiBtn: document.getElementById('confirmar-clima-api'),
+        climaManualInputDiv: document.getElementById('clima-manual-input'),
+        climaManualDescInput: document.getElementById('clima-manual-desc'),
+        climaManualPraticavelSelect: document.getElementById('clima-manual-praticavel'),
+        salvarManualBtn: document.getElementById('salvar-manual-btn'),
+        cancelarManualBtn: document.getElementById('cancelar-manual-btn'),
+        inserirManualBtn: document.getElementById('inserir-manual-btn'),
+        climaStatusMsgDiv: document.getElementById('clima-status-msg'),
+        climaPrintDiv: document.getElementById('clima-print-div'),
+        climaPrintTextSpan: document.getElementById('clima-print-text'),
+        climaFinalInput: document.getElementById('clima-final'), // Input hidden para JSON do clima
+
+        // Mão de Obra
+        selectFuncionarioMo: document.getElementById('select-funcionario-mo'),
+        inputFuncaoMo: document.getElementById('input-funcao-mo'),
+        inputHorasMo: document.getElementById('input-horas-mo'),
+        addMoBtn: document.getElementById('add-mo-btn'),
+        moStatusMsg: document.getElementById('mo-status-msg'),
+        maoObraTbody: document.getElementById('mao-obra-tbody'),
+
+        // Equipamentos
+        newEquipamentoNomeInput: document.getElementById('new-equipamento-nome'),
+        newEquipamentoQtdInput: document.getElementById('new-equipamento-qtd'),
+        newEquipamentoHorasInput: document.getElementById('new-equipamento-horas'),
+        addEqBtn: document.getElementById('add-eq-btn'),
+        equipamentosTbody: document.getElementById('equipamentos-tbody'),
+
+        // Materiais Recebidos
+        mrDescricaoInput: document.getElementById('mr-descricao'),
+        mrQuantidadeInput: document.getElementById('mr-quantidade'),
+        mrFornecedorInput: document.getElementById('mr-fornecedor'),
+        mrNfInput: document.getElementById('mr-nf'),
+        mrConformidadeSelect: document.getElementById('mr-conformidade'),
+        addMrBtn: document.getElementById('add-mr-btn'),
+        materiaisRecebidosTbody: document.getElementById('materiais-recebidos-tbody'),
+
+        // Materiais Utilizados
+        muDescricaoInput: document.getElementById('mu-descricao'),
+        muQuantidadeInput: document.getElementById('mu-quantidade'),
+        muAtividadeInput: document.getElementById('mu-atividade'),
+        addMuBtn: document.getElementById('add-mu-btn'),
+        materiaisUtilizadosTbody: document.getElementById('materiais-utilizados-tbody'),
+
+        // Atividades
+        atividadesPlanejadasDiv: document.getElementById('atividades-planejadas-gantt'),
+        atividadesRealizadasTextarea: document.getElementById('atividades-realizadas-desc'),
+        desviosCronogramaTextarea: document.getElementById('desvios-cronograma'),
+
+        // Segurança e Meio Ambiente
+        obsSegurancaTextarea: document.getElementById('obs-seguranca'),
+        obsAmbientalTextarea: document.getElementById('obs-ambiental'),
+
+        // Visitas e Fiscalizações
+        visitaNomeInput: document.getElementById('visita-nome'),
+        visitaMotivoInput: document.getElementById('visita-motivo'),
+        visitaEntradaInput: document.getElementById('visita-entrada'),
+        visitaSaidaInput: document.getElementById('visita-saida'),
+        visitaObsInput: document.getElementById('visita-obs'),
+        addVisitaBtn: document.getElementById('add-visita-btn'),
+        visitasTbody: document.getElementById('visitas-tbody'),
+
+        // Ocorrências Gerais
+        ocorrenciasGeraisTextarea: document.getElementById('ocorrencias-gerais'),
+
+        // Registro Fotográfico
+        photoUploadInput: document.getElementById('photo-upload'),
+        photoCountInfoSpan: document.getElementById('photo-count-info'),
+        photoGalleryDiv: document.getElementById('photo-gallery'),
+
+        // Validação e Aprovação
+        rdoAprovadoPorInput: document.getElementById('rdo-aprovado-por'),
+        rdoDataAprovacaoInput: document.getElementById('rdo-data-aprovacao'),
+
+        // Botões de Ação do Formulário
+        resetFormBtn: document.querySelector('button[type="reset"]'),
+        printRdoBtn: document.getElementById('print-rdo-btn'),
+        saveRdoBtn: document.querySelector('button[type="submit"]')
+    };
+
+    // --- ESTADO DA APLICAÇÃO ---
+    let state = {
+        maoDeObraList: [],
+        equipamentosList: [],
+        materiaisRecebidosList: [],
+        materiaisUtilizadosList: [],
+        visitasList: [],
+        uploadedPhotos: [], // Armazena os Files das fotos
+        currentObraId: null,
+        cachedFuncionarios: [],
+        cachedObras: [],
+        cachedAtividadesDoDia: [], // Para armazenar atividades carregadas para a data do RDO
+        climaDataFinal: null // Objeto com os dados do clima a serem salvos
+    };
+
+    // --- FUNÇÕES UTILITÁRIAS ---
+    // showFeedback e apiFetch agora vêm de common_ui.js (window.commonUi)
+    function showFeedback(message, isError = false, duration = 5000) {
+        // Redireciona para a função global
+        if (window.commonUi && window.commonUi.showFeedback) {
+            window.commonUi.showFeedback(message, isError ? 'error' : 'success', duration);
+        } else {
+            console.warn("commonUi.showFeedback não disponível. Exibindo alerta.");
+            alert(message);
+        }
+    }
+
+    async function apiFetch(endpoint, options = {}) {
+        // Redireciona para a função global
+        if (window.commonUi && window.commonUi.apiFetch) {
+            return window.commonUi.apiFetch(endpoint, options);
+        } else {
+            console.error("commonUi.apiFetch não disponível.");
+            throw new Error("API Fetch service not available.");
+        }
+    }
+    
+    function parseDate(dateString) { // Formato esperado: YYYY-MM-DD
+        if (!dateString) return null;
+        const parts = dateString.split('-');
+        if (parts.length === 3) {
+            const year = parseInt(parts[0], 10);
+            const month = parseInt(parts[1], 10) - 1; // Mês é 0-indexado em JS Date
+            const day = parseInt(parts[2], 10);
+            if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+                return new Date(Date.UTC(year, month, day)); // Usar UTC para consistência
+            }
+        }
+        console.warn(`Formato de data inválido recebido: ${dateString}`);
+        return null;
+    }
+
+    function escapeHtml(unsafe) {
+        return unsafe
+             .replace(/&/g, "&amp;")
+             .replace(/</g, "&lt;")
+             .replace(/>/g, "&gt;")
+             .replace(/"/g, "&quot;")
+             .replace(/'/g, "&#039;");
+    }
+
+    // --- CARREGAMENTO DOS COMPONENTES REUTILIZÁVEIS ---
+    async function loadReusableComponents() {
+        if (DOM.headerPlaceholder) {
+            try {
+                const headerResponse = await fetch('includes/header.html');
+                DOM.headerPlaceholder.innerHTML = await headerResponse.text();
+            } catch (error) {
+                console.error("Erro ao carregar header.html:", error);
+                DOM.headerPlaceholder.innerHTML = "<header class='page-header'><h1 class='text-red-500'>Erro ao carregar cabeçalho</h1></header>";
+            }
+        }
+        if (DOM.sidebarPlaceholder) {
+            try {
+                const sidebarResponse = await fetch('includes/sidebar.html');
+                DOM.sidebarPlaceholder.innerHTML = await sidebarResponse.text();
+            } catch (error) {
+                console.error("Erro ao carregar sidebar.html:", error);
+                DOM.sidebarPlaceholder.innerHTML = "<nav class='sidebar bg-red-100 text-red-700 p-4'>Erro ao carregar menu lateral</nav>";
+            }
+        }
+        // Uma vez que os componentes são carregados, suas funcionalidades do common_ui.js serão inicializadas
+        // Não é necessário chamar commonUi.setupHeaderAndSidebar() aqui explicitamente,
+        // pois o common_ui.js já tem seu próprio DOMContentLoaded listener.
+    }
+    
+    // --- LÓGICA DE HEADER E SIDEBAR (mantida para RDO, mas será gerenciada pelo common_ui.js para outros) ---
+    // Apenas para rdoElaboradoPorInput, que é específico desta página
+    function setupRdoSpecificHeaderElements() {
+        if (DOM.rdoElaboradoPorInput) {
+            DOM.rdoElaboradoPorInput.value = localStorage.getItem(window.commonUi.CONFIG.LOCAL_STORAGE_USER_EMAIL_KEY) || '';
+        }
+         // O back-link é comum, mas o destino pode mudar. Ajustar no common_ui ou aqui.
+         if (DOM.backLink) {
+             DOM.backLink.href = 'dashboard.html'; // Define o destino padrão
+             DOM.backLink.classList.remove('hidden'); // Mostra o botão de voltar
+         }
+    }
+    
+    // --- CARREGAMENTO DE DADOS INICIAIS ---
+    async function loadObrasParaSelect() {
+        if (!DOM.selectObraRdo) return;
+        DOM.selectObraRdo.disabled = true;
+        DOM.selectObraRdo.innerHTML = '<option value="">Carregando obras...</option>';
+        try {
+            const obras = await apiFetch('/empreendimentos'); // Usando a função global apiFetch
+            state.cachedObras = Array.isArray(obras) ? obras : (Array.isArray(obras.empreendimentos) ? obras.empreendimentos : []);
+            
+            DOM.selectObraRdo.innerHTML = '<option value="">-- Selecione a Obra --</option>';
+            if (state.cachedObras.length > 0) {
+                state.cachedObras.forEach(obra => {
+                    const option = document.createElement('option');
+                    option.value = obra.id;
+                    option.textContent = obra.nome || `Obra ${obra.id}`;
+                    // Adicione aqui outros datasets se precisar de dados da obra (ex: responsável)
+                    // option.dataset.responsavelTecnico = obra.responsavel_tecnico || "Não definido"; 
+                    DOM.selectObraRdo.appendChild(option);
+                });
+                DOM.selectObraRdo.disabled = false;
+            } else {
+                DOM.selectObraRdo.innerHTML = '<option value="">Nenhuma obra encontrada</option>';
+            }
+        } catch (error) {
+            DOM.selectObraRdo.innerHTML = '<option value="">Erro ao carregar obras</option>';
+        }
+    }
+
+    async function loadFuncionariosParaSelect(obraId = null) {
+        if (!DOM.selectFuncionarioMo) return;
+        DOM.selectFuncionarioMo.disabled = true;
+        DOM.selectFuncionarioMo.innerHTML = '<option value="">Carregando funcionários...</option>';
+        try {
+            const endpoint = obraId ? `/funcionarios?empreendimento_atual_id=${obraId}` : '/funcionarios'; // Ajuste o filtro
+            const response = await apiFetch(endpoint); // Usando a função global apiFetch
+            state.cachedFuncionarios = Array.isArray(response.funcionarios) ? response.funcionarios : []; // Supondo que a API retorna {funcionarios: [...]}
+            
+            DOM.selectFuncionarioMo.innerHTML = '<option value="">-- Selecione o Funcionário --</option>';
+            if (state.cachedFuncionarios.length > 0) {
+                state.cachedFuncionarios.forEach(func => {
+                    const option = document.createElement('option');
+                    option.value = func.id; // Usar o ID do funcionário do DB
+                    option.textContent = func.fullName || `Funcionário ${func.id}`;
+                    option.dataset.funcao = func.contractRole || ''; // Se o funcionário tem uma função padrão
+                    DOM.selectFuncionarioMo.appendChild(option);
+                });
+                DOM.selectFuncionarioMo.disabled = false;
+            } else {
+                DOM.selectFuncionarioMo.innerHTML = '<option value="">Nenhum funcionário encontrado</option>';
+            }
+        } catch (error) {
+            DOM.selectFuncionarioMo.innerHTML = '<option value="">Erro ao carregar funcionários</option>';
+        }
+    }
+
+    // --- LÓGICA DO CLIMA ---
+    function updateClimaDisplay(data) {
+        DOM.climaLocalSpan.textContent = `${data.name}, ${data.sys.country}`;
+        DOM.climaCondicaoSpan.textContent = data.weather[0].main;
+        DOM.climaDescricaoSpan.textContent = data.weather[0].description;
+        DOM.climaTempSpan.textContent = data.main.temp.toFixed(1);
+        DOM.climaSensacaoSpan.textContent = data.main.feels_like.toFixed(1);
+        DOM.climaUmidadeSpan.textContent = data.main.humidity;
+        DOM.climaVentoSpan.textContent = (data.wind.speed * 3.6).toFixed(1); // m/s para km/h
+        DOM.climaApiDisplayDiv.classList.remove('hidden');
+        DOM.climaLoadingDiv.classList.add('hidden');
+    }
+
+    function saveClimaData(type, data) {
+        state.climaDataFinal = { type, ...data };
+        DOM.climaFinalInput.value = JSON.stringify(state.climaDataFinal);
+        DOM.climaPrintTextSpan.textContent = type === 'api' 
+            ? `${data.descricao_clima_api || data.description}, Praticável: ${data.praticavel_api}`
+            : `${data.descricao_clima_manual}, Praticável: ${data.praticavel_manual}`;
+        DOM.climaPrintDiv.classList.remove('hidden');
+        DOM.climaApiDisplayDiv.classList.add('hidden');
+        DOM.climaManualInputDiv.classList.add('hidden');
+        DOM.climaStatusMsgDiv.textContent = `Clima (${type === 'api' ? 'API' : 'Manual'}) salvo para o RDO.`;
+        DOM.climaStatusMsgDiv.className = 'text-sm my-2 text-green-600';
+        DOM.climaStatusMsgDiv.classList.remove('hidden');
+    }
+
+    async function fetchWeather(lat, lon) {
+        if (!CONFIG.OPENWEATHER_API_KEY || CONFIG.OPENWEATHER_API_KEY === 'SUA_CHAVE_API_OPENWEATHERMAP_AQUI') {
+            showFeedback("Chave da API OpenWeatherMap não configurada.", true);
+            DOM.climaLoadingDiv.classList.add('hidden');
+            DOM.climaApiDisplayDiv.classList.add('hidden');
+            DOM.climaManualInputDiv.classList.remove('hidden'); // Força manual se não tem chave
+            return;
+        }
+        DOM.climaLoadingDiv.classList.remove('hidden');
+        DOM.climaApiDisplayDiv.classList.add('hidden');
+        DOM.climaManualInputDiv.classList.add('hidden');
+        DOM.climaPrintDiv.classList.add('hidden');
+        try {
+            const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${CONFIG.OPENWEATHER_API_KEY}&units=metric&lang=pt_br`);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || `Erro ao buscar clima: ${response.status}`);
+            }
+            const weatherData = await response.json();
+            updateClimaDisplay(weatherData);
+            state.climaDataFinal = null; // Limpa clima salvo anteriormente
+            DOM.climaFinalInput.value = "";
+            DOM.climaStatusMsgDiv.classList.add('hidden');
+        } catch (error) {
+            showFeedback(error.message, true);
+            DOM.climaLoadingDiv.classList.add('hidden');
+            DOM.climaManualInputDiv.classList.remove('hidden'); // Permite entrada manual em caso de erro
+        }
+    }
+
+    function getLocationAndFetchWeather() {
+        const obraSelecionada = state.cachedObras.find(o => o.id == state.currentObraId);
+        // Assumindo que o objeto obra agora tem lat/lon se você for salvar no DB
+        if (obraSelecionada && obraSelecionada.latitude && obraSelecionada.longitude) { // Supondo que empreendimento terá latitude e longitude
+            DOM.climaLatInput.value = obraSelecionada.latitude;
+            DOM.climaLonInput.value = obraSelecionada.longitude;
+            fetchWeather(obraSelecionada.latitude, obraSelecionada.longitude);
+        } else if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(position => {
+                DOM.climaLatInput.value = position.coords.latitude;
+                DOM.climaLonInput.value = position.coords.longitude;
+                fetchWeather(position.coords.latitude, position.coords.longitude);
+            }, () => {
+                showFeedback("Não foi possível obter sua localização. Insira o clima manualmente ou defina um local padrão.", true);
+                DOM.climaLoadingDiv.classList.add('hidden');
+                DOM.climaManualInputDiv.classList.remove('hidden');
+            });
+        } else {
+            showFeedback("Geolocalização não suportada. Insira o clima manualmente.", true);
+            DOM.climaLoadingDiv.classList.add('hidden');
+            DOM.climaManualInputDiv.classList.remove('hidden');
+        }
+    }
+    
+    // --- LÓGICA DAS SEÇÕES (Mão de Obra, Equipamentos, etc.) ---
+    // Mão de Obra
+    function renderMaoDeObraTable() {
+        DOM.maoObraTbody.innerHTML = '';
+        if (state.maoDeObraList.length === 0) {
+            DOM.maoObraTbody.innerHTML = '<tr><td colspan="4" class="text-center py-3 text-gray-500">Nenhum funcionário adicionado.</td></tr>';
+            return;
+        }
+        state.maoDeObraList.forEach((item, index) => {
+            const tr = DOM.maoObraTbody.insertRow();
+            tr.innerHTML = `
+                <td>${escapeHtml(item.nome_funcionario)}</td>
+                <td>${escapeHtml(item.funcao)}</td>
+                <td class="text-right">${escapeHtml(String(item.horas_trabalhadas))}</td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-danger btn-sm remove-mo-btn" data-index="${index}" title="Remover">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </td>
+            `;
+        });
+    }
+
+    DOM.addMoBtn?.addEventListener('click', () => {
+        const funcionarioSelect = DOM.selectFuncionarioMo;
+        const funcionarioId = funcionarioSelect.value;
+        const nomeFuncionario = funcionarioSelect.options[funcionarioSelect.selectedIndex]?.textContent || 'N/A';
+        const funcao = DOM.inputFuncaoMo.value.trim();
+        const horas = parseFloat(DOM.inputHorasMo.value);
+
+        if (!funcionarioId) { showFeedback("Selecione um funcionário.", true); return; }
+        if (!funcao) { showFeedback("Função do funcionário é obrigatória.", true); DOM.inputFuncaoMo.focus(); return; }
+        if (isNaN(horas) || horas <= 0) { showFeedback("Horas trabalhadas inválidas.", true); DOM.inputHorasMo.focus(); return; }
+
+        state.maoDeObraList.push({
+            funcionario_id: parseInt(funcionarioId), // Converte para int para o DB
+            nome_funcionario: nomeFuncionario, 
+            funcao: funcao,
+            horas_trabalhadas: horas
+        });
+        renderMaoDeObraTable();
+        DOM.inputFuncaoMo.value = '';
+        DOM.inputHorasMo.value = '';
+        funcionarioSelect.value = '';
+        showFeedback("Mão de obra adicionada.", false, 2000);
+    });
+
+    DOM.maoObraTbody?.addEventListener('click', (e) => {
+        if (e.target.closest('.remove-mo-btn')) {
+            const index = parseInt(e.target.closest('.remove-mo-btn').dataset.index);
+            state.maoDeObraList.splice(index, 1);
+            renderMaoDeObraTable();
+            showFeedback("Mão de obra removida.", false, 2000);
+        }
+    });
+    
+    // Equipamentos
+    function renderEquipamentosTable() {
+        DOM.equipamentosTbody.innerHTML = '';
+        if (state.equipamentosList.length === 0) {
+            DOM.equipamentosTbody.innerHTML = '<tr><td colspan="4" class="text-center py-3 text-gray-500">Nenhum equipamento adicionado.</td></tr>';
+            return;
+        }
+        state.equipamentosList.forEach((item, index) => {
+            const tr = DOM.equipamentosTbody.insertRow();
+            tr.innerHTML = `
+                <td>${escapeHtml(item.nome)}</td>
+                <td class="text-right">${escapeHtml(String(item.quantidade))}</td>
+                <td class="text-right">${item.horas_uso !== null && item.horas_uso !== undefined ? escapeHtml(String(item.horas_uso)) : '-'}</td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-danger btn-sm remove-eq-btn" data-index="${index}" title="Remover"><i class="fas fa-trash-alt"></i></button>
+                </td>`;
+        });
+    }
+
+    DOM.addEqBtn?.addEventListener('click', () => {
+        const nome = DOM.newEquipamentoNomeInput.value.trim();
+        const qtd = parseInt(DOM.newEquipamentoQtdInput.value);
+        const horas = DOM.newEquipamentoHorasInput.value ? parseFloat(DOM.newEquipamentoHorasInput.value) : null;
+
+        if (!nome) { showFeedback("Nome do equipamento é obrigatório.", true); return; }
+        if (isNaN(qtd) || qtd <= 0) { showFeedback("Quantidade inválida.", true); return; }
+        if (horas !== null && (isNaN(horas) || horas < 0)) { showFeedback("Horas de uso inválidas.", true); return; }
+        
+        state.equipamentosList.push({ nome, quantidade: qtd, horas_uso: horas });
+        renderEquipamentosTable();
+        DOM.newEquipamentoNomeInput.value = '';
+        DOM.newEquipamentoQtdInput.value = '1';
+        DOM.newEquipamentoHorasInput.value = '';
+        showFeedback("Equipamento adicionado.", false, 2000);
+    });
+
+    DOM.equipamentosTbody?.addEventListener('click', (e) => {
+        if (e.target.closest('.remove-eq-btn')) {
+            const index = parseInt(e.target.closest('.remove-eq-btn').dataset.index);
+            state.equipamentosList.splice(index, 1);
+            renderEquipamentosTable();
+            showFeedback("Equipamento removido.", false, 2000);
+        }
+    });
+
+    // Materiais Recebidos
+    function renderMateriaisRecebidosTable() {
+        DOM.materiaisRecebidosTbody.innerHTML = '';
+        if (state.materiaisRecebidosList.length === 0) {
+            DOM.materiaisRecebidosTbody.innerHTML = '<tr><td colspan="6" class="text-center py-3 text-gray-500">Nenhum material recebido adicionado.</td></tr>';
+            return;
+        }
+        state.materiaisRecebidosList.forEach((item, index) => {
+            const tr = DOM.materiaisRecebidosTbody.insertRow();
+            tr.innerHTML = `
+                <td>${escapeHtml(item.descricao)}</td>
+                <td class="text-right">${escapeHtml(String(item.quantidade))}</td>
+                <td>${escapeHtml(item.fornecedor || '-')}</td>
+                <td>${escapeHtml(item.nota_fiscal || '-')}</td>
+                <td>${escapeHtml(item.conformidade)}</td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-danger btn-sm remove-mr-btn" data-index="${index}" title="Remover"><i class="fas fa-trash-alt"></i></button>
+                </td>`;
+        });
+    }
+
+    DOM.addMrBtn?.addEventListener('click', () => {
+        const descricao = DOM.mrDescricaoInput.value.trim();
+        const quantidade = parseFloat(DOM.mrQuantidadeInput.value);
+        const fornecedor = DOM.mrFornecedorInput.value.trim();
+        const nf = DOM.mrNfInput.value.trim();
+        const conformidade = DOM.mrConformidadeSelect.value;
+
+        if (!descricao) { showFeedback("Descrição do material é obrigatória.", true); return; }
+        if (isNaN(quantidade) || quantidade <= 0) { showFeedback("Quantidade inválida.", true); return; }
+
+        state.materiaisRecebidosList.push({
+            descricao, quantidade, fornecedor, nota_fiscal: nf, conformidade
+        });
+        renderMateriaisRecebidosTable();
+        DOM.mrDescricaoInput.value = '';
+        DOM.mrQuantidadeInput.value = '';
+        DOM.mrFornecedorInput.value = '';
+        DOM.mrNfInput.value = '';
+        DOM.mrConformidadeSelect.value = 'aprovado';
+        showFeedback("Material recebido adicionado.", false, 2000);
+    });
+
+    DOM.materiaisRecebidosTbody?.addEventListener('click', (e) => {
+        if (e.target.closest('.remove-mr-btn')) {
+            const index = parseInt(e.target.closest('.remove-mr-btn').dataset.index);
+            state.materiaisRecebidosList.splice(index, 1);
+            renderMateriaisRecebidosTable();
+            showFeedback("Material recebido removido.", false, 2000);
+        }
+    });
+
+    // Materiais Utilizados
+    function renderMateriaisUtilizadosTable() {
+        DOM.materiaisUtilizadosTbody.innerHTML = '';
+        if (state.materiaisUtilizadosList.length === 0) {
+            DOM.materiaisUtilizadosTbody.innerHTML = '<tr><td colspan="4" class="text-center py-3 text-gray-500">Nenhum material utilizado adicionado.</td></tr>';
+            return;
+        }
+        state.materiaisUtilizadosList.forEach((item, index) => {
+            const tr = DOM.materiaisUtilizadosTbody.insertRow();
+            tr.innerHTML = `
+                <td>${escapeHtml(item.descricao)}</td>
+                <td class="text-right">${escapeHtml(String(item.quantidade_utilizada))}</td>
+                <td>${escapeHtml(item.atividade_relacionada || '-')}</td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-danger btn-sm remove-mu-btn" data-index="${index}" title="Remover"><i class="fas fa-trash-alt"></i></button>
+                </td>`;
+        });
+    }
+
+    DOM.addMuBtn?.addEventListener('click', () => {
+        const descricao = DOM.muDescricaoInput.value.trim();
+        const quantidade = parseFloat(DOM.muQuantidadeInput.value);
+        const atividade = DOM.muAtividadeInput.value.trim();
+
+        if (!descricao) { showFeedback("Descrição do material é obrigatória.", true); return; }
+        if (isNaN(quantidade) || quantidade <= 0) { showFeedback("Quantidade inválida.", true); return; }
+
+        state.materiaisUtilizadosList.push({
+            descricao, quantidade_utilizada: quantidade, atividade_relacionada: atividade
+        });
+        renderMateriaisUtilizadosTable();
+        DOM.muDescricaoInput.value = '';
+        DOM.muQuantidadeInput.value = '';
+        DOM.muAtividadeInput.value = '';
+        showFeedback("Material utilizado adicionado.", false, 2000);
+    });
+
+    DOM.materiaisUtilizadosTbody?.addEventListener('click', (e) => {
+        if (e.target.closest('.remove-mu-btn')) {
+            const index = parseInt(e.target.closest('.remove-mu-btn').dataset.index);
+            state.materiaisUtilizadosList.splice(index, 1);
+            renderMateriaisUtilizadosTable();
+            showFeedback("Material utilizado removido.", false, 2000);
+        }
+    });
+
+    // Visitas
+    function renderVisitasTable() {
+        DOM.visitasTbody.innerHTML = '';
+        if (state.visitasList.length === 0) {
+            DOM.visitasTbody.innerHTML = '<tr><td colspan="6" class="text-center py-3 text-gray-500">Nenhuma visita adicionada.</td></tr>';
+            return;
+        }
+        state.visitasList.forEach((item, index) => {
+            const tr = DOM.visitasTbody.insertRow();
+            tr.innerHTML = `
+                <td>${escapeHtml(item.nome)}</td>
+                <td>${escapeHtml(item.motivo)}</td>
+                <td>${escapeHtml(item.entrada || '-')}</td>
+                <td>${escapeHtml(item.saida || '-')}</td>
+                <td>${escapeHtml(item.observacoes || '-')}</td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-danger btn-sm remove-visita-btn" data-index="${index}" title="Remover"><i class="fas fa-trash-alt"></i></button>
+                </td>`;
+        });
+    }
+
+    DOM.addVisitaBtn?.addEventListener('click', () => {
+        const nome = DOM.visitaNomeInput.value.trim();
+        const motivo = DOM.visitaMotivoInput.value.trim();
+        const entrada = DOM.visitaEntradaInput.value.trim();
+        const saida = DOM.visitaSaidaInput.value.trim();
+        const obs = DOM.visitaObsInput.value.trim();
+
+        if (!nome) { showFeedback("Nome do visitante é obrigatório.", true); return; }
+        if (!motivo) { showFeedback("Motivo da visita é obrigatório.", true); return; }
+
+        state.visitasList.push({
+            nome, motivo, entrada, saida, observacoes: obs
+        });
+        renderVisitasTable();
+        DOM.visitaNomeInput.value = '';
+        DOM.visitaMotivoInput.value = '';
+        DOM.visitaEntradaInput.value = '';
+        DOM.visitaSaidaInput.value = '';
+        DOM.visitaObsInput.value = '';
+        showFeedback("Visita adicionada.", false, 2000);
+    });
+
+    DOM.visitasTbody?.addEventListener('click', (e) => {
+        if (e.target.closest('.remove-visita-btn')) {
+            const index = parseInt(e.target.closest('.remove-visita-btn').dataset.index);
+            state.visitasList.splice(index, 1);
+            renderVisitasTable();
+            showFeedback("Visita removida.", false, 2000);
+        }
+    });
+
+    // --- ATIVIDADES PLANEJADAS ---
+    async function loadAtividadesPlanejadasParaRDO() {
+        if (!state.currentObraId || !DOM.dataRdoInput.value) {
+            DOM.atividadesPlanejadasDiv.innerHTML = '<p class="text-sm text-gray-500"><em>Selecione uma obra e data do RDO.</em></p>';
+            return;
+        }
+        DOM.atividadesPlanejadasDiv.innerHTML = '<p class="text-sm text-gray-500"><em>Carregando atividades...</em></p>';
+        try {
+            // Endpoint para buscar atividades relevantes para o RDO
+            // A API precisa filtrar atividades com data_inicio_prevista <= data_rdo
+            // E data_fim_prevista >= data_rdo OU status != 'Concluído'
+            const endpoint = `/activities/by_rdo_date?empreendimento_id=${state.currentObraId}&data_rdo=${DOM.dataRdoInput.value}`;
+            const atividades = await apiFetch(endpoint); // Usando a função global apiFetch
+            state.cachedAtividadesDoDia = Array.isArray(atividades.activities) ? atividades.activities : []; // Supondo {activities: [...]}
+            
+            if (state.cachedAtividadesDoDia.length === 0) {
+                DOM.atividadesPlanejadasDiv.innerHTML = '<p class="text-sm text-gray-500"><em>Nenhuma atividade planejada ou em andamento para esta data.</em></p>';
+                return;
+            }
+
+            const ul = document.createElement('ul');
+            state.cachedAtividadesDoDia.forEach(atividade => {
+                const li = document.createElement('li');
+                li.className = 'mb-2 p-2 border rounded';
+                
+                let statusInfo = '';
+                let isCompleted = atividade.status === 'Concluído';
+                let isOverdue = false;
+
+                // Lógica para verificar se a atividade está atrasada/concluída
+                const rdoDate = parseDate(DOM.dataRdoInput.value);
+                const atividadeEndDate = parseDate(atividade.data_fim_prevista); // Usar data_fim_prevista para atraso
+                
+                if (isCompleted) {
+                    li.classList.add('task-already-completed');
+                    statusInfo = ` (Concluída em: ${atividade.data_fim_real ? new Date(atividade.data_fim_real + 'T00:00:00').toLocaleDateString('pt-BR') : 'N/A'})`;
+                } else if (atividadeEndDate && rdoDate && atividadeEndDate < rdoDate) {
+                    li.classList.add('task-overdue');
+                    isOverdue = true;
+                    statusInfo = ' (ATRASADA)';
+                }
+
+                li.innerHTML = `
+                    <label class="flex items-center text-sm">
+                        <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600 mr-2 atividade-concluida-cb" 
+                               data-id="${atividade.id}" 
+                               ${isCompleted ? 'checked disabled' : ''}>
+                        <span class="font-medium">${escapeHtml(atividade.nome || atividade.descricao)}</span>
+                        <span class="text-xs text-gray-600 ml-1">${statusInfo}</span>
+                    </label>
+                    <p class="text-xs text-gray-500 ml-6">
+                        Início Previsto: ${atividade.data_inicio_prevista ? new Date(atividade.data_inicio_prevista + 'T00:00:00').toLocaleDateString('pt-BR') : 'N/A'} - 
+                        Fim Previsto: ${atividade.data_fim_prevista ? new Date(atividade.data_fim_prevista + 'T00:00:00').toLocaleDateString('pt-BR') : 'N/A'}
+                    </p>
+                `;
+                ul.appendChild(li);
+            });
+            DOM.atividadesPlanejadasDiv.innerHTML = '';
+            DOM.atividadesPlanejadasDiv.appendChild(ul);
+
+        } catch (error) {
+            DOM.atividadesPlanejadasDiv.innerHTML = '<p class="text-sm text-red-500"><em>Erro ao carregar atividades.</em></p>';
+        }
+    }
+    
+    DOM.atividadesPlanejadasDiv?.addEventListener('change', async (e) => {
+        if (e.target.classList.contains('atividade-concluida-cb')) {
+            const checkbox = e.target;
+            const atividadeId = checkbox.dataset.id;
+            const concluida = checkbox.checked;
+            const dataConclusaoReal = concluida ? DOM.dataRdoInput.value : null; // Conclui na data do RDO
+            const novoStatus = concluida ? 'Concluído' : 'Em andamento'; // Se desmarcar, volta para em andamento
+
+            try {
+                // A API /api/activities/<id> (PUT) precisa aceitar a atualização de 'status' e 'data_fim_real'
+                await apiFetch(`/activities/${atividadeId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ status: novoStatus, data_fim_real: dataConclusaoReal })
+                });
+                showFeedback(`Atividade ${concluida ? 'marcada como concluída' : 'marcada como não concluída'}.`, false);
+                loadAtividadesPlanejadasParaRDO(); // Recarrega para refletir o status
+            } catch (error) {
+                showFeedback("Erro ao atualizar status da atividade.", true);
+                checkbox.checked = !concluida; // Reverte o checkbox em caso de erro
+            }
+        }
+    });
+
+
+    // --- REGISTRO FOTOGRÁFICO ---
+    DOM.photoUploadInput?.addEventListener('change', function(event) {
+        state.uploadedPhotos = Array.from(event.target.files);
+        DOM.photoCountInfoSpan.textContent = `${state.uploadedPhotos.length} foto(s) selecionada(s).`;
+        DOM.photoGalleryDiv.innerHTML = ''; // Limpa galeria anterior
+        if (state.uploadedPhotos.length > 10) {
+            showFeedback("Máximo de 10 fotos permitido.", true);
+            state.uploadedPhotos = state.uploadedPhotos.slice(0, 10); // Limita a 10
+            DOM.photoCountInfoSpan.textContent = `${state.uploadedPhotos.length} foto(s) selecionada(s) (limite de 10).`;
+        }
+
+        state.uploadedPhotos.forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const photoItem = document.createElement('div');
+                photoItem.className = 'photo-item';
+                photoItem.innerHTML = `<img src="${e.target.result}" alt="${escapeHtml(file.name)}">
+                                       <button type="button" class="remove-photo-btn" data-index="${index}" title="Remover foto">&times;</button>`;
+                DOM.photoGalleryDiv.appendChild(photoItem);
+            }
+            reader.readAsDataURL(file);
+        });
+    });
+
+    DOM.photoGalleryDiv?.addEventListener('click', function(event) {
+        if (event.target.classList.contains('remove-photo-btn')) {
+            const indexToRemove = parseInt(event.target.dataset.index);
+            state.uploadedPhotos.splice(indexToRemove, 1);
+            DOM.photoUploadInput.dispatchEvent(new Event('change')); // Força a re-renderização da galeria
+            showFeedback("Foto removida da seleção.", false, 2000);
+        }
+    });
+
+
+    // --- SUBMISSÃO DO FORMULÁRIO ---
+    DOM.rdoForm?.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        DOM.saveRdoBtn.disabled = true;
+        DOM.saveRdoBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Salvando...';
+
+        const formData = new FormData(DOM.rdoForm); // Pega campos básicos
+        const rdoData = {};
+        formData.forEach((value, key) => {
+            if (key !== 'clima_final_json_str' && key !== 'photo-upload') { // Excluir inputs file e clima JSON
+                rdoData[key] = value;
+            }
+        });
+
+        // Adiciona dados das listas e o clima
+        rdoData.clima = state.climaDataFinal; // Objeto de clima
+        rdoData.mao_de_obra = state.maoDeObraList; // Array de objetos
+        rdoData.equipamentos = state.equipamentosList; // Array de objetos
+        rdoData.materiais_recebidos = state.materiaisRecebidosList;
+        rdoData.materiais_utilizados = state.materiaisUtilizadosList;
+        rdoData.visitas_fiscalizacoes = state.visitasList;
+        rdoData.ocorrencias_gerais = DOM.ocorrenciasGeraisTextarea.value.trim();
+        rdoData.atividades_realizadas_desc = DOM.atividadesRealizadasTextarea.value.trim();
+        rdoData.desvios_cronograma = DOM.desviosCronogramaTextarea.value.trim();
+        rdoData.obs_seguranca = DOM.obsSegurancaTextarea.value.trim();
+        rdoData.obs_ambiental = DOM.obsAmbientalTextarea.value.trim();
+        
+        // As atividades concluídas hoje já foram atualizadas via API no checkbox listener
+        // Então o RDO apenas registra que elas foram marcadas
+        rdoData.atividades_marcadas_concluidas_hoje = state.cachedAtividadesDoDia
+           .filter(a => a.status === 'Concluído' && a.data_fim_real === DOM.dataRdoInput.value)
+           .map(a => a.id); // Apenas IDs das que foram marcadas como concluídas HOJE
+
+        // Prepara para envio: JSON para dados do RDO + FormData para fotos
+        const finalSubmissionFormData = new FormData();
+        finalSubmissionFormData.append('rdo_data', JSON.stringify(rdoData)); // Todos os dados do RDO como JSON string
+
+        state.uploadedPhotos.forEach((photoFile, index) => {
+            finalSubmissionFormData.append(`foto_${index}`, photoFile, photoFile.name); // 'foto_0', 'foto_1', etc.
+        });
+        
+        try {
+            const endpoint = '/diarios'; // Endpoint para criar RDO (ainda não implementado no backend)
+            // É importante que o backend consiga lidar com multipart/form-data
+            const result = await apiFetch(endpoint, {
+                method: 'POST',
+                body: finalSubmissionFormData // Envia FormData
+            });
+            showFeedback("RDO salvo com sucesso! ID: " + (result?.id || ''), false);
+            resetForm(); // Limpa o formulário após salvar
+        } catch (error) {
+            // showFeedback já é chamado pelo apiFetch
+        } finally {
+            DOM.saveRdoBtn.disabled = false;
+            DOM.saveRdoBtn.innerHTML = '<i class="fas fa-save"></i> Salvar RDO';
+        }
+    });
+
+    // --- OUTRAS AÇÕES DO FORMULÁRIO ---
+    function resetForm() {
+        DOM.rdoForm?.reset();
+        state.maoDeObraList = []; renderMaoDeObraTable();
+        state.equipamentosList = []; renderEquipamentosTable();
+        state.materiaisRecebidosList = []; renderMateriaisRecebidosTable();
+        state.materiaisUtilizadosList = []; renderMateriaisUtilizadosTable();
+        state.visitasList = []; renderVisitasTable();
+        state.uploadedPhotos = []; 
+        DOM.photoGalleryDiv.innerHTML = '';
+        DOM.photoCountInfoSpan.textContent = 'Nenhuma foto selecionada.';
+        state.climaDataFinal = null;
+        DOM.climaFinalInput.value = '';
+        DOM.climaPrintDiv.classList.add('hidden');
+        DOM.climaStatusMsgDiv.classList.add('hidden');
+        DOM.climaApiDisplayDiv.classList.add('hidden');
+        DOM.climaManualInputDiv.classList.add('hidden');
+        DOM.atividadesPlanejadasDiv.innerHTML = '<p class="text-sm text-gray-500"><em>Selecione uma obra e data do RDO.</em></p>';
+        DOM.selectObraRdo.value = '';
+        DOM.responsavelTecnicoInput.value = '';
+        DOM.selectFuncionarioMo.innerHTML = '<option value="">-- Selecione a Obra Primeiro --</option>';
+        DOM.selectFuncionarioMo.disabled = true;
+        DOM.dataRdoInput.value = new Date().toISOString().split('T')[0]; // Data de hoje
+        
+        // Repopular email do usuário
+        if (DOM.rdoElaboradoPorInput && window.commonUi && window.commonUi.CONFIG) { 
+            DOM.rdoElaboradoPorInput.value = localStorage.getItem(window.commonUi.CONFIG.LOCAL_STORAGE_USER_EMAIL_KEY) || '';
+        }
+        showFeedback("Formulário limpo.", false, 2000);
+    }
+    DOM.resetFormBtn?.addEventListener('click', resetForm);
+    
+    // DOM.printRdoBtn?.addEventListener('click', () => { /* Lógica de impressão */ });
+
+
+    // --- EVENT LISTENERS GERAIS E INICIALIZAÇÃO ---
+    DOM.selectObraRdo?.addEventListener('change', function() {
+        state.currentObraId = this.value;
+        const selectedOption = this.options[this.selectedIndex];
+        // Note: empreendimento.responsavel_tecnico precisaria vir da API /empreendimentos
+        // Por enquanto, é um placeholder
+        DOM.responsavelTecnicoInput.value = selectedOption.dataset.responsavelTecnico || "Não definido"; 
+
+        if (state.currentObraId) {
+            loadFuncionariosParaSelect(state.currentObraId);
+            loadAtividadesPlanejadasParaRDO();
+            getLocationAndFetchWeather();
+        } else {
+            DOM.selectFuncionarioMo.innerHTML = '<option value="">-- Selecione a Obra Primeiro --</option>';
+            DOM.selectFuncionarioMo.disabled = true;
+            DOM.atividadesPlanejadasDiv.innerHTML = '<p class="text-sm text-gray-500"><em>Selecione uma obra e data do RDO.</em></p>';
+             // Limpa o campo responsável técnico se a obra for deselecionada
+            DOM.responsavelTecnicoInput.value = '';
+            // Limpa o clima exibido
+            DOM.climaPrintDiv.classList.add('hidden');
+            DOM.climaStatusMsgDiv.classList.add('hidden');
+            DOM.climaApiDisplayDiv.classList.add('hidden');
+            DOM.climaManualInputDiv.classList.add('hidden');
+        }
+    });
+
+    DOM.dataRdoInput?.addEventListener('change', function() {
+        if (state.currentObraId && this.value) {
+            loadAtividadesPlanejadasParaRDO();
+        } else if (this.value) { // Se a data é preenchida, mas a obra não, tenta buscar clima por geo.
+             getLocationAndFetchWeather();
+        }
+    });
+    
+    DOM.selectFuncionarioMo?.addEventListener('change', function(){
+        const selectedOption = this.options[this.selectedIndex];
+        if(selectedOption && selectedOption.dataset.funcao){
+            DOM.inputFuncaoMo.value = selectedOption.dataset.funcao;
+        } else {
+            DOM.inputFuncaoMo.value = '';
+        }
+    });
+
+    // Listeners do Clima
+    DOM.confirmarClimaApiBtn?.addEventListener('click', () => {
+        const data = {
+            origem: 'api',
+            local: DOM.climaLocalSpan.textContent,
+            condicao: DOM.climaCondicaoSpan.textContent,
+            descricao_clima_api: DOM.climaDescricaoSpan.textContent,
+            temperatura_api: parseFloat(DOM.climaTempSpan.textContent),
+            sensacao_api: parseFloat(DOM.climaSensacaoSpan.textContent),
+            umidade_api: parseInt(DOM.climaUmidadeSpan.textContent),
+            vento_api: parseFloat(DOM.climaVentoSpan.textContent),
+            praticavel_api: DOM.climaPraticavelApiSelect.value,
+            latitude_api: DOM.climaLatInput.value,
+            longitude_api: DOM.climaLonInput.value
+        };
+        saveClimaData('api', data);
+    });
+
+    DOM.inserirManualBtn?.addEventListener('click', () => {
+        DOM.climaApiDisplayDiv.classList.add('hidden');
+        DOM.climaManualInputDiv.classList.remove('hidden');
+        DOM.climaManualDescInput.focus();
+    });
+
+    DOM.salvarManualBtn?.addEventListener('click', () => {
+        const descricao = DOM.climaManualDescInput.value.trim();
+        if (!descricao) {
+            showFeedback("Descrição do clima manual é obrigatória.", true);
+            return;
+        }
+        const data = {
+            origem: 'manual',
+            descricao_clima_manual: descricao,
+            praticavel_manual: DOM.climaManualPraticavelSelect.value
+        };
+        saveClimaData('manual', data);
+        DOM.climaManualDescInput.value = "";
+    });
+    
+    DOM.cancelarManualBtn?.addEventListener('click', () => {
+        DOM.climaManualInputDiv.classList.add('hidden');
+        // Se havia dados da API antes, mostra de novo, senão, tenta buscar.
+        if(state.climaDataFinal && state.climaDataFinal.origem === 'api'){
+             DOM.climaApiDisplayDiv.classList.remove('hidden');
+        } else {
+             getLocationAndFetchWeather(); // Tenta carregar da API novamente
+        }
+    });
+
+    // --- FUNÇÃO DE INICIALIZAÇÃO PRINCIPAL DA PÁGINA ---
+    async function initPage() {
+        // Carrega os componentes reutilizáveis primeiro
+        await loadReusableComponents();
+
+        // Verifica autenticação (usando a função do common_ui)
+        if (!window.commonUi || !window.commonUi.checkAuth || !window.commonUi.checkAuth()) {
+            // commonUi.checkAuth já lida com o redirecionamento
+            return; 
+        }
+
+        setupRdoSpecificHeaderElements(); // Ajusta elementos específicos do cabeçalho do RDO
+        await loadObrasParaSelect(); // Carrega obras primeiro
+        await loadFuncionariosParaSelect(); // Carrega todos os funcionários
+
+        DOM.dataRdoInput.value = new Date().toISOString().split('T')[0]; // Define data de hoje como padrão
+        
+        // Renderiza tabelas vazias inicialmente
+        renderMaoDeObraTable();
+        renderEquipamentosTable();
+        renderMateriaisRecebidosTable();
+        renderMateriaisUtilizadosTable();
+        renderVisitasTable();
+
+
+        // Dispara o change na data para carregar atividades se uma obra já estiver selecionada (ex: do localStorage)
+        // Isso será mais relevante quando tivermos persistência de RDOs
+        if (DOM.selectObraRdo.value) {
+            DOM.selectObraRdo.dispatchEvent(new Event('change'));
+        } else {
+            if(DOM.dataRdoInput.value) {
+                 getLocationAndFetchWeather();
+            }
+        }
+         console.log("Página Diário de Obras inicializada.");
+    }
+
+    // Chama a função de inicialização
+    initPage();
+});
+```
+
+---
+
+Com a Fase 4.1 concluída, você tem o `diariodeobras.html` totalmente padronizado e modularizado.
+
+O próximo passo é continuar com a **Fase 4.2: Atualizar `public/cadastro_empresa.html`**. Me diga quando estiver pron

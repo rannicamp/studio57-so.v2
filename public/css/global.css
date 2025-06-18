@@ -1,0 +1,328 @@
+/* public/css/global.css */
+
+/* --- Variáveis CSS Globais (Consistente com o Sistema) --- */
+:root {
+    --font-body: 'Inter', sans-serif; /* Usando Inter como definido no diario_de_obras.html */
+    --font-heading: 'Inter', sans-serif; /* Usando Inter */
+    --color-primary: #3b82f6; /* blue-500 */
+    --color-primary-dark: #2563eb; /* blue-600 */
+    --color-secondary: #6b7280; /* gray-500 */
+    --color-secondary-dark: #4b5563; /* gray-700 */ /* Adicionado para hover */
+    --color-danger: #ef4444; /* red-500 */
+    --color-danger-dark: #dc2626; /* red-600 */ /* Ajustado */
+    --color-success: #22c55e; /* green-500 */
+    --color-success-dark: #16a34a; /* green-600 */ /* Ajustado */
+    --color-info: #0ea5e9; /* sky-500 */
+    --color-info-dark: #0284c7; /* sky-600 */ /* Ajustado */
+    --color-light: #f9fafb; /* gray-50 */
+    --color-medium-light-gray: #e5e7eb; /* gray-200 */
+    --color-dark-gray: #6b7280; /* gray-500 */
+    --color-dark: #1f2937; /* gray-800 */
+    --color-white: #ffffff;
+    --color-border: #d1d5db; /* gray-300 */
+    --color-input-bg: #ffffff;
+    --color-input-disabled-bg: #f3f4f6; /* gray-100 */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --border-radius-sm: 0.25rem; /* rounded-sm */
+    --border-radius-md: 0.375rem; /* rounded-md */
+    --header-height: 65px; /* Altura do cabeçalho */
+    --sidebar-width: 260px; /* Largura da barra lateral */
+}
+
+/* --- Estilos Base para o Body e Layout Principal --- */
+body {
+    font-family: var(--font-body);
+    background-color: var(--color-light);
+    color: var(--color-dark);
+    line-height: 1.6;
+    margin: 0;
+    font-size: 16px;
+}
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    color: var(--color-dark);
+    margin-top: 1.5em;
+    margin-bottom: 0.8em;
+}
+h2 { font-size: 1.6em; }
+h3 { font-size: 1.3em; }
+
+/* --- Layout Principal da Página --- */
+.page-header {
+    height: var(--header-height);
+    background-color: var(--color-white);
+    border-bottom: 1px solid var(--color-medium-light-gray);
+    position: sticky;
+    top: 0;
+    z-index: 50; /* Garante que o header fique acima de outros elementos ao rolar */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.5rem; /* px-6 */
+    box-shadow: var(--shadow-sm); /* Adicionado para dar leve profundidade */
+}
+.page-header .header-left { display: flex; align-items: center; }
+.page-header .header-center { flex-grow: 1; text-align: center; }
+.page-header .header-right { display: flex; align-items: center; justify-content: flex-end; gap: 1rem; /* space-x-4 */ }
+.page-header .studio57-logo { height: 2.5rem; /* h-10 */ width: auto; }
+.page-header #page-title { margin: 0; font-size: 1.25rem; /* text-xl */ }
+.page-header #user-info { font-size: 0.875rem; /* text-sm */ font-weight: 500; color: var(--color-dark-gray); }
+.page-header #user-info span { font-weight: 600; color: var(--color-primary); } /* Usar color-primary para o nome do usuário */
+.page-header #current-datetime { font-size: 0.75rem; /* text-xs */ color: var(--color-dark-gray); }
+
+.page-wrapper {
+    display: flex;
+    height: calc(100vh - var(--header-height)); /* Ocupa o resto da tela */
+}
+
+/* --- Barra Lateral de Navegação --- */
+.sidebar {
+    width: var(--sidebar-width);
+    flex-shrink: 0;
+    background-color: var(--color-white);
+    border-right: 1px solid var(--color-medium-light-gray);
+    overflow-y: auto;
+    transition: width 0.3s ease; /* Para animação de colapsar */
+    padding-top: 1rem;
+    z-index: 40;
+}
+.sidebar .nav-menu { list-style: none; padding: 0; margin: 0; }
+.sidebar .nav-menu li.section-title-sidebar {
+    display: flex; align-items: center; padding: 0.75rem 1.5rem;
+    font-weight: 600; font-size: 0.8rem; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--color-dark-gray);
+    border-top: 1px solid var(--color-medium-light-gray); /* Linha divisória */
+    margin-top: 0.5rem;
+}
+.sidebar .nav-menu li.section-title-sidebar:first-of-type { border-top: none; margin-top: 0;}
+.sidebar .nav-menu a.nav-link {
+    display: flex; align-items: center; padding: 0.75rem 1.5rem;
+    color: var(--color-dark-gray); font-weight: 500; text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease, border-left-color 0.2s ease;
+    border-left: 4px solid transparent; /* Para o indicador ativo */
+}
+.sidebar .nav-menu a.nav-link i { margin-right: 0.75rem; width: 20px; text-align: center; }
+.sidebar .nav-menu a.nav-link:hover { background-color: #f3f4f6; /* gray-100 */ color: var(--color-dark); }
+.sidebar .nav-menu a.nav-link.active {
+    background-color: #e0f2fe; /* blue-100 */
+    color: var(--color-info);
+    border-left-color: var(--color-info);
+    font-weight: 600;
+}
+/* Estilo específico para sub-menus na sidebar */
+.sidebar .nav-menu ul { list-style: none; padding-left: 1rem; margin: 0; }
+.sidebar .nav-menu ul li { margin: 0; }
+.sidebar .nav-menu ul a.nav-link {
+    padding: 0.5rem 1.5rem; /* Ajustado para sub-itens */
+    font-size: 0.875rem; /* um pouco menor */
+}
+.sidebar .nav-menu ul a.nav-link.active {
+    background-color: var(--color-light); /* Mais sutil para sub-itens ativos */
+    border-left-color: var(--color-info);
+    color: var(--color-info);
+}
+.sidebar .nav-menu a.logout-link { /* Botão de sair */
+    color: var(--color-danger);
+    margin-top: auto; /* Empurra para o final da sidebar */
+    padding-top: 1rem; border-top: 1px solid var(--color-medium-light-gray);
+}
+.sidebar .nav-menu a.logout-link:hover { background-color: #fee2e2; /* red-100 */ color: var(--color-danger-dark); border-left-color: #f87171; /* red-400 */ }
+
+
+/* --- Área de Conteúdo Principal --- */
+.main-content {
+    flex-grow: 1;
+    overflow-y: auto; /* Permite scroll no conteúdo principal */
+    padding: 1.5rem;
+    background-color: var(--color-light);
+}
+.main-content h2 {
+    font-size: 1.25em; /* text-xl */
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+    margin-top: 0; /* Remove margin-top extra */
+}
+.main-content p { color: var(--color-dark-gray); margin-bottom: 1.5rem; }
+
+
+/* --- Estilo Padrão para Seções e Formulários --- */
+.section {
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    background-color: var(--color-white);
+    box-shadow: var(--shadow-md);
+}
+.section h3 { margin-top: 0; border-bottom: 1px solid var(--color-border); padding-bottom: 0.5rem; margin-bottom: 1rem; font-weight: 600; color: var(--color-dark); }
+
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+.form-group { margin-bottom: 1rem; }
+.form-group:last-child { margin-bottom: 0; } /* Remove margem do último group */
+.form-group label { display: block; margin-bottom: 0.25rem; font-weight: 500; font-size: 0.875em; color: var(--color-dark-gray); }
+label.required::after { content: " *"; color: var(--color-danger); font-weight: bold; }
+
+input[type="text"], input[type="search"], input[type="number"], input[type="date"], input[type="time"], input[type="email"], select, textarea {
+    display: block; width: 100%; padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-border); border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-sm);
+    background-color: var(--color-input-bg);
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    line-height: 1.5; font-size: 0.95em;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--color-primary); outline: 0; box-shadow: 0 0 0 3px rgb(59 130 246 / 0.2); }
+input[readonly] { background-color: var(--color-input-disabled-bg); cursor: not-allowed; }
+input[type="file"] { padding: 0.375rem 0.75rem; }
+textarea { min-height: 100px; resize: vertical; }
+
+
+/* --- Estilos Padrão para Botões --- */
+.btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 0.6rem 1.2rem; /* py-2.5 px-5 */
+    border-radius: var(--border-radius-md);
+    border: 1px solid transparent;
+    font-weight: 500; font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap; /* Evita quebra de linha em botões */
+}
+.btn i { margin-right: 0.5em; /* Espaço entre ícone e texto */ }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* Cores dos Botões */
+.btn-primary { background-color: var(--color-primary); color: var(--color-white); border-color: var(--color-primary); }
+.btn-primary:hover:not(:disabled) { background-color: var(--color-primary-dark); border-color: var(--color-primary-dark); }
+.btn-secondary { background-color: var(--color-secondary); color: var(--color-white); border-color: var(--color-secondary); }
+.btn-secondary:hover:not(:disabled) { background-color: var(--color-secondary-dark); border-color: var(--color-secondary-dark); }
+.btn-success { background-color: var(--color-success); color: var(--color-white); border-color: var(--color-success); }
+.btn-success:hover:not(:disabled) { background-color: var(--color-success-dark); border-color: var(--color-success-dark); }
+.btn-danger { background-color: var(--color-danger); color: var(--color-white); border-color: var(--color-danger); }
+.btn-danger:hover:not(:disabled) { background-color: var(--color-danger-dark); border-color: var(--color-danger-dark); }
+.btn-info { background-color: var(--color-info); color: var(--color-white); border-color: var(--color-info); }
+.btn-info:hover:not(:disabled) { background-color: var(--color-info-dark); border-color: var(--color-info-dark); }
+
+/* Tamanhos Adicionais de Botões */
+.btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
+
+
+/* --- Estilos de Tabela Padrão --- */
+.table-container {
+    max-height: 400px; /* Altura máxima para tabelas com scroll */
+    overflow-y: auto;
+    margin-bottom: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-sm);
+}
+.table-default {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875em; /* text-sm */
+}
+.table-default th, .table-default td {
+    padding: 0.5rem 0.75rem; /* py-2 px-3 */
+    border-bottom: 1px solid var(--color-border);
+    text-align: left;
+}
+.table-default th {
+    background-color: var(--color-light);
+    font-weight: 500;
+    color: var(--color-dark-gray);
+    position: sticky; /* Fixa o cabeçalho ao rolar */
+    top: 0;
+    z-index: 5;
+}
+.table-default tbody tr:last-child td { border-bottom: none; }
+.table-default tbody tr:hover { background-color: #f3f4f6; } /* gray-100 */
+.table-default td .btn-danger { padding: 0.25rem 0.5rem; font-size: 0.75rem;}
+
+/* --- Mensagens de Feedback --- */
+#feedback {
+    padding: 1rem; /* p-4 */
+    margin-bottom: 1.5rem; /* mb-6 */
+    border-radius: var(--radius-lg); /* Usar radius-lg para feedback */
+    font-weight: 500;
+    text-align: center;
+    display: block; /* Visível por padrão, escondido com .hidden */
+}
+#feedback.hidden { display: none !important; }
+#feedback.success { background-color: #dcfce7; /* green-100 */ color: #16a34a; /* green-600 */ border: 1px solid var(--color-success); /* green-500 */ }
+#feedback.error { background-color: #fee2e2; /* red-100 */ color: #dc2626; /* red-600 */ border: 1px solid var(--color-danger); /* red-500 */ }
+#feedback.info { background-color: #e0f2fe; /* blue-100 */ color: #0284c7; /* sky-600 */ border: 1px solid var(--color-info); /* sky-500 */ }
+#feedback.warning { background-color: #fffbeb; /* yellow-50 */ color: #d97706; /* orange-600 */ border: 1px solid #ffe57b; /* yellow-300 */ }
+
+/* --- Utilitários Comuns --- */
+.hidden { display: none !important; }
+.back-link {
+    display: inline-flex; align-items: center;
+    color: var(--color-dark-gray); text-decoration: none; font-weight: 500;
+    margin-right: 1.5rem; /* mr-6 */
+    padding: 0.25rem 0.5rem; /* py-1 px-2 */
+    border: 1px solid transparent; border-radius: var(--border-radius-md); /* Ajustado para MD */
+    transition: all 0.2s ease;
+}
+.back-link:hover { color: var(--color-dark); background-color: var(--color-medium-light-gray); border-color: var(--color-border); }
+.back-link i { margin-right: 0.5em; } /* Espaço para ícone de seta */
+
+/* Estilo para upload de arquivo */
+/* Estas classes file-input-styled são para customizar o input type="file" */
+input[type="file"].file-input-styled {
+    opacity: 0;
+    width: 0.1px;
+    height: 0.1px;
+    position: absolute;
+    overflow: hidden;
+    z-index: -1; /* Garante que não esteja visível */
+}
+/* Estilo para o label que substitui o input file */
+input[type="file"].file-input-styled + label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.6rem 1.2rem;
+    border-radius: var(--border-radius-md);
+    border: 1px solid transparent;
+    font-weight: 500; font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    background-color: var(--color-secondary); /* Padrão de botão */
+    color: var(--color-white);
+    border-color: var(--color-secondary);
+}
+input[type="file"].file-input-styled + label:hover {
+    background-color: var(--color-secondary-dark);
+    border-color: var(--color-secondary-dark);
+}
+/* Estilo para foco no label (ao focar no input escondido) */
+input[type="file"].file-input-styled:focus + label {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+.file-upload-info { font-size: 0.85em; color: var(--color-dark-gray); margin-top: 0.5rem; display: block; min-height: 1.2em; }
+
+
+/* Estilos Específicos do RDO (do diario_de_obras.html) que serão mantidos ou adaptados */
+.photo-gallery { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1rem; }
+.photo-item { position: relative; width: 100px; height: 100px; border: 1px solid var(--color-border); border-radius: var(--border-radius-sm); overflow: hidden; }
+.photo-item img { width: 100%; height: 100%; object-fit: cover; }
+.remove-photo-btn { position: absolute; top: 2px; right: 2px; background-color: rgba(0,0,0,0.5); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; line-height: 20px; text-align: center; cursor: pointer; }
+.remove-photo-btn:hover { background-color: rgba(239, 68, 68, 0.8); }
+
+.task-overdue { border-left-color: var(--color-danger) !important; background-color: #fee2e2 !important; }
+.task-overdue label { color: var(--color-danger-dark); }
+.task-already-completed { border-left-color: var(--color-success) !important; background-color: #dcfce7 !important; } /* Corrigido */
+.task-already-completed label { text-decoration: line-through; color: var(--color-dark-gray); }
+.task-already-completed input[type="checkbox"] { cursor: not-allowed;}
+.task-already-completed input[type="checkbox"]:checked {
+    background-color: var(--color-success-dark); /* Fundo do checkbox quando checked */
+    border-color: var(--color-success-dark);
+}
+/* Estilos específicos do clima (do diario_de_obras.html) */
+#clima-api-display { padding: 1rem; border-radius: var(--radius-lg); background-color: #e0f2fe; /* blue-100 */ margin-bottom: 1rem; border: 1px solid var(--color-info); }
+#clima-manual-input { padding: 1rem; border-radius: var(--radius-lg); background-color: #fffbeb; /* yellow-50 */ margin-bottom: 1rem; border: 1px solid var(--color-warning); }
+#clima-api-display h3, #clima-manual-input h3 { font-size: 1.1em; border-bottom: none; padding-bottom: 0; margin-bottom: 0.75rem; }
+#clima-print-div { padding: 1rem; border-radius: var(--radius-lg); background-color: #dcfce7; /* green-100 */ color: var(--color-success-dark); border: 1px solid var(--color-success); }
