@@ -62,7 +62,7 @@
         .header-center { flex-grow: 1; text-align: center; }
         .header-right { flex-shrink: 0; min-width: 200px; text-align: right; display: flex; align-items: center; justify-content: flex-end; gap: var(--spacing-sm); }
         .studio57-logo { display: inline-block; max-height: 50px; width: auto; vertical-align: middle; }
-        .page-header h1 { margin-bottom: 0; font-weight: 600; color: var(--color-dark); font-size: 1.5em; line-height: 1.2; }
+        .page-header h1 { margin: 0; font-weight: 600; color: var(--color-dark); font-size: 1.5em; line-height: 1.2; }
         #current-datetime { font-family: var(--font-body); font-size: 0.9em; color: var(--color-muted); white-space: nowrap; }
 
         /* --- Seções e Formulários --- */
@@ -200,12 +200,12 @@
                         <div> <label for="cep" class="required">CEP:</label> <input type="text" id="cep" name="cep" placeholder="00000-000" required maxlength="9"> <span id="cep-status"></span> </div>
                         <button type="button" id="buscar-cep-btn" class="info">Buscar</button>
                     </div>
-                    <div class="grid-col-span-2"> <label for="logradouro" class="required">Logradouro (Rua/Av.):</label> <input type="text" id="logradouro" name="logradouro" required> </div>
-                    <div> <label for="numero" class="required">Número:</label> <input type="text" id="numero" name="numero" required> </div>
-                    <div> <label for="complemento">Complemento:</label> <input type="text" id="complemento" name="complemento" placeholder="Apto, Bloco, etc."> </div>
-                    <div> <label for="bairro" class="required">Bairro:</label> <input type="text" id="bairro" name="bairro" required> </div>
-                    <div> <label for="cidade" class="required">Cidade:</label> <input type="text" id="cidade" name="cidade" required> </div>
-                    <div> <label for="estado" class="required">Estado (UF):</label> <input type="text" id="estado" name="estado" required maxlength="2"> </div>
+                    <div class="grid-col-span-2"> <label for="logradouro" class="required">Logradouro (Rua/Av.):</label> <input type="text" id="logradouro" name="address_street" required> </div>
+                    <div> <label for="numero" class="required">Número:</label> <input type="text" id="numero" name="address_number" required> </div>
+                    <div> <label for="complemento">Complemento:</label> <input type="text" id="complemento" name="address_complement" placeholder="Apto, Bloco, etc."> </div>
+                    <div> <label for="bairro" class="required">Bairro:</label> <input type="text" id="bairro" name="neighborhood" required> </div>
+                    <div> <label for="cidade" class="required">Cidade:</label> <input type="text" id="cidade" name="city" required> </div>
+                    <div> <label for="estado" class="required">Estado (UF):</label> <input type="text" id="estado" name="state" required maxlength="2"> </div>
                  </div>
             </section>
 
@@ -445,8 +445,9 @@
             if (employee.cep) buscarEnderecoPorCEP(employee.cep);
 
             // Associação de Empresa e Empreendimento
-            if (employee.empresaId) empresaSelect.value = employee.empresaId;
-            if (employee.empreendimentoAtualId) empreendimentoSelect.value = employee.empreendimentoAtualId;
+            // Garante que o select já esteja preenchido antes de tentar setar o valor
+            if (empresaSelect && employee.empresaId) empresaSelect.value = employee.empresaId;
+            if (empreendimentoSelect && employee.empreendimentoAtualId) empreendimentoSelect.value = employee.empreendimentoAtualId;
 
             // Dados Contratuais
             document.getElementById('cargo').value = employee.contractRole || '';
@@ -481,6 +482,13 @@
             const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
 
+            // Validação de Empresa Contratante (agora que é um select obrigatório)
+            if (!data['empresa_id'] || data['empresa_id'] === "") {
+                showFeedback('Por favor, selecione a Empresa Contratante.', 'error');
+                empresaSelect.focus();
+                return;
+            }
+
             data.asoDoc = asoInput.files[0] ? asoInput.files[0].name : (document.getElementById('upload-aso-info').textContent.replace('Arquivo: ', '') || null);
             data.contractDoc = contratoInput.files[0] ? contratoInput.files[0].name : (document.getElementById('upload-contrato-info').textContent.replace('Arquivo: ', '') || null);
             data.identityDoc = identidadeInput.files[0] ? identidadeInput.files[0].name : (document.getElementById('upload-identidade-info').textContent.replace('Arquivo: ', '') || null);
@@ -493,7 +501,6 @@
                 }
             }
 
-            // Mapear campos do formulário para o schema do banco de dados
             const employeeData = {
                 fullName: data['nome_completo'],
                 cpf: data['cpf'],
@@ -508,9 +515,8 @@
                 city: data['cidade'],
                 state: data['estado'],
                 neighborhood: data['bairro'],
-                // NOVOS CAMPOS: Empresa e Empreendimento
-                empresaId: parseInt(data['empresa_id']), // Obrigatório
-                empreendimentoAtualId: data['empreendimento_atual_id'] ? parseInt(data['empreendimento_atual_id']) : null, // Opcional
+                empresaId: parseInt(data['empresa_id']), // Agora vem do select
+                empreendimentoAtualId: data['empreendimento_atual_id'] ? parseInt(data['empreendimento_atual_id']) : null,
                 contractRole: data['cargo'],
                 admissionDate: data['data_admissao'],
                 baseSalary: data['salario_base'],
@@ -525,7 +531,6 @@
                 observations: data['observacoes'],
             };
 
-            // Remover campos que não são relevantes dependendo da forma de pagamento
             if (employeeData.paymentMethod !== 'pix') {
                 delete employeeData.pixKey;
             }
@@ -563,6 +568,9 @@
                         document.getElementById('upload-aso-info').textContent = '';
                         document.getElementById('upload-contrato-info').textContent = '';
                         document.getElementById('upload-identidade-info').textContent = '';
+                        // Recarrega empresas e empreendimentos para novos cadastros
+                        loadCompaniesIntoSelect();
+                        loadEmpreendimentosIntoSelect();
                     }
                     if (currentEmployeeId) {
                          setTimeout(() => {
@@ -631,6 +639,9 @@
             currentEmployeeId = null;
             document.querySelector('h1').textContent = 'Cadastro de Funcionários';
             // document.getElementById('cpf').readOnly = false;
+            // Recarrega selects após reset
+            loadCompaniesIntoSelect();
+            loadEmpreendimentosIntoSelect();
         }
 
         // NOVO: Função para carregar empresas no select
@@ -659,10 +670,11 @@
             }
         }
 
-        // NOVO: Função para carregar empreendimentos no select
+        // NOVO: Função para carregar empreendimentos no select (AINDA PRECISA DA API)
         async function loadEmpreendimentosIntoSelect() {
+            // Esta API para empreendimentos ainda não existe, então este select não será preenchido por enquanto
             try {
-                const response = await fetch('/api/empreendimentos', { // AINDA NÃO EXISTE ESSA API!
+                const response = await fetch('/api/empreendimentos', { // ESTA API AINDA NÃO FOI CRIADA
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json' },
                 });
@@ -677,11 +689,9 @@
                     });
                 } else {
                     console.warn('Nenhum empreendimento carregado ou erro:', result.error || 'Erro desconhecido.');
-                    // showFeedback('Erro ao carregar lista de empreendimentos.', 'warning'); // Pode ser normal se não houver
                 }
             } catch (error) {
                 console.error('Erro de rede ao carregar empreendimentos:', error);
-                // showFeedback('Erro de conexão ao carregar empreendimentos.', 'error');
             }
         }
 
@@ -722,11 +732,769 @@
 
             // Inicializações de selects e carregamento de dados
             loadCompaniesIntoSelect(); // Carrega as empresas ao iniciar
-            loadEmpreendimentosIntoSelect(); // Carrega os empreendimentos ao iniciar
+            loadEmpreendimentosIntoSelect(); // Carrega os empreendimentos ao iniciar (ainda sem API)
 
             togglePaymentFields();
             loadEmployeeDataForEdit();
             console.log("Cadastro de Funcionários adaptado ao backend inicializado.");
+        });
+    </script>
+</body>
+</html>
+```
+
+**2.2. Atualizar `public/detalhes_funcionario.html` (Visualização de Detalhes do Funcionário)**
+
+* Esta página precisará exibir o nome da **Empresa Contratante** e o nome do **Empreendimento Alocado**, que agora virão do backend via `JOIN`.
+
+**Ação:** Apague todo o conteúdo atual do seu arquivo `public/detalhes_funcionario.html` e cole o novo conteúdo completo abaixo:
+
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes do Funcionário - Sistema Studio 57</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-body: 'Roboto', sans-serif;
+            --font-heading: 'Montserrat', sans-serif;
+            --color-primary: #ffe57b; /* Amarelo Paleta */
+            --color-primary-dark: #fdda4a; /* Amarelo Escuro Paleta */
+            --color-danger: #ff5757;
+            --color-danger-dark: #f03a3a;
+            --color-success: #c1ff72;
+            --color-success-dark: #a0e650;
+            --color-info: #38b6ff;
+            --color-info-dark: #1f9ff0;
+            --color-light: #f8f9fa;
+            --color-dark: #343a40;
+            --color-muted: #737373;
+            --color-white: #ffffff;
+            --color-border: #d9d9d9;
+            --color-border-focus: var(--color-primary-dark);
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+            --border-radius-sm: 4px;
+            --border-radius-md: 8px;
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 15px;
+            --spacing-lg: 20px;
+            --spacing-xl: 30px;
+            --photo-preview-size-large: 180px;
+        }
+        body { font-family: var(--font-body); line-height: 1.6; margin: var(--spacing-lg); background-color: var(--color-light); color: var(--color-dark); font-size: 16px; }
+        h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); color: var(--color-dark); margin-top: 1.5em; margin-bottom: 0.8em; }
+        h2 { font-size: 1.6em; border-bottom: 1px solid var(--color-border); padding-bottom: var(--spacing-sm); }
+        .main-container { background-color: var(--color-white); padding: var(--spacing-xl); border-radius: var(--border-radius-md); box-shadow: var(--shadow-md); max-width: 950px; margin: var(--spacing-xl) auto; border: 1px solid var(--color-border); }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-xl); border-bottom: 1px solid var(--color-border); padding-bottom: var(--spacing-md); gap: var(--spacing-md); }
+        .header-left { flex-shrink: 0; }
+        .header-center { flex-grow: 1; text-align: center; }
+        .header-right { flex-shrink: 0; min-width: 200px; text-align: right; display: flex; align-items: center; justify-content: flex-end; gap: var(--spacing-sm); }
+        .studio57-logo { display: inline-block; max-height: 50px; width: auto; vertical-align: middle; }
+        .page-header h1 { margin-bottom: 0; font-weight: 600; color: var(--color-dark); font-size: 1.5em; line-height: 1.2; }
+        #current-datetime { font-family: var(--font-body); font-size: 0.9em; color: var(--color-muted); white-space: nowrap; }
+        .back-link { display: inline-block; color: var(--color-info); text-decoration: none; font-weight: 500; margin-right: var(--spacing-lg); padding: var(--spacing-xs) var(--spacing-sm); border: 1px solid transparent; border-radius: var(--border-radius-sm); transition: all 0.2s ease; }
+        .back-link:hover { color: var(--color-info-dark); background-color: var(--color-light); border-color: var(--color-border); }
+        .employee-details-layout { display: flex; flex-wrap: wrap; gap: var(--spacing-xl); margin-bottom: var(--spacing-xl); }
+        .employee-details-photo { flex-shrink: 0; width: var(--photo-preview-size-large); height: var(--photo-preview-size-large); border-radius: 50%; background-color: var(--color-medium-light-gray); display: flex; align-items: center; justify-content: center; color: var(--color-white); font-size: 4em; overflow: hidden; margin-bottom: var(--spacing-md); }
+        .employee-details-info { flex-grow: 1; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--spacing-md) var(--spacing-lg); }
+        .info-item { margin-bottom: var(--spacing-sm); }
+        .info-item strong { display: block; font-size: 0.9em; color: var(--color-dark-gray); margin-bottom: 2px; }
+        .info-item span { display: block; font-size: 1.1em; color: var(--color-dark); }
+        .info-item.full-width { grid-column: 1 / -1; } /* Para itens que ocupam a largura total */
+        .employee-actions-area { display: flex; flex-wrap: wrap; gap: var(--spacing-md); margin-top: var(--spacing-xl); padding-top: var(--spacing-lg); border-top: 1px solid var(--color-border); justify-content: center; }
+        .employee-actions-area button, .employee-actions-area a { font-family: var(--font-heading); padding: 12px var(--spacing-xl); border-radius: var(--border-radius-sm); border: 1px solid transparent; cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease; font-size: 1em; font-weight: 500; flex-grow: 1; min-width: 180px; text-align: center; }
+        .employee-actions-area .edit-btn { background-color: var(--color-primary); color: var(--color-dark); border-color: var(--color-primary-dark); }
+        .employee-actions-area .edit-btn:hover { background-color: var(--color-primary-dark); }
+        .employee-actions-area .delete-btn { background-color: var(--color-danger); color: white; border-color: var(--color-danger-dark); }
+        .employee-actions-area .delete-btn:hover { background-color: var(--color-danger-dark); }
+        .employee-actions-area .secondary-btn { background-color: var(--color-muted); color: white; border-color: var(--color-muted); }
+        .employee-actions-area .secondary-btn:hover { background-color: var(--color-dark-gray); }
+
+        #feedback-message { padding: var(--spacing-md); margin-bottom: var(--spacing-lg); border-radius: var(--border-radius-sm); font-weight: 500; text-align: center; display: none; }
+        #feedback-message.success { background-color: var(--color-success); color: var(--color-dark); border: 1px solid var(--color-success-dark); }
+        #feedback-message.error { background-color: #ffebee; color: var(--color-danger-dark); border: 1px solid var(--color-danger); }
+        #feedback-message.info { background-color: #e0f7ff; color: var(--color-info-dark); border: 1px solid var(--color-info); }
+        /* Rodapé */
+        .legal-footer { margin-top: var(--spacing-xl); padding-top: var(--spacing-lg); text-align: center; font-size: 0.8em; color: var(--color-muted); border-top: 1px solid #eee; }
+    </style>
+</head>
+<body>
+    <main class="main-container">
+        <header class="page-header">
+            <div class="header-left">
+                <a href="quadrodefuncionarios.html" class="back-link" title="Voltar ao Quadro de Funcionários">← Voltar</a>
+                <img src="https://studio57.arq.br/wp-content/uploads/2025/04/STUDIO-57-PRETO-RETANGULO.png" alt="Logo Studio 57" class="studio57-logo">
+            </div>
+            <div class="header-center"> <h1 id="page-title">Detalhes do Funcionário</h1> </div>
+            <div class="header-right"> <span id="current-datetime">--/--/---- --:--:--</span> </div>
+        </header>
+
+        <div id="feedback-message"></div>
+
+        <section class="employee-details-layout">
+            <div class="employee-details-photo" id="employee-photo-initials">?</div>
+            <div class="employee-details-info">
+                <div class="info-item">
+                    <strong>Nome Completo:</strong>
+                    <span id="full-name-display">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <strong>CPF:</strong>
+                    <span id="cpf-display">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <strong>RG:</strong>
+                    <span id="rg-display">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <strong>Data de Nascimento:</strong>
+                    <span id="birth-date-display">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <strong>Telefone:</strong>
+                    <span id="phone-display">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <strong>Email:</strong>
+                    <span id="email-display">Carregando...</span>
+                </div>
+                <!-- NOVOS CAMPOS DE ENDEREÇO SEPARADOS PARA EXIBIÇÃO MAIS DETALHADA -->
+                <div class="info-item full-width">
+                    <strong>Logradouro:</strong>
+                    <span id="address-street-display">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <strong>Número:</strong>
+                    <span id="address-number-display">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <strong>Complemento:</strong>
+                    <span id="address-complement-display">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <strong>CEP:</strong>
+                    <span id="cep-display">Carregando...</span>
+                </div>
+                 <div class="info-item">
+                    <strong>Bairro:</strong>
+                    <span id="neighborhood-display">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <strong>Cidade:</strong>
+                    <span id="city-display">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <strong>Estado (UF):</strong>
+                    <span id="state-display">Carregando...</span>
+                </div>
+                <!-- FIM DOS NOVOS CAMPOS DE ENDEREÇO -->
+
+                <!-- NOVOS CAMPOS: EMPRESA E EMPREENDIMENTO -->
+                <div class="info-item full-width">
+                    <strong>Empresa Contratante:</strong>
+                    <span id="empresa-contratante-display">Carregando...</span>
+                </div>
+                <div class="info-item full-width">
+                    <strong>Empreendimento Alocado:</strong>
+                    <span id="empreendimento-alocado-display">Carregando...</span>
+                </div>
+                <!-- FIM DOS NOVOS CAMPOS -->
+
+                <div class="info-item">
+                    <strong>Cargo / Função:</strong>
+                    <span id="contract-role-display">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <strong>Data de Admissão:</strong>
+                    <span id="admission-date-display">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <strong>Salário Base (R$):</strong>
+                    <span id="base-salary-display">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <strong>Salário Total (R$):</strong>
+                    <span id="total-salary-display">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <strong>Valor Dia (R$):</strong>
+                    <span id="daily-value-display">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <strong>Forma de Pagamento:</strong>
+                    <span id="payment-method-display">Carregando...</span>
+                </div>
+                <div class="info-item" id="pix-key-item" style="display: none;">
+                    <strong>Chave PIX:</strong>
+                    <span id="pix-key-display">Carregando...</span>
+                </div>
+                <div class="info-item full-width" id="bank-details-item" style="display: none;">
+                    <strong>Dados Bancários:</strong>
+                    <span id="bank-details-display">Carregando...</span>
+                </div>
+                 <div class="info-item full-width">
+                    <strong>Observações:</strong>
+                    <span id="observations-display">Carregando...</span>
+                </div>
+                <!-- Documentos -->
+                 <div class="info-item full-width">
+                    <strong>ASO:</strong>
+                    <span id="aso-doc-display"></span>
+                </div>
+                <div class="info-item full-width">
+                    <strong>Contrato de Trabalho:</strong>
+                    <span id="contract-doc-display"></span>
+                </div>
+                <div class="info-item full-width">
+                    <strong>Documento Identidade:</strong>
+                    <span id="identity-doc-display"></span>
+                </div>
+            </div>
+        </section>
+
+        <div class="employee-actions-area">
+            <a href="#" id="edit-employee-btn" class="edit-btn">✏️ Editar Cadastro</a>
+            <button type="button" id="delete-employee-btn" class="delete-btn">🗑️ Excluir Funcionário</button>
+            <a href="#" id="view-timesheet-btn" class="secondary-btn">🗓️ Ver Folha de Ponto</a>
+            <!-- Adicione mais botões para outras funcionalidades aqui -->
+        </div>
+
+        <footer class="legal-footer">
+            <p> © 2025 Studio 57 Arquitetura e Incorporação - CNPJ: 41.464.589/0001-66. Todos os direitos reservados. </p>
+        </footer>
+    </main>
+
+    <script>
+        // --- Seletores Globais ---
+        const currentDatetimeSpan = document.getElementById('current-datetime');
+        const feedbackMessageDiv = document.getElementById('feedback-message');
+        const employeePhotoInitials = document.getElementById('employee-photo-initials');
+        const editEmployeeBtn = document.getElementById('edit-employee-btn');
+        const deleteEmployeeBtn = document.getElementById('delete-employee-btn');
+        const viewTimesheetBtn = document.getElementById('view-timesheet-btn');
+
+        // NOVOS SELETORES PARA EXIBIÇÃO DA EMPRESA E EMPREENDIMENTO
+        const empresaContratanteDisplay = document.getElementById('empresa-contratante-display');
+        const empreendimentoAlocadoDisplay = document.getElementById('empreendimento-alocado-display');
+
+        let currentEmployeeId = null;
+
+        // --- Funções Auxiliares ---
+        function updateDateTime() {
+            if (!currentDatetimeSpan) return;
+            const now = new Date();
+            const formattedDate = now.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+            const formattedTime = now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+            currentDatetimeSpan.textContent = `${formattedDate} ${formattedTime}`;
+        }
+
+        function showFeedback(message, type = 'success') {
+            if (!feedbackMessageDiv) return;
+            feedbackMessageDiv.textContent = message;
+            feedbackMessageDiv.className = '';
+            feedbackMessageDiv.classList.add(type);
+            feedbackMessageDiv.style.display = 'block';
+            setTimeout(() => {
+                if (feedbackMessageDiv.textContent === message) {
+                    feedbackMessageDiv.style.display = 'none';
+                }
+            }, 5000);
+        }
+
+        // Função para preencher a exibição dos detalhes do funcionário
+        function displayEmployeeDetails(employee) {
+            document.getElementById('full-name-display').textContent = employee.fullName || 'Não informado';
+            employeePhotoInitials.textContent = employee.fullName ? employee.fullName.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() : '?';
+
+            document.getElementById('cpf-display').textContent = employee.cpf || 'Não informado';
+            document.getElementById('rg-display').textContent = employee.rg || 'Não informado';
+            document.getElementById('birth-date-display').textContent = employee.birthDate ? new Date(employee.birthDate + 'T00:00:00').toLocaleDateString('pt-BR') : 'Não informado';
+            document.getElementById('phone-display').textContent = employee.phone || 'Não informado';
+            document.getElementById('email-display').textContent = employee.email || 'Não informado';
+
+            document.getElementById('address-street-display').textContent = employee.addressStreet || 'Não informado';
+            document.getElementById('address-number-display').textContent = employee.addressNumber || 'Não informado';
+            document.getElementById('address-complement-display').textContent = employee.addressComplement || 'Não informado';
+            
+            document.getElementById('cep-display').textContent = employee.cep || 'Não informado';
+            document.getElementById('neighborhood-display').textContent = employee.neighborhood || 'Não informado';
+            document.getElementById('city-display').textContent = employee.city || 'Não informado';
+            document.getElementById('state-display').textContent = employee.state || 'Não informado';
+
+            // Preenche Empresa Contratante e Empreendimento Alocado
+            // Note que estes campos vêm dos JOINs na Netlify Function get-employee-by-id
+            empresaContratanteDisplay.textContent = employee.empresaContratanteNome || 'Não informado';
+            empreendimentoAlocadoDisplay.textContent = employee.empreendimentoAlocadoNome || 'Não informado';
+
+            document.getElementById('contract-role-display').textContent = employee.contractRole || 'Não informado';
+            document.getElementById('admission-date-display').textContent = employee.admissionDate ? new Date(employee.admissionDate + 'T00:00:00').toLocaleDateString('pt-BR') : 'Não informado';
+            document.getElementById('base-salary-display').textContent = employee.baseSalary ? parseFloat(employee.baseSalary).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'Não informado';
+            document.getElementById('total-salary-display').textContent = employee.totalSalary ? parseFloat(employee.totalSalary).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'Não informado';
+            document.getElementById('daily-value-display').textContent = employee.dailyValue ? parseFloat(employee.dailyValue).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'Não informado';
+
+            document.getElementById('payment-method-display').textContent = employee.paymentMethod || 'Não informado';
+
+            const pixKeyItem = document.getElementById('pix-key-item');
+            const bankDetailsItem = document.getElementById('bank-details-item');
+
+            if (employee.paymentMethod === 'pix') {
+                pixKeyItem.style.display = 'block';
+                document.getElementById('pix-key-display').textContent = employee.pixKey || 'Não informado';
+                bankDetailsItem.style.display = 'none';
+            } else if (employee.paymentMethod === 'deposito') {
+                bankDetailsItem.style.display = 'block';
+                document.getElementById('bank-details-display').textContent = employee.bankDetails || 'Não informado';
+                pixKeyItem.style.display = 'none';
+            } else {
+                pixKeyItem.style.display = 'none';
+                bankDetailsItem.style.display = 'none';
+            }
+
+            document.getElementById('aso-doc-display').innerHTML = employee.asoDoc ? `<a href="${employee.asoDoc}" target="_blank">Ver ASO (${employee.asoDoc})</a>` : 'Nenhum';
+            document.getElementById('contract-doc-display').innerHTML = employee.contractDoc ? `<a href="${employee.contractDoc}" target="_blank">Ver Contrato (${employee.contractDoc})</a>` : 'Nenhum';
+            document.getElementById('identity-doc-display').innerHTML = employee.identityDoc ? `<a href="${employee.identityDoc}" target="_blank">Ver Identidade (${employee.identityIdoc})</a>` : 'Nenhum';
+            
+            document.getElementById('observations-display').textContent = employee.observations || 'Nenhuma';
+
+            editEmployeeBtn.href = `registro_funcionario.html?id=${employee.id}`;
+            viewTimesheetBtn.href = `folha de ponto.html?employeeId=${employee.id}`;
+        }
+
+        async function loadEmployeeDetails() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const employeeId = urlParams.get('id');
+
+            if (!employeeId) {
+                showFeedback('ID do funcionário não fornecido na URL.', 'error');
+                document.querySelector('h1').textContent = 'Erro';
+                return;
+            }
+
+            currentEmployeeId = employeeId;
+            showFeedback(`Carregando detalhes do funcionário com ID: ${employeeId}...`, 'info');
+
+            try {
+                const response = await fetch(`/api/get-employee-by-id?id=${employeeId}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    if (result.employee) {
+                        displayEmployeeDetails(result.employee);
+                        showFeedback('Detalhes do funcionário carregados com sucesso!', 'success');
+                        document.querySelector('h1').textContent = `Detalhes de ${result.employee.fullName}`;
+                    } else {
+                        showFeedback('Funcionário não encontrado.', 'error');
+                        console.error('Funcionário não encontrado:', result);
+                        document.querySelector('h1').textContent = 'Funcionário Não Encontrado';
+                    }
+                } else {
+                    showFeedback(`Erro ao carregar detalhes: ${result.error || 'Erro desconhecido.'}`, 'error');
+                    console.error('Erro na API ao carregar funcionário:', result);
+                    document.querySelector('h1').textContent = 'Erro ao Carregar Detalhes';
+                }
+            } catch (error) {
+                showFeedback('Erro de rede ou servidor ao carregar detalhes do funcionário.', 'error');
+                console.error('Erro na requisição fetch para carregar funcionário:', error);
+                document.querySelector('h1').textContent = 'Erro de Conexão';
+            }
+        }
+
+        async function deleteEmployee() {
+            if (!currentEmployeeId) {
+                alert('Nenhum funcionário selecionado para exclusão.');
+                return;
+            }
+
+            if (confirm(`Tem certeza que deseja EXCLUIR o funcionário ID ${currentEmployeeId} (${document.getElementById('full-name-display').textContent})? Esta ação é irreversível.`)) {
+                showFeedback('Excluindo funcionário...', 'info');
+                try {
+                    const response = await fetch(`/api/delete-employee?id=${currentEmployeeId}`, {
+                        method: 'DELETE',
+                    });
+
+                    if (response.ok) {
+                        showFeedback('Funcionário excluído com sucesso!', 'success');
+                        console.log(`Funcionário ID ${currentEmployeeId} excluído.`);
+                        setTimeout(() => {
+                            window.location.href = 'quadrodefuncionarios.html';
+                        }, 1500);
+                    } else {
+                        const errorResult = await response.json();
+                        showFeedback(`Erro ao excluir: ${errorResult.error || 'Erro desconhecido.'}`, 'error');
+                        console.error('Erro na API de exclusão:', errorResult);
+                    }
+                } catch (error) {
+                    showFeedback('Erro de rede ou servidor ao excluir funcionário.', 'error');
+                    console.error('Erro na requisição fetch para exclusão:', error);
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDateTime();
+            setInterval(updateDateTime, 1000);
+
+            loadEmployeeDetails();
+
+            deleteEmployeeBtn.addEventListener('click', deleteEmployee);
+        });
+    </script>
+</body>
+</html>
+```
+
+---
+
+**2.3. Atualizar `public/quadrodefuncionarios.html` (Listagem de Funcionários)**
+
+* Esta página também pode exibir o nome da Empresa Contratante e, futuramente, permitir filtros por empresa.
+
+**Ação:** Apague todo o conteúdo atual do seu arquivo `public/quadrodefuncionarios.html` e cole o novo conteúdo completo abaixo:
+
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quadro de Funcionários - Sistema Studio 57</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        /* --- Variáveis CSS (Paleta Atualizada) --- */
+        :root {
+            --font-body: 'Roboto', sans-serif;
+            --font-heading: 'Montserrat', sans-serif;
+            --color-primary: #ffe57b; /* Amarelo Paleta */
+            --color-primary-dark: #fdda4a; /* Amarelo Escuro Paleta */
+            --color-danger: #ff5757; /* Vermelho Paleta */
+            --color-danger-dark: #f03a3a; /* Vermelho Escuro (Aproximado) */
+            --color-success: #c1ff72; /* Verde Paleta */
+            --color-success-dark: #a0e650; /* Verde Escuro (Aproximado) */
+            --color-info: #38b6ff; /* Azul Paleta */
+            --color-info-dark: #1f9ff0; /* Azul Escuro (Aproximado) */
+            --color-warning: #ffe57b; /* Warning usa o Amarelo Paleta */
+            --color-warning-dark: #fdda4a;
+            --color-light: #f8f9fa;
+            --color-medium-light-gray: #d9d9d9; /* Cinza Claro Paleta */
+            --color-dark-gray: #737373; /* Cinza Escuro Paleta */
+            --color-dark: #343a40; /* Cinza bem escuro para texto principal */
+            --color-black: #000000; /* Preto Paleta */
+            --color-muted: #737373; /* Muted usa o cinza escuro da paleta */
+            --color-white: #ffffff; /* Branco Paleta */
+            --color-border: #d9d9d9; /* Borda usa o cinza claro da paleta */
+            --color-border-focus: var(--color-primary-dark); /* Foco usa amarelo escuro */
+            --color-input-bg: #ffffff;
+            --color-input-disabled-bg: #e9ecef; /* Cinza leve para disabled */
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+            --border-radius-sm: 4px;
+            --border-radius-md: 8px;
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 15px;
+            --spacing-lg: 20px;
+            --spacing-xl: 30px;
+            --photo-size-small: 80px; /* Tamanho da foto no card */
+        }
+
+        /* --- Estilos Gerais --- */
+        body {
+            font-family: var(--font-body); line-height: 1.6; margin: var(--spacing-lg); background-color: var(--color-light); color: var(--color-dark); font-size: 16px;
+        }
+        h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); color: var(--color-dark); margin-top: 1.5em; margin-bottom: 0.8em; }
+        h2 { font-size: 1.6em; border-bottom: 1px solid var(--color-border); padding-bottom: var(--spacing-sm); }
+        h3 { font-size: 1.3em; color: var(--color-dark-gray); margin-top: var(--spacing-lg); }
+        button, input, select, textarea { font-family: inherit; font-size: 1em; }
+        * { box-sizing: border-box; }
+        a { color: var(--color-info); text-decoration: none; }
+        a:hover { color: var(--color-info-dark); }
+
+        /* --- Estrutura Principal e Cabeçalho --- */
+        .main-container { background-color: var(--color-white); padding: var(--spacing-xl); border-radius: var(--border-radius-md); box-shadow: var(--shadow-md); max-width: 95%; margin: var(--spacing-xl) auto; border: 1px solid var(--color-border); }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-xl); border-bottom: 1px solid var(--color-border); padding-bottom: var(--spacing-md); gap: var(--spacing-md); }
+        .header-left { flex-shrink: 0; }
+        .header-center { flex-grow: 1; text-align: center; }
+        .header-right { flex-shrink: 0; min-width: 200px; text-align: right; display: flex; align-items: center; justify-content: flex-end; gap: var(--spacing-sm); }
+        .studio57-logo { display: inline-block; max-height: 50px; width: auto; vertical-align: middle; }
+        .page-header h1 { margin-bottom: 0; font-weight: 600; color: var(--color-dark); font-size: 1.5em; line-height: 1.2; }
+        #current-datetime { font-family: var(--font-body); font-size: 0.9em; color: var(--color-muted); white-space: nowrap; }
+        .back-link { display: inline-block; color: var(--color-info); text-decoration: none; font-weight: 500; margin-right: var(--spacing-lg); padding: var(--spacing-xs) var(--spacing-sm); border: 1px solid transparent; border-radius: var(--border-radius-sm); transition: all 0.2s ease; }
+        .back-link:hover { color: var(--color-info-dark); background-color: var(--color-light); border-color: var(--color-border); }
+
+        /* --- Grid de Cards de Funcionários --- */
+        .employee-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Cards responsivos */
+            gap: var(--spacing-lg);
+            margin-top: var(--spacing-lg);
+        }
+
+        /* --- Card de Funcionário --- */
+        .employee-card {
+            background-color: var(--color-white);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-lg);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            gap: var(--spacing-lg);
+            align-items: flex-start; /* Alinha foto e infos no topo */
+        }
+        .employee-photo {
+            flex-shrink: 0;
+            width: var(--photo-size-small);
+            height: var(--photo-size-small);
+            border-radius: 50%; /* Foto redonda */
+            background-color: var(--color-medium-light-gray); /* Placeholder */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-white);
+            font-size: 2em;
+            overflow: hidden; /* Caso tenha imagem real no futuro */
+            /* Adicionar estilo para img se for usar foto real */
+            /* img { width: 100%; height: 100%; object-fit: cover; } */
+        }
+        .employee-info {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs); /* Espaço entre linhas de info */
+        }
+        .employee-info h4 { /* Nome */
+            margin: 0 0 var(--spacing-xs) 0;
+            font-size: 1.2em;
+            color: var(--color-dark);
+        }
+        .employee-info p {
+            margin: 0;
+            font-size: 0.9em;
+            color: var(--color-muted);
+            line-height: 1.4;
+        }
+        .employee-info p strong {
+            color: var(--color-dark-gray);
+            min-width: 100px; /* Alinhamento dos valores */
+            display: inline-block;
+        }
+        .employee-actions {
+            margin-top: var(--spacing-md);
+            padding-top: var(--spacing-md);
+            border-top: 1px solid var(--color-light);
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-sm);
+            justify-content: flex-end; /* Alinha botões à direita */
+        }
+        .employee-actions button, .employee-actions a {
+            font-family: var(--font-heading);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--border-radius-sm);
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+            font-size: 0.85em;
+            font-weight: 500;
+            text-align: center;
+            line-height: 1.5;
+        }
+        /* Cores dos botões de ação do card */
+        .employee-actions .view-edit-btn { background-color: var(--color-info); color: white; border-color: var(--color-info-dark); }
+        .employee-actions .view-edit-btn:hover { background-color: var(--color-info-dark); }
+        .employee-actions .upload-btn { background-color: var(--color-success); color: var(--color-dark); border-color: var(--color-success-dark); }
+        .employee-actions .upload-btn:hover { background-color: var(--color-success-dark); }
+
+        /* Mensagem se não houver funcionários */
+        #no-employees-message {
+            text-align: center;
+            color: var(--color-muted);
+            padding: var(--spacing-xl);
+            font-style: italic;
+        }
+
+        /* --- Rodapé --- */
+        .legal-footer { margin-top: var(--spacing-xl); padding-top: var(--spacing-lg); text-align: center; font-size: 0.8em; color: var(--color-muted); border-top: 1px solid #eee; }
+        .legal-footer p { margin-bottom: 0; }
+
+        /* --- Print --- */
+        @media print {
+            body { margin: 10mm; font-size: 9pt; background-color: #fff !important; color: #000 !important; }
+            .main-container { max-width: 100%; box-shadow: none; border: none; padding: 0; margin: 0; }
+            .page-header, .legal-footer, .employee-actions button, .employee-actions a, .back-link { display: none !important; }
+            h2 { font-size: 1.1em; border-bottom: 1px solid #999; padding-bottom: 3px; margin-bottom: 8px; }
+            .employee-grid { grid-template-columns: 1fr; gap: 8mm; } /* Uma coluna na impressão */
+            .employee-card { box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; gap: var(--spacing-md); }
+            .employee-photo { width: 60px; height: 60px; font-size: 1.5em; }
+            .employee-info h4 { font-size: 1.1em; }
+            .employee-info p { font-size: 0.85em; }
+        }
+
+    </style>
+</head>
+<body>
+    <main class="main-container">
+        <header class="page-header">
+            <div class="header-left">
+                <a href="dashboard.html" class="back-link" title="Voltar ao Dashboard">← Voltar</a>
+                <img src="https://studio57.arq.br/wp-content/uploads/2025/04/STUDIO-57-PRETO-RETANGULO.png" alt="Logo Studio 57" class="studio57-logo">
+            </div>
+            <div class="header-center"> <h1>Quadro de Funcionários</h1> </div>
+            <div class="header-right"> <span id="current-datetime">--/--/---- --:--:--</span> </div>
+        </header>
+
+        <section>
+            <h2>Funcionários Cadastrados</h2>
+            <div style="margin-bottom: var(--spacing-lg);">
+                <a href="registro_funcionario.html" style="display: inline-block; padding: 10px 15px; background-color: var(--color-primary); color: var(--color-dark); border-radius: var(--border-radius-sm); font-weight: 500; text-decoration: none; border: 1px solid var(--color-primary-dark);">+ Adicionar Novo Funcionário</a>
+            </div>
+
+            <div class="employee-grid" id="employee-grid-container">
+                <p id="no-employees-message" style="display: none;">Nenhum funcionário cadastrado ainda.</p>
+            </div>
+        </section>
+
+        <footer class="legal-footer">
+            <p> © 2025 Studio 57 Arquitetura e Incorporação - CNPJ: 41.464.589/0001-66. Todos os direitos reservados. </p>
+        </footer>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const gridContainer = document.getElementById('employee-grid-container');
+            const noEmployeesMessage = document.getElementById('no-employees-message');
+
+            // --- Data/Hora Atual ---
+            const currentDatetimeSpan = document.getElementById('current-datetime');
+            let dateTimeInterval;
+            function updateDateTime() {
+                if(!currentDatetimeSpan) return;
+                const now = new Date();
+                const formattedDate = now.toLocaleDateString("pt-BR", {day:"2-digit", month:"2-digit", year:"numeric"});
+                const formattedTime = now.toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit", second:"2-digit"});
+                currentDatetimeSpan.textContent = `${formattedDate} ${formattedTime}`;
+            }
+            updateDateTime();
+            if (dateTimeInterval) clearInterval(dateTimeInterval);
+            dateTimeInterval = setInterval(updateDateTime, 1000);
+
+
+            // --- Função para Carregar e Exibir Funcionários do Backend ---
+            async function loadAndDisplayEmployees() {
+                gridContainer.innerHTML = '';
+                noEmployeesMessage.style.display = 'none';
+
+                try {
+                    const response = await fetch('/api/get-employees', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        const employees = result.employees;
+
+                        if (employees.length === 0) {
+                            noEmployeesMessage.style.display = 'block';
+                            noEmployeesMessage.textContent = 'Nenhum funcionário cadastrado ainda.';
+                        } else {
+                            employees.forEach(func => {
+                                if (!func || !func.id || !func.fullName) {
+                                    console.warn("Registro de funcionário inválido encontrado (faltando ID ou Nome Completo):", func);
+                                    return;
+                                }
+
+                                const card = document.createElement('div');
+                                card.classList.add('employee-card');
+                                card.dataset.employeeId = func.id;
+
+                                const photoDiv = document.createElement('div');
+                                photoDiv.classList.add('employee-photo');
+                                const initials = func.fullName ? func.fullName.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() : '?';
+                                photoDiv.textContent = initials;
+                                card.appendChild(photoDiv);
+
+                                const infoDiv = document.createElement('div');
+                                infoDiv.classList.add('employee-info');
+
+                                const nameH4 = document.createElement('h4');
+                                nameH4.textContent = func.fullName || 'Nome não informado';
+                                infoDiv.appendChild(nameH4);
+
+                                // Adiciona Empresa Contratante no card da lista
+                                const empresaP = document.createElement('p');
+                                empresaP.innerHTML = `<strong>Empresa:</strong> ${func.empresaContratanteNome || 'Não informado'}`;
+                                infoDiv.appendChild(empresaP);
+
+                                const cargoP = document.createElement('p');
+                                cargoP.innerHTML = `<strong>Cargo:</strong> ${func.contractRole || 'Não informado'}`;
+                                infoDiv.appendChild(cargoP);
+
+                                const telefoneP = document.createElement('p');
+                                telefoneP.innerHTML = `<strong>Telefone:</strong> ${func.phone || 'Não informado'}`;
+                                infoDiv.appendChild(telefoneP);
+
+                                const faltasP = document.createElement('p');
+                                faltasP.innerHTML = `<strong>Faltas (Diário):</strong> --`;
+                                infoDiv.appendChild(faltasP);
+
+                                const horasP = document.createElement('p');
+                                horasP.innerHTML = `<strong>Horas Trab. (Mês):</strong> --:--`;
+                                infoDiv.appendChild(horasP);
+
+                                const actionsDiv = document.createElement('div');
+                                actionsDiv.classList.add('employee-actions');
+
+                                const uploadBtn = document.createElement('button');
+                                uploadBtn.classList.add('upload-btn');
+                                uploadBtn.textContent = 'Adic. Documento';
+                                uploadBtn.title = 'Adicionar documento para este funcionário';
+                                uploadBtn.onclick = () => {
+                                    alert(`Funcionalidade "Adicionar Documento" para ${func.fullName} (ID: ${func.id}) a ser implementada com backend.`);
+                                };
+                                actionsDiv.appendChild(uploadBtn);
+
+                                const viewDetailsLink = document.createElement('a');
+                                viewDetailsLink.classList.add('view-edit-btn');
+                                viewDetailsLink.href = `detalhes_funcionario.html?id=${func.id}`; 
+                                viewDetailsLink.textContent = 'Ver Detalhes';
+                                viewDetailsLink.title = 'Ver detalhes completos do funcionário';
+                                actionsDiv.appendChild(viewDetailsLink);
+
+                                infoDiv.appendChild(actionsDiv);
+                                card.appendChild(infoDiv);
+                                gridContainer.appendChild(card);
+                            });
+                        }
+                        console.log("Quadro de funcionários carregado do banco de dados.");
+                    } else {
+                        console.error('Erro na API ao buscar funcionários:', result);
+                        noEmployeesMessage.style.display = 'block';
+                        noEmployeesMessage.textContent = `Erro ao carregar funcionários: ${result.error || 'Erro desconhecido.'}`;
+                    }
+                } catch (error) {
+                    console.error('Erro de rede ou servidor ao buscar funcionários:', error);
+                    noEmployeesMessage.style.display = 'block';
+                    noEmployeesMessage.textContent = `Erro de conexão. Verifique sua internet ou tente mais tarde.`;
+                }
+            }
+
+            loadAndDisplayEmployees();
         });
     </script>
 </body>
