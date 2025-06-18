@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Empresas - Sistema Studio 57</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        /* --- Variáveis CSS (Consistente com o Sistema) --- */
+        :root {
+            --font-body: 'Roboto', sans-serif;
+            --font-heading: 'Montserrat', sans-serif;
+            --color-primary: #ffe57b; /* Amarelo Paleta */
+            --color-primary-dark: #fdda4a; /* Amarelo Escuro Paleta */
+            --color-danger: #ff5757; /* Vermelho Paleta */
+            --color-danger-dark: #f03a3a; /* Vermelho Escuro (Aproximado) */
+            --color-success: #c1ff72; /* Verde Paleta */
+            --color-success-dark: #a0e650; /* Verde Escuro (Aproximado) */
+            --color-info: #38b6ff; /* Azul Paleta */
+            --color-info-dark: #1f9ff0; /* Azul Escuro (Aproximado) */
+            --color-warning: #ffe57b; /* Warning usa o Amarelo Paleta */
+            --color-warning-dark: #fdda4a;
+            --color-light: #f8f9fa;
+            --color-medium-light-gray: #d9d9d9; /* Cinza Claro Paleta */
+            --color-dark-gray: #737373; /* Cinza Escuro Paleta */
+            --color-dark: #343a40; /* Cinza bem escuro para texto principal */
+            --color-black: #000000; /* Preto Paleta */
+            --color-muted: #737373; /* Muted usa o cinza escuro da paleta */
+            --color-white: #ffffff; /* Branco Paleta */
+            --color-border: #d9d9d9; /* Borda usa o cinza claro da paleta */
+            --color-border-focus: var(--color-primary-dark); /* Foco usa amarelo escuro */
+            --color-input-bg: #ffffff;
+            --color-input-disabled-bg: #e9ecef; /* Cinza leve para disabled */
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+            --border-radius-sm: 4px;
+            --border-radius-md: 8px;
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 15px;
+            --spacing-lg: 20px;
+            --spacing-xl: 30px;
+        }
+        body { font-family: var(--font-body); line-height: 1.6; margin: var(--spacing-lg); background-color: var(--color-light); color: var(--color-dark); font-size: 16px; }
+        h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); color: var(--color-dark); margin-top: 1.5em; margin-bottom: 0.8em; }
+        h2 { font-size: 1.6em; border-bottom: 1px solid var(--color-border); padding-bottom: var(--spacing-sm); }
+        section { margin-bottom: var(--spacing-xl); }
+        label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 0.9em; color: var(--color-dark); font-family: var(--font-heading); }
+        label.required::after { content: " *"; color: var(--color-danger); font-weight: bold; }
+        input[type="text"], input[type="date"], input[type="number"], input[type="email"], input[type="tel"], select, textarea {
+            width: 100%; padding: 10px var(--spacing-md); margin-bottom: var(--spacing-lg); border: 1px solid var(--color-border); border-radius: var(--border-radius-sm); box-sizing: border-box; background-color: var(--color-input-bg); transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out; line-height: 1.5; font-size: 0.95em;
+        }
+        input:focus, select:focus, textarea:focus { border-color: var(--color-primary); outline: 0; box-shadow: 0 0 0 0.2rem rgba(255, 229, 123, 0.45); }
+        input:disabled, select:disabled, button:disabled, textarea:disabled, input[readonly] { background-color: var(--color-input-disabled-bg) !important; opacity: 0.7; cursor: not-allowed !important; }
+
+        .main-container { background-color: var(--color-white); padding: var(--spacing-xl); border-radius: var(--border-radius-md); box-shadow: var(--shadow-md); max-width: 900px; margin: var(--spacing-xl) auto; border: 1px solid var(--color-border); }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-xl); border-bottom: 1px solid var(--color-border); padding-bottom: var(--spacing-md); gap: var(--spacing-md); }
+        .header-left { flex-shrink: 0; }
+        .header-center { flex-grow: 1; text-align: center; }
+        .header-right { flex-shrink: 0; min-width: 200px; text-align: right; display: flex; align-items: center; justify-content: flex-end; gap: var(--spacing-sm); }
+        .studio57-logo { display: inline-block; max-height: 50px; width: auto; vertical-align: middle; }
+        .page-header h1 { margin-bottom: 0; font-weight: 600; color: var(--color-dark); font-size: 1.5em; line-height: 1.2; }
+        #current-datetime { font-size: 0.85em; color: var(--color-muted); white-space: nowrap; }
+
+        .input-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--spacing-md) var(--spacing-lg); }
+        .input-grid.address-grid { grid-template-columns: 1fr 1fr; }
+        .grid-col-span-2 { grid-column: span 2; }
+
+        .cep-container { display: flex; align-items: flex-start; gap: var(--spacing-sm); }
+        .cep-container input { flex-grow: 1; margin-bottom: var(--spacing-lg); }
+        .cep-container button { margin-top: 27px; height: 44px; flex-shrink: 0; padding: 10px var(--spacing-md); }
+        button.info { background-color: var(--color-info); color: white; border-color: var(--color-info); }
+        button.info:hover:not(:disabled) { background-color: var(--color-info-dark); }
+
+        .main-actions { display: flex; flex-wrap: wrap; gap: var(--spacing-md); margin-top: var(--spacing-xl); justify-content: center; padding-top: var(--spacing-lg); border-top: 1px solid var(--color-border); }
+        .main-actions button { font-family: var(--font-heading); padding: 12px var(--spacing-xl); border-radius: var(--border-radius-sm); border: 1px solid transparent; cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease; font-size: 1em; font-weight: 500; flex-grow: 1; min-width: 200px; }
+        .main-actions button.success { background-color: var(--color-primary); color: var(--color-dark); border-color: var(--color-primary-dark); }
+        .main-actions button.success:hover:not(:disabled) { background-color: var(--color-primary-dark); border-color: var(--color-primary-dark); }
+        .main-actions button.secondary { background-color: var(--color-muted); color: white; border-color: var(--color-muted); }
+        .main-actions button.secondary:hover:not(:disabled) { background-color: var(--color-dark-gray); border-color: var(--color-dark-gray); }
+
+        .legal-footer { margin-top: var(--spacing-xl); padding-top: var(--spacing-lg); text-align: center; font-size: 0.8em; color: var(--color-muted); border-top: 1px solid #eee; }
+        .legal-footer p { margin-bottom: 0; }
+
+        #cep-status { font-size: 0.85em; color: var(--color-muted); margin-top: -10px; margin-bottom: var(--spacing-lg); min-height: 1.2em; }
+        #cep-status.loading { color: var(--color-info); }
+        #cep-status.error { color: var(--color-danger); }
+        #cep-status.success { color: var(--color-success-dark); }
+
+        #feedback-message { padding: var(--spacing-md); margin-bottom: var(--spacing-lg); border-radius: var(--border-radius-sm); font-weight: 500; text-align: center; display: none; }
+        #feedback-message.success { background-color: var(--color-success); color: var(--color-dark); border: 1px solid var(--color-success-dark); }
+        #feedback-message.error { background-color: #ffebee; color: var(--color-danger-dark); border: 1px solid var(--color-danger); }
+        #feedback-message.info { background-color: #e0f7ff; color: var(--color-info-dark); border: 1px solid var(--color-info); }
+        #feedback-message.warning { background-color: #fffbeb; color: var(--color-warning-dark); border: 1px solid var(--color-warning); }
+
+        /* Estilo para links de voltar */
+        .back-link { display: inline-block; color: var(--color-info); text-decoration: none; font-weight: 500; margin-right: var(--spacing-lg); padding: var(--spacing-xs) var(--spacing-sm); border: 1px solid transparent; border-radius: var(--border-radius-sm); transition: all 0.2s ease; }
+        .back-link:hover { color: var(--color-info-dark); background-color: var(--color-light); border-color: var(--color-border); }
+
+    </style>
+</head>
+<body>
+    <main class="main-container">
+        <header class="page-header">
+            <div class="header-left">
+                <a href="dashboard.html" class="back-link" title="Voltar ao Dashboard">← Voltar</a>
+                <img src="https://studio57.arq.br/wp-content/uploads/2025/04/STUDIO-57-PRETO-RETANGULO.png" alt="Logo Studio 57" class="studio57-logo">
+            </div>
+            <div class="header-center"> <h1>Cadastro de Empresa</h1> </div>
+            <div class="header-right"> <span id="current-datetime">--/--/---- --:--:--</span> </div>
+        </header>
+
+        <div id="feedback-message"></div>
+
+        <form id="cadastro-empresa-form">
+            <section>
+                <h2>Dados da Empresa</h2>
+                <div class="input-grid">
+                    <div class="grid-col-span-2"> <label for="razao-social" class="required">Razão Social:</label> <input type="text" id="razao-social" name="razao_social" required> </div>
+                    <div> <label for="cnpj" class="required">CNPJ:</label> <input type="text" id="cnpj" name="cnpj" placeholder="00.000.000/0000-00" required maxlength="18"> </div>
+                    <div> <label for="nome-fantasia">Nome Fantasia:</label> <input type="text" id="nome-fantasia" name="nome_fantasia"> </div>
+                    <div> <label for="inscricao-estadual">Inscrição Estadual:</label> <input type="text" id="inscricao-estadual" name="inscricao_estadual"> </div>
+                    <div> <label for="inscricao-municipal">Inscrição Municipal:</label> <input type="text" id="inscricao-municipal" name="inscricao_municipal"> </div>
+                    <div> <label for="telefone">Telefone:</label> <input type="tel" id="telefone" name="telefone" placeholder="(00) 00000-0000"> </div>
+                    <div> <label for="email">Email:</label> <input type="email" id="email" name="email"> </div>
+                    <div class="grid-col-span-2"> <label for="responsavel-legal">Responsável Legal:</label> <input type="text" id="responsavel-legal" name="responsavel_legal"> </div>
+                </div>
+            </section>
+
+            <section>
+                <h2>Endereço da Empresa</h2>
+                <div class="input-grid address-grid">
+                    <div class="cep-container grid-col-span-2">
+                        <div> <label for="cep" class="required">CEP:</label> <input type="text" id="cep" name="cep" placeholder="00000-000" required maxlength="9"> <span id="cep-status"></span> </div>
+                        <button type="button" id="buscar-cep-btn" class="info">Buscar</button>
+                    </div>
+                    <div class="grid-col-span-2"> <label for="logradouro" class="required">Logradouro (Rua/Av.):</label> <input type="text" id="logradouro" name="address_street" required> </div>
+                    <div> <label for="numero" class="required">Número:</label> <input type="text" id="numero" name="address_number" required> </div>
+                    <div> <label for="complemento">Complemento:</label> <input type="text" id="complemento" name="address_complement" placeholder="Apto, Bloco, etc."> </div>
+                    <div> <label for="bairro" class="required">Bairro:</label> <input type="text" id="bairro" name="neighborhood" required> </div>
+                    <div> <label for="cidade" class="required">Cidade:</label> <input type="text" id="cidade" name="city" required> </div>
+                    <div> <label for="estado" class="required">Estado (UF):</label> <input type="text" id="estado" name="state" required maxlength="2"> </div>
+                </div>
+            </section>
+
+            <div class="main-actions">
+                <button type="submit" class="success">Salvar Empresa</button>
+                <button type="reset" class="secondary">Limpar Formulário</button>
+            </div>
+        </form>
+
+        <footer class="legal-footer">
+            <p> © 2025 Studio 57 Arquitetura e Incorporação - CNPJ: 41.464.589/0001-66. Todos os direitos reservados. </p>
+        </footer>
+    </main>
+
+    <script>
+        // --- Seletores Globais ---
+        const currentDatetimeSpan = document.getElementById('current-datetime');
+        const feedbackMessageDiv = document.getElementById('feedback-message');
+        const cadastroEmpresaForm = document.getElementById('cadastro-empresa-form');
+
+        const cnpjInput = document.getElementById('cnpj');
+        const razaoSocialInput = document.getElementById('razao-social');
+
+        const cepInput = document.getElementById('cep');
+        const buscarCepBtn = document.getElementById('buscar-cep-btn');
+        const logradouroInput = document.getElementById('logradouro');
+        const numeroInput = document.getElementById('numero');
+        const complementoInput = document.getElementById('complemento');
+        const bairroInput = document.getElementById('bairro');
+        const cidadeInput = document.getElementById('cidade');
+        const estadoInput = document.getElementById('estado');
+        const cepStatusSpan = document.getElementById('cep-status');
+
+        let dateTimeInterval;
+        let cepTimeout = null;
+        let currentCompanyId = null; // Para modo de edição
+
+        // --- Funções Auxiliares (reaproveitadas do registro_funcionario.html) ---
+        function updateDateTime() {
+            if (!currentDatetimeSpan) return;
+            const now = new Date();
+            const formattedDate = now.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+            const formattedTime = now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+            currentDatetimeSpan.textContent = `${formattedDate} ${formattedTime}`;
+        }
+
+        function showFeedback(message, type = 'success') {
+            if (!feedbackMessageDiv) return;
+            feedbackMessageDiv.textContent = message;
+            feedbackMessageDiv.className = '';
+            feedbackMessageDiv.classList.add(type);
+            feedbackMessageDiv.style.display = 'block';
+            setTimeout(() => {
+                if (feedbackMessageDiv.textContent === message) {
+                    feedbackMessageDiv.style.display = 'none';
+                }
+            }, 5000);
+        }
+
+        function limparCamposEndereco() {
+            if (logradouroInput) logradouroInput.value = "";
+            if (bairroInput) bairroInput.value = "";
+            if (cidadeInput) cidadeInput.value = "";
+            if (estadoInput) estadoInput.value = "";
+            if (numeroInput) numeroInput.value = "";
+            if (complementoInput) complementoInput.value = "";
+            if (cepStatusSpan) cepStatusSpan.textContent = "";
+            if (cepStatusSpan) cepStatusSpan.className = "";
+        }
+
+        async function buscarEnderecoPorCEP(cepValue) {
+            if (!cepValue) return;
+            if (cepStatusSpan) { cepStatusSpan.textContent = "Buscando..."; cepStatusSpan.className = "loading"; }
+            limparCamposEndereco();
+
+            try {
+                const response = await fetch(`https://viacep.com.br/ws/${cepValue}/json/`);
+                if (!response.ok) {
+                    if (response.status === 400) throw new Error("Formato de CEP inválido.");
+                    if (response.status === 404) throw new Error("CEP não encontrado.");
+                    throw new Error("Falha na consulta.");
+                }
+                const data = await response.json();
+                if (data.erro) { throw new Error("CEP não encontrado."); }
+
+                if (logradouroInput) logradouroInput.value = data.logradouro || "";
+                if (bairroInput) bairroInput.value = data.bairro || "";
+                if (cidadeInput) cidadeInput.value = data.localidade || "";
+                if (estadoInput) estadoInput.value = data.uf || "";
+
+                if (cepStatusSpan) { cepStatusSpan.textContent = "Endereço encontrado!"; cepStatusSpan.className = "success"; }
+                numeroInput?.focus();
+            } catch (error) {
+                console.error("Erro ao buscar CEP:", error);
+                if (cepStatusSpan) { cepStatusSpan.textContent = `Erro: ${error.message}`; cepStatusSpan.className = "error"; }
+                limparCamposEndereco();
+                cepInput?.focus();
+            }
+        }
+
+        // --- Funções de Lógica da Página ---
+
+        function fillFormWithCompanyData(company) {
+            document.getElementById('razao-social').value = company.razaoSocial || '';
+            document.getElementById('cnpj').value = company.cnpj || '';
+            document.getElementById('nome-fantasia').value = company.nomeFantasia || '';
+            document.getElementById('inscricao-estadual').value = company.inscricaoEstadual || '';
+            document.getElementById('inscricao-municipal').value = company.inscricaoMunicipal || '';
+            document.getElementById('telefone').value = company.telefone || '';
+            document.getElementById('email').value = company.email || '';
+            document.getElementById('responsavel-legal').value = company.responsavelLegal || '';
+
+            // Preenchimento dos campos de endereço individuais (padronizados)
+            document.getElementById('logradouro').value = company.addressStreet || '';
+            document.getElementById('numero').value = company.addressNumber || '';
+            document.getElementById('complemento').value = company.addressComplement || '';
+            document.getElementById('bairro').value = company.neighborhood || '';
+            document.getElementById('cidade').value = company.city || '';
+            document.getElementById('estado').value = company.state || '';
+            document.getElementById('cep').value = company.cep || '';
+            if (company.cep) buscarEnderecoPorCEP(company.cep); // Tenta buscar CEP para preencher o resto ao carregar
+        }
+
+        async function handleFormSubmit(event) {
+            event.preventDefault();
+            showFeedback('Enviando dados...', 'info');
+
+            const form = event.target;
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+
+            // Mapear campos do formulário para o schema do banco de dados
+            const companyData = {
+                razaoSocial: data['razao_social'],
+                cnpj: data['cnpj'],
+                nomeFantasia: data['nome_fantasia'] || null,
+                inscricaoEstadual: data['inscricao_estadual'] || null,
+                inscricaoMunicipal: data['inscricao_municipal'] || null,
+                addressStreet: data['address_street'] || null, // Nomes dos campos do formulário
+                addressNumber: data['address_number'] || null,
+                addressComplement: data['address_complement'] || null,
+                cep: data['cep'] || null,
+                city: data['city'] || null,
+                state: data['state'] || null,
+                neighborhood: data['neighborhood'] || null,
+                telefone: data['telefone'] || null,
+                email: data['email'] || null,
+                responsavelLegal: data['responsavel_legal'] || null,
+            };
+
+            // Validação frontend adicional, se necessário (ex: formato CNPJ)
+
+            try {
+                let url = '/api/companies'; // API para empresas
+                let method = 'POST';
+
+                if (currentCompanyId) { // Se estiver em modo de edição
+                    url = `/api/companies?id=${currentCompanyId}`;
+                    method = 'PUT';
+                }
+
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(companyData),
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showFeedback(`Empresa ${currentCompanyId ? 'atualizada' : 'cadastrada'} com sucesso!`, 'success');
+                    console.log(`Empresa ${currentCompanyId ? 'atualizada' : 'cadastrada'}:`, result.company);
+                    if (!currentCompanyId) { // Só limpa se for um novo cadastro
+                        form.reset();
+                        limparCamposEndereco();
+                    }
+                    // Opcional: Redirecionar ou recarregar lista de empresas se houver
+                } else {
+                    showFeedback(`Erro ao ${currentCompanyId ? 'atualizar' : 'cadastrar'}: ${result.error || 'Erro desconhecido.'}`, 'error');
+                    console.error('Erro na API:', result);
+                }
+            } catch (error) {
+                showFeedback('Erro de rede ou servidor ao tentar operação.', 'error');
+                console.error('Erro na requisição fetch:', error);
+            }
+        }
+
+        async function loadCompanyDataForEdit() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const companyId = urlParams.get('id');
+
+            if (companyId) {
+                currentCompanyId = companyId;
+                document.querySelector('h1').textContent = 'Editar Empresa';
+                showFeedback(`Carregando dados para edição da empresa com ID: ${companyId}...`, 'info');
+
+                try {
+                    // Buscar empresa por ID (precisamos de uma API específica para isso)
+                    const response = await fetch(`/api/companies?id=${companyId}`, { // Reutiliza API GET /api/companies com filtro por ID
+                        method: 'GET',
+                        headers: { 'Content-Type': 'application/json' },
+                    });
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        if (result.companies && result.companies.length > 0) { // get-companies retorna um array
+                            fillFormWithCompanyData(result.companies[0]);
+                            showFeedback('Dados da empresa carregados com sucesso!', 'success');
+                        } else {
+                            showFeedback('Empresa não encontrada.', 'error');
+                            console.error('Empresa não encontrada:', result);
+                        }
+                    } else {
+                        showFeedback(`Erro ao carregar dados: ${result.error || 'Erro desconhecido.'}`, 'error');
+                        console.error('Erro na API ao carregar empresa:', result);
+                    }
+                } catch (error) {
+                    showFeedback('Erro de rede ou servidor ao carregar dados da empresa.', 'error');
+                    console.error('Erro na requisição fetch para carregar empresa:', error);
+                }
+            } else {
+                document.querySelector('h1').textContent = 'Cadastro de Empresa';
+                currentCompanyId = null;
+            }
+        }
+
+        function handleFormReset() {
+            limparCamposEndereco();
+            showFeedback('Formulário limpo.', 'info');
+            currentCompanyId = null;
+            document.querySelector('h1').textContent = 'Cadastro de Empresa';
+        }
+
+
+        // --- Event Listeners e Inicialização ---
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDateTime();
+            if (dateTimeInterval) clearInterval(dateTimeInterval);
+            dateTimeInterval = setInterval(updateDateTime, 1000);
+
+            cadastroEmpresaForm?.addEventListener('submit', handleFormSubmit);
+            cadastroEmpresaForm?.addEventListener('reset', handleFormReset);
+
+            buscarCepBtn?.addEventListener('click', () => {
+                const cepValue = cepInput?.value.replace(/\D/g, "");
+                if (cepValue && cepValue.length === 8) {
+                    buscarEnderecoPorCEP(cepValue);
+                } else {
+                    if (cepStatusSpan) { cepStatusSpan.textContent = "CEP inválido. Digite 8 dígitos."; cepStatusSpan.className = "error"; }
+                    limparCamposEndereco();
+                }
+            });
+
+            cepInput?.addEventListener('input', () => {
+                const cepValue = cepInput.value.replace(/\D/g, "");
+                clearTimeout(cepTimeout);
+                if (cepStatusSpan) { cepStatusSpan.textContent = ""; cepStatusSpan.className = ""; }
+                if (cepValue.length === 8) {
+                    cepTimeout = setTimeout(() => { buscarEnderecoPorCEP(cepValue); }, 500);
+                }
+            });
+
+            loadCompanyDataForEdit(); // Verifica se é modo de edição
+            console.log("Página de Cadastro de Empresas inicializada.");
+        });
+    </script>
+</body>
+</html>
