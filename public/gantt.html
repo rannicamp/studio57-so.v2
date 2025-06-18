@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cronograma de Obras - Sistema Studio 57</title>
+    <!-- CORREÇÃO AQUI: URLs COMPLETAS E CORRETAS PARA CDNs -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" xintegrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.css">
+    <!-- FIM CORREÇÃO CDN -->
+    <link rel="stylesheet" href="css/global.css"> <!-- LINK PARA CSS GLOBAL -->
+
+    <style>
+        /* Estilos ESPECÍFICOS do Cronograma (Gantt) que NÃO estão no global.css */
+        #gantt .gantt-container { overflow: visible !important; }
+        .gantt .bar-label { font-size: 0.8rem; fill: #fff; }
+        .gantt .bar-progress { fill: rgba(0, 100, 0, 0.4); }
+        /* Estilo para Marcos (Milestones) */
+        .gantt .bar-milestone .bar { fill: #d97706; } /* Cor laranja para marcos */
+        .gantt .bar-milestone .bar-progress { fill: transparent; } /* Sem barra de progresso para marcos */
+        .gantt .bar-milestone .bar-label { fill: #fff; font-weight: bold; }
+
+        .project-select-container { margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--color-border); }
+        .project-select-container select { width: 100%; max-width: 300px; padding: 0.5rem 0.75rem; border: 1px solid var(--color-border); border-radius: var(--border-radius-md); } /* Ajustei para usar variáveis */
+        #noProjectSelectedMessage { color: var(--color-danger); font-size: 0.875rem; margin-top: 0.5rem; }
+
+        /* Estilo para o Modal de Tarefas (adaptei de Tailwind para o global.css) */
+        #taskModal { /* Corresponde fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-40 hidden */
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0,0,0,0.5); /* bg-gray-600 bg-opacity-50 */
+            overflow-y: auto; height: 100%; width: 100%;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 40; /* z-40 */
+        }
+        #taskModal.hidden { display: none !important; }
+        #taskModal > div { /* Corresponde relative mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white */
+            position: relative; margin: auto; padding: 1.5rem; /* p-6 */
+            border: 1px solid var(--color-border); /* border */
+            width: 100%; max-width: 500px; /* max-w-lg */
+            box-shadow: var(--shadow-md); /* shadow-lg */
+            border-radius: var(--border-radius-md); /* rounded-md */
+            background-color: var(--color-white); /* bg-white */
+        }
+        #taskModal h3 { /* text-lg font-medium leading-6 text-gray-900 mb-4 */
+            font-size: 1.125rem; font-weight: 500; color: var(--color-dark);
+            margin-bottom: 1rem; border-bottom: 1px solid var(--color-border); padding-bottom: 0.5rem;
+        }
+        #taskModal form .form-grid { /* grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 */
+            display: grid; grid-template-columns: 1fr; gap: 1rem; margin-bottom: 1rem;
+        }
+        @media (min-width: 768px) { #taskModal form .form-grid { grid-template-columns: 1fr 1fr; } }
+        #taskModal form .form-group { /* Removi margin-bottom padrão dos form-groups */
+            margin-bottom: 0;
+        }
+        #taskModal form label { /* block text-sm font-medium text-gray-700 */
+            display: block; font-size: 0.875rem; font-weight: 500; color: var(--color-dark-gray); margin-bottom: 0.25rem;
+        }
+        #taskModal form input[type="text"], #taskModal form input[type="number"], #taskModal form input[type="date"], #taskModal form select {
+            margin-top: 0.25rem; display: block; width: 100%; padding: 0.5rem 0.75rem;
+            border: 1px solid var(--color-border); border-radius: var(--border-radius-md);
+            box-shadow: var(--shadow-sm); outline: none; transition: all 0.15s ease-in-out;
+            font-size: 0.875rem; color: var(--color-dark);
+        }
+        #taskModal form input:focus, #taskModal form select:focus {
+            border-color: var(--color-primary); box-shadow: 0 0 0 3px rgb(59 130 246 / 0.2);
+        }
+        #taskModal form p.text-xs { /* mt-1 text-xs text-gray-500 */
+            margin-top: 0.25rem; font-size: 0.75rem; color: var(--color-dark-gray);
+        }
+        #taskModal .mt-6 { margin-top: 1.5rem; }
+        #taskModal .flex { display: flex; }
+        #taskModal .justify-between { justify-content: space-between; }
+        #taskModal .items-center { align-items: center; }
+        #taskModal .gap-3 { gap: 0.75rem; }
+
+        /* Estilo para o Modal de Confirmação */
+        #confirmModal { /* confirm-modal-overlay */
+            position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); overflow-y: auto; h-full; w-full; flex; items-center; justify-content: center; z-50;
+            display: none;
+        }
+        #confirmModal.hidden { display: none !important; }
+        #confirmModal > div { /* confirm-modal-content */
+            position: relative; margin: auto; padding: 1.25rem; border: 1px solid var(--color-border);
+            width: 100%; max-width: 400px; box-shadow: var(--shadow-md); border-radius: var(--border-radius-md);
+            background-color: var(--color-white);
+        }
+        #confirmModal h3 { /* text-lg font-medium text-gray-900 */
+            font-size: 1.125rem; font-weight: 500; color: var(--color-dark); margin-bottom: 0.75rem;
+        }
+        #confirmModal p { /* text-sm text-gray-600 my-4 */
+            font-size: 0.875rem; color: var(--color-dark-gray); margin-top: 1rem; margin-bottom: 1rem;
+        }
+        #confirmModal .flex { display: flex; }
+        #confirmModal .justify-end { justify-content: flex-end; }
+        #confirmModal .gap-3 { gap: 0.75rem; }
+    </style>
+</head>
+<body>
+    <!-- HEADER SERÁ CARREGADO AQUI VIA JS -->
+    <div id="header-placeholder"></div>
+
+    <div class="page-wrapper">
+        <!-- SIDEBAR SERÁ CARREGADA AQUI VIA JS -->
+        <div id="sidebar-placeholder"></div>
+
+        <main class="main-content" id="main-content-area">
+            <div id="feedback" class="hidden"></div>
+
+            <div class="container mx-auto p-6 rounded-lg shadow-lg bg-white"> <!-- Container principal, mantido como estava no original -->
+                <h2 class="text-2xl font-bold mb-6 text-gray-800">Cronograma de Obras (Gráfico de Gantt)</h2>
+
+                <div class="project-select-container">
+                    <label for="projectSelect" class="block text-sm font-medium text-gray-700 mb-2">Selecione um Projeto:</label>
+                    <select id="projectSelect">
+                        <option value="">-- Selecione um Projeto --</option>
+                        <!-- Projetos serão carregados aqui -->
+                    </select>
+                    <p id="noProjectSelectedMessage" class="text-red-500 text-sm mt-2 hidden">Por favor, selecione um projeto para gerenciar o cronograma.</p>
+                </div>
+
+                <div class="mb-6 flex flex-wrap gap-2 items-center">
+                    <button id="addTaskBtn" class="btn btn-primary" disabled><i class="fas fa-plus"></i> Adicionar Tarefa</button>
+                    <label for="viewModeSelect" class="text-sm font-medium text-gray-700 ml-4">Visualizar por:</label>
+                    <select id="viewModeSelect" class="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="Day">Dia</option>
+                        <option value="Week">Semana</option>
+                        <option value="Month" selected>Mês</option>
+                        <option value="Quarter">Trimestre</option>
+                        <option value="Half Day">Meio Dia</option>
+                        <option value="Year">Ano</option>
+                    </select>
+                </div>
+
+                <div class="gantt-container-wrapper bg-gray-50 p-4 rounded border border-gray-200 overflow-x-auto min-h-[300px]">
+                    <svg id="gantt"></svg>
+                </div>
+
+                <div id="taskModal" class="hidden"> <!-- Modal de Tarefas -->
+                    <div>
+                        <h3 id="modalTitle">Adicionar Nova Tarefa</h3>
+                        <form id="taskForm">
+                            <input type="hidden" id="taskId">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="taskName">Nome da Tarefa</label>
+                                    <input type="text" id="taskName" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="taskProgress">Progresso (%)</label>
+                                    <input type="number" id="taskProgress" min="0" max="100" value="0" required>
+                                </div>
+                            </div>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="startDate">Data de Início (Prevista)</label>
+                                    <input type="date" id="startDate" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="durationDays">Duração (dias)</label>
+                                    <input type="number" id="durationDays" min="0" value="1" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="endDate">Data de Fim (Prevista)</label>
+                                    <input type="date" id="endDate" readonly> <!-- Auto-preenchida -->
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="taskDependencies">Dependências (IDs separados por vírgula)</label>
+                                <input type="text" id="taskDependencies" placeholder="Ex: 1, 4">
+                                <p class="text-xs text-gray-500 mt-1">Deixe em branco se não houver dependências.</p>
+                            </div>
+                            <div class="form-group">
+                                <label for="taskEtapa">Etapa:</label>
+                                <input type="text" id="taskEtapa" placeholder="Ex: Fundações">
+                            </div>
+                            <div class="form-group">
+                                <label for="taskTipoAtividade">Tipo de Atividade:</label>
+                                <select id="taskTipoAtividade" required>
+                                    <option value="">-- Selecione --</option>
+                                    <option value="Tarefa de Obra">Tarefa de Obra</option>
+                                    <option value="Marco do Projeto">Marco do Projeto</option>
+                                    <option value="Atividade Interna">Atividade Interna</option>
+                                    <option value="Manutenção">Manutenção</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="taskDescricao">Descrição Detalhada:</label>
+                                <textarea id="taskDescricao" rows="3"></textarea>
+                            </div>
+                            <div class="mt-6 flex justify-between items-center">
+                                <button type="button" id="deleteBtn" class="btn btn-danger"><i class="fas fa-trash-alt"></i> Excluir Tarefa</button>
+                                <div class="flex gap-3">
+                                    <button type="button" id="cancelBtn" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</button>
+                                    <button type="submit" id="saveBtn" class="btn btn-primary"><i class="fas fa-save"></i> Salvar Tarefa</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div id="confirmModal" class="hidden"> <!-- Modal de Confirmação -->
+                    <div>
+                        <h3 id="confirmTitle">Confirmar Ação</h3>
+                        <p id="confirmMessage">Tem certeza que deseja realizar esta ação?</p>
+                        <div class="flex justify-end gap-3">
+                            <button id="confirmCancelBtn" class="btn btn-secondary">Cancelar</button>
+                            <button id="confirmOkBtn" class="btn btn-primary">Confirmar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="legal-footer">
+                <p> © 2025 Studio 57 Arquitetura e Incorporação - CNPJ: 41.464.589/0001-66. Todos os direitos reservados. </p>
+            </footer>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.min.js"></script>
+    <script src="js/common_ui.js"></script> <!-- LINK PARA JS COMUM -->
+    <script>
+        let gantt; // Variável para guardar a instância do gráfico
+        let currentProjectId = null; // Para controlar o projeto selecionado
+        let currentUserId = null; // Para rastrear o usuário logado que cria/edita atividades
+
+        // --- Seletores DOM ---
+        const projectSelect = document.getElementById('projectSelect');
+        const noProjectSelectedMessage = document.getElementById('noProjectSelectedMessage');
+        const addTaskBtn = document.getElementById('addTaskBtn');
+        const viewModeSelect = document.getElementById('viewModeSelect');
+        const ganttContainer = document.getElementById('gantt');
+
+        const taskModal = document.getElementById('taskModal');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const taskForm = document.getElementById('taskForm');
+        const modalTitle = document.getElementById('modalTitle');
+        const taskIdInput = document.getElementById('taskId');
+        const taskNameInput = document.getElementById('taskName');
+        const taskProgressInput = document.getElementById('taskProgress');
+        const startDateInput = document.getElementById('startDate');
+        const durationDaysInput = document.getElementById('durationDays');
+        const endDateInput = document.getElementById('endDate'); // Campo calculado
+        const taskDependenciesInput = document.getElementById('taskDependencies');
+        const taskEtapaInput = document.getElementById('taskEtapa'); // Novo campo
+        const taskTipoAtividadeSelect = document.getElementById('taskTipoAtividade'); // Novo campo
+        const taskDescricaoInput = document.getElementById('taskDescricao'); // Novo campo
+        const deleteBtn = document.getElementById('deleteBtn');
+        const saveBtn = document.getElementById('saveBtn');
+
+        const confirmModal = document.getElementById('confirmModal');
+        const confirmMessage = document.getElementById('confirmMessage');
+        const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+        const confirmOkBtn = document.getElementById('confirmOkBtn');
+        let confirmCallback = null;
+
+        // --- Funções Auxiliares de Data ---
+        function addDays(date, days) {
+            const result = new Date(date);
+            result.setDate(result.getDate() + days);
+            return result;
+        }
+
+        function formatDateForInput(date) {
+            if (!date) return '';
+            let d = new Date(date);
+            // Frappe Gantt lida com ISO strings para input, então formatamos comoण्याच्या-MM-DD
+            return d.toISOString().split('T')[0];
+        }
+        
+        function parseDateString(dateString) { // Retorna Date object
+            if (!dateString) return null;
+            return new Date(dateString + 'T00:00:00'); // Garante que a data seja interpretada como local meia-noite
+        }
+
+
+        // --- Funções de API ---
+        async function fetchProjects() {
+            try {
+                // Usa a função apiFetch global do common_ui.js
+                const result = await window.commonUi.apiFetch('/api/empreendimentos', { method: 'GET' });
+                return result && result.empreendimentos ? result.empreendimentos : [];
+            } catch (error) {
+                console.error('Erro ao carregar projetos:', error);
+                window.commonUi.showFeedback('Erro ao carregar lista de projetos.', 'error');
+                return [];
+            }
+        }
+
+        async function fetchGanttTasks(projectId) {
+            if (!projectId) return [];
+            try {
+                // Usa a função apiFetch global do common_ui.js
+                const result = await window.commonUi.apiFetch(`/api/activities?empreendimentoId=${projectId}`, { method: 'GET' });
+                return result && result.activities ? result.activities : [];
+            } catch (error) {
+                console.error('Erro ao carregar tarefas do Gantt:', error);
+                window.commonUi.showFeedback('Erro ao carregar tarefas do cronograma.', 'error');
+                return [];
+            }
+        }
+
+        async function saveGanttTask(taskData) {
+            // Se taskData.id existe, é PUT; senão, é POST
+            const method = taskData.id && taskData.id !== '0' ? 'PUT' : 'POST'; // ID '0' se for novo, mas pode ser null ou undefined
+            const url = taskData.id && taskData.id !== '0' ? `/api/activities?id=${taskData.id}` : '/api/activities';
+            
+            // Adicionar created_by_user_id automaticamente para novas tarefas
+            if (method === 'POST' && currentUserId) {
+                 taskData.criadoPorUsuarioId = currentUserId;
+            } else if (method === 'POST' && !currentUserId) {
+                window.commonUi.showFeedback("Usuário não identificado. Não é possível criar a atividade.", 'error');
+                return null;
+            }
+
+            try {
+                const result = await window.commonUi.apiFetch(url, {
+                    method: method,
+                    body: JSON.stringify(taskData)
+                });
+                if (result && result.activity) {
+                    window.commonUi.showFeedback(`Tarefa ${method === 'POST' ? 'cadastrada' : 'atualizada'} com sucesso!`, 'success');
+                    return result.activity;
+                } else {
+                    window.commonUi.showFeedback(`Erro ao ${method === 'POST' ? 'cadastrar' : 'atualizar'} tarefa: ${result.error || 'Erro desconhecido.'}`, 'error');
+                    return null;
+                }
+            } catch (error) {
+                console.error('Erro ao salvar tarefa Gantt:', error);
+                // Feedback já é mostrado por apiFetch
+                return null;
+            }
+        }
+
+        async function deleteGanttTask(taskId) {
+            try {
+                const result = await window.commonUi.apiFetch(`/api/activities?id=${taskId}`, {
+                    method: 'DELETE'
+                });
+                if (result && result.deletedId) {
+                    window.commonUi.showFeedback('Tarefa excluída com sucesso!', 'success');
+                    return result.deletedId;
+                } else {
+                    window.commonUi.showFeedback(`Erro ao excluir tarefa: ${result.error || 'Erro desconhecido.'}`, 'error');
+                    return null;
+                }
+            } catch (error) {
+                console.error('Erro ao excluir tarefa Gantt:', error);
+                // Feedback já é mostrado por apiFetch
+                return null;
+            }
+        }
+
+
+        // --- Lógica de Renderização do Gantt ---
+        let tasksData = []; // Array que alimenta o Frappe Gantt
+
+        function renderGantt() {
+            ganttContainer.innerHTML = ''; // Limpa o SVG
+
+            if (tasksData.length === 0) {
+                ganttContainer.innerHTML = '<p class="text-center text-gray-500 p-4">Nenhuma tarefa para exibir. Adicione uma tarefa para começar.</p>';
+                return;
+            }
+
+            gantt = new Gantt("#gantt", tasksData, {
+                on_click: function (task) {
+                    console.log('Tarefa clicada:', task);
+                    openEditModal(task);
+                },
+                on_date_change: async function(task, start, end) {
+                    const originalTask = tasksData.find(t => t.id === task.id);
+                    if (!originalTask) return;
+
+                    const formattedStart = formatDateForInput(start);
+                    const formattedEnd = formatDateForInput(end);
+                    const duration = Math.ceil((new Date(formattedEnd).getTime() - new Date(formattedStart).getTime()) / (1000 * 60 * 60 * 24)) + 1; // Calcula duração em dias
+
+                    const updatedActivity = await saveGanttTask({
+                        id: task.id,
+                        empreendimentoId: currentProjectId,
+                        nome: task.name,
+                        dataInicioPrevista: formattedStart,
+                        duracaoDias: duration, // Atualiza duração
+                        dataFimPrevista: formattedEnd, // Salva a data de fim calculada
+                        progress: task.progress,
+                        dependencies: task.dependencies,
+                        etapa: originalTask.etapa, // Manter campos existentes
+                        tipoAtividade: originalTask.tipoAtividade,
+                        descricao: originalTask.descricao,
+                        dataInicioReal: originalTask.dataInicioReal,
+                        dataFimReal: originalTask.dataFimReal,
+                        status: originalTask.status,
+                        responsavelTexto: originalTask.responsavelTexto,
+                        customClass: originalTask.customClass
+                    });
+                    if (updatedActivity) {
+                        console.log('Tarefa atualizada no backend (data):', updatedActivity);
+                        loadGanttData(); // Recarrega para refletir as mudanças
+                    } else {
+                        loadGanttData(); // Recarrega para reverter visualmente se falhar
+                    }
+                },
+                on_progress_change: async function(task, progress) {
+                    const originalTask = tasksData.find(t => t.id === task.id);
+                    if (!originalTask) return;
+
+                    const updatedActivity = await saveGanttTask({
+                        id: task.id,
+                        empreendimentoId: currentProjectId,
+                        nome: task.name,
+                        dataInicioPrevista: originalTask.dataInicioPrevista,
+                        duracaoDias: originalTask.duracaoDias,
+                        dataFimPrevista: originalTask.dataFimPrevista,
+                        progress: progress,
+                        dependencies: task.dependencies,
+                        etapa: originalTask.etapa,
+                        tipoAtividade: originalTask.tipoAtividade,
+                        descricao: originalTask.descricao,
+                        dataInicioReal: originalTask.dataInicioReal,
+                        dataFimReal: originalTask.dataFimReal,
+                        status: originalTask.status,
+                        responsavelTexto: originalTask.responsavelTexto,
+                        customClass: originalTask.customClass
+                    });
+                    if (updatedActivity) {
+                        console.log('Tarefa atualizada no backend (progresso):', updatedActivity);
+                        loadGanttData(); // Recarrega para refletir as mudanças
+                    } else {
+                        loadGanttData(); // Recarrega para reverter visualmente se falhar
+                    }
+                },
+                on_view_change: function(mode) {
+                    viewModeSelect.value = mode;
+                },
+                header_height: 50,
+                column_width: 30,
+                step: 24,
+                view_modes: ['Day', 'Week', 'Month', 'Quarter', 'Half Day', 'Year'], // Todos os modos
+                bar_height: 25,
+                bar_corner_radius: 3,
+                arrow_curve: 5,
+                padding: 18,
+                view_mode: 'Month',
+                date_format: 'YYYY-MM-DD',
+                language: 'pt',
+                custom_popup_html: function(task) {
+                  const start_date = task.start ? parseDateString(task.start).toLocaleDateString('pt-BR') : 'N/A';
+                  const end_date = task.end ? parseDateString(task.end).toLocaleDateString('pt-BR') : 'N/A';
+                  const dependencies = task.dependencies ? `Depende de: ${task.dependencies}` : 'Sem dependências';
+                  const etapa = task.etapa || 'N/A';
+                  const tipo = task.tipoAtividade || 'N/A';
+                  const descricao = task.descricao || 'Sem descrição.';
+                  const status = task.status || 'N/A';
+                  const inicioReal = task.dataInicioReal ? parseDateString(task.dataInicioReal).toLocaleDateString('pt-BR') : 'N/A';
+                  const fimReal = task.dataFimReal ? parseDateString(task.dataFimReal).toLocaleDateString('pt-BR') : 'N/A';
+
+
+                  return `
+                    <div class="p-2 bg-white shadow-md rounded text-sm max-w-xs">
+                      <h5 class="font-semibold mb-1 truncate">${task.name}</h5>
+                      <p class="text-gray-600 text-xs">Etapa: ${etapa}</p>
+                      <p class="text-gray-600 text-xs">Tipo: ${tipo}</p>
+                      <p class="text-gray-600 text-xs">Status: ${status}</p>
+                      <p class="text-gray-600 text-xs">Início Previsto: ${start_date}</p>
+                      <p class="text-gray-600 text-xs">Fim Previsto: ${end_date}</p>
+                      <p class="text-gray-600 text-xs">Início Real: ${inicioReal}</p>
+                      <p class="text-gray-600 text-xs">Fim Real: ${fimReal}</p>
+                      <p class="text-gray-600 text-xs">Progresso: ${task.progress}%</p>
+                      <p class="text-gray-600 text-xs">${dependencies}</p>
+                      <p class="text-gray-600 text-xs mt-1">Descrição: ${descricao}</p>
+                    </div>
+                  `;
+                }
+            });
+        }
+
+        // --- Lógica de Carregamento e População ---
+        async function populateProjectSelect() {
+            const projects = await fetchProjects();
+            projectSelect.innerHTML = '<option value="">-- Selecione um Projeto --</option>';
+            if (projects && projects.length > 0) {
+                projects.forEach(project => {
+                    const option = document.createElement('option');
+                    option.value = project.id;
+                    option.textContent = project.nomeFantasia || project.razaoSocial || project.nome;
+                    projectSelect.appendChild(option);
+                });
+            }
+        }
+
+        async function loadGanttData() {
+            if (!currentProjectId) {
+                tasksData = [];
+                renderGantt(); // Renderiza vazio ou com mensagem
+                return;
+            }
+            // Carrega tarefas do backend
+            const fetchedActivities = await fetchGanttTasks(currentProjectId);
+            
+            // Mapeia atividades do DB para o formato do Frappe Gantt
+            tasksData = fetchedActivities.map(activity => ({
+                id: activity.id.toString(), // Frappe Gantt espera ID como string
+                name: activity.nome,
+                start: activity.dataInicioPrevista,
+                end: activity.dataFimPrevista,
+                progress: activity.progress || 0,
+                dependencies: activity.dependencies || '',
+                custom_class: activity.customClass || '',
+                // Campos adicionais para o custom_popup_html e modal de edição
+                etapa: activity.etapa || '',
+                tipoAtividade: activity.tipoAtividade || '',
+                descricao: activity.descricao || '',
+                duracaoDias: activity.duracaoDias || 0,
+                dataInicioReal: activity.dataInicioReal || '',
+                dataFimReal: activity.dataFimReal || '',
+                status: activity.status || ''
+            }));
+            renderGantt();
+        }
+
+        // --- Lógica do Modal de Tarefas ---
+        function openAddModal() {
+            taskForm.reset();
+            taskIdInput.value = '';
+            modalTitle.textContent = 'Adicionar Nova Tarefa';
+            taskProgressInput.value = 0;
+            // Define data de início prevista para hoje
+            startDateInput.value = formatDateForInput(new Date()); 
+            durationDaysInput.value = 1; // Duração padrão 1 dia
+            // Calcula data de fim prevista
+            endDateInput.value = formatDateForInput(addDays(parseDateString(startDateInput.value), parseInt(durationDaysInput.value)));
+            taskDependenciesInput.value = '';
+            taskEtapaInput.value = '';
+            taskTipoAtividadeSelect.value = '';
+            taskDescricaoInput.value = '';
+
+            deleteBtn.classList.add('hidden');
+            saveBtn.textContent = 'Salvar Tarefa';
+            taskModal.classList.remove('hidden');
+            taskNameInput.focus();
+        }
+
+        function openEditModal(task) {
+            taskForm.reset();
+            modalTitle.textContent = 'Editar Tarefa';
+            taskIdInput.value = task.id;
+            taskNameInput.value = task.name;
+            taskProgressInput.value = task.progress;
+            startDateInput.value = task.start;
+            durationDaysInput.value = task.duracaoDias || Math.ceil((parseDateString(task.end).getTime() - parseDateString(task.start).getTime()) / (1000 * 60 * 60 * 24)) + 1; // Recalcula duração
+            endDateInput.value = task.end;
+            taskDependenciesInput.value = task.dependencies || '';
+            taskEtapaInput.value = task.etapa || '';
+            taskTipoAtividadeSelect.value = task.tipoAtividade || '';
+            taskDescricaoInput.value = task.descricao || '';
+            deleteBtn.classList.remove('hidden');
+            saveBtn.textContent = 'Salvar Alterações';
+            taskModal.classList.remove('hidden');
+            taskNameInput.focus();
+        }
+
+        function closeTaskModal() {
+             taskModal.classList.add('hidden');
+        }
+
+        taskForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            // Validação de campos
+            if (!taskNameInput.value.trim()) { window.commonUi.showFeedback('O nome da tarefa é obrigatório.', 'error'); taskNameInput.focus(); return; }
+            if (endDateInput.value < startDateInput.value) { window.commonUi.showFeedback('A data de fim não pode ser anterior à data de início.', 'error'); return; }
+            if (!taskTipoAtividadeSelect.value) { window.commonUi.showFeedback('O tipo de atividade é obrigatório.', 'error'); taskTipoAtividadeSelect.focus(); return; }
+
+
+            const taskData = {
+                // ID será String do Frappe Gantt, mas o DB espera Integer
+                // O backend (API) precisará converter ou lidar com isso
+                id: taskIdInput.value, // ID existente para PUT, ou temporário para POST
+                empreendimentoId: parseInt(currentProjectId), // É crucial enviar o projectId como INTEGER
+                // empresaId: null, // Se a atividade for de empreendimento, empresaId é null
+                criadoPorUsuarioId: currentUserId, // ID do usuário logado (assumindo que common_ui.js ou autenticação fornecerá)
+                nome: taskNameInput.value.trim(),
+                dataInicioPrevista: startDateInput.value,
+                duracaoDias: parseInt(durationDaysInput.value),
+                dataFimPrevista: endDateInput.value,
+                progress: parseInt(taskProgressInput.value, 10),
+                dependencies: taskDependenciesInput.value.trim().replace(/\s/g, ''),
+                etapa: taskEtapaInput.value.trim() || null,
+                tipoAtividade: taskTipoAtividadeSelect.value,
+                descricao: taskDescricaoInput.value.trim() || null,
+                dataInicioReal: null, // A ser preenchido quando a atividade iniciar
+                dataFimReal: null, // A ser preenchido quando a atividade for concluída
+                status: 'Não iniciado', // Status inicial padrão
+                responsavelTexto: null, // A ser preenchido depois
+                customClass: (startDateInput.value === endDateInput.value && parseInt(durationDaysInput.value) === 0) ? 'bar-milestone' : null // Marcos têm duração 0 e mesma data
+            };
+
+            // Se for uma atividade interna, o empreendimentoId pode ser nulo, mas empresaId deve ser setado.
+            // Por simplicidade agora, assumimos que todas as atividades do Gantt tem empreendimentoId.
+            // A lógica de "pelo menos um de empresaId ou empreendimentoId" deve ser validada no backend.
+
+
+            const savedActivity = await saveGanttTask(taskData);
+            if (savedActivity) {
+                loadGanttData(); // Recarrega o Gantt após salvar
+                closeTaskModal();
+            }
+        });
+
+        // Excluir tarefa
+        deleteBtn.addEventListener('click', () => {
+            const taskId = taskIdInput.value;
+            const taskToDelete = tasksData.find(t => t.id === taskId);
+            if (!taskToDelete) return;
+
+            const dependentTasks = tasksData.filter(t => t.dependencies && t.dependencies.split(',').includes(taskId));
+
+            let confirmMsg = `Tem certeza que deseja excluir a tarefa "${taskToDelete.name}"?`;
+            if (dependentTasks.length > 0) {
+                confirmMsg += `\n\nAtenção: As seguintes tarefas dependem desta e terão suas dependências removidas: ${dependentTasks.map(t => t.name).join(', ')}`;
+            }
+
+            showConfirmModal(confirmMsg, async () => {
+                const deletedId = await deleteGanttTask(taskId);
+                if (deletedId) {
+                    // Remove a dependência desta tarefa em outras tarefas no frontend (e idealmente no backend também)
+                    dependentTasks.forEach(depTask => {
+                        const deps = depTask.dependencies.split(',');
+                        const indexToRemove = deps.indexOf(taskId);
+                        if (indexToRemove > -1) {
+                            deps.splice(indexToRemove, 1);
+                            depTask.dependencies = deps.join(',');
+                        }
+                    });
+                    loadGanttData(); // Recarrega o Gantt após excluir
+                    closeTaskModal();
+                }
+            });
+        });
+
+
+        // --- Lógica do Modal de Confirmação ---
+        function showConfirmModal(message, onConfirm) {
+            confirmMessage.textContent = message;
+            confirmCallback = onConfirm;
+            confirmModal.classList.remove('hidden');
+            confirmOkBtn.focus();
+        }
+
+        function closeConfirmModal() {
+            confirmModal.classList.add('hidden');
+            confirmCallback = null;
+        }
+
+        confirmCancelBtn.addEventListener('click', closeConfirmModal);
+        confirmOkBtn.addEventListener('click', () => {
+            if (typeof confirmCallback === 'function') {
+                confirmCallback();
+            }
+            closeConfirmModal();
+        });
+        confirmModal.addEventListener('click', (event) => {
+            if (event.target === confirmModal) {
+                closeConfirmModal();
+            }
+        });
+
+        // --- Listener para cálculo automático da data de fim ---
+        startDateInput.addEventListener('change', updateEndDate);
+        durationDaysInput.addEventListener('input', updateEndDate);
+
+        function updateEndDate() {
+            const startDate = parseDateString(startDateInput.value);
+            const duration = parseInt(durationDaysInput.value, 10);
+            if (startDate && !isNaN(duration)) {
+                const endDate = addDays(startDate, duration - 1); // -1 porque a duração inclui o dia de início
+                endDateInput.value = formatDateForInput(endDate);
+            } else {
+                endDateInput.value = '';
+            }
+        }
+
+        // --- Inicialização da Página ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            // common_ui.js já cuida do carregamento de header/sidebar, data/hora e user info.
+            if (!window.commonUi || !window.commonUi.checkAuth || !window.commonUi.checkAuth()) {
+                return; 
+            }
+
+            // Lógica específica para o back-link desta página
+            const backLink = document.querySelector('.back-link');
+            if (backLink) {
+                backLink.href = 'dashboard.html'; // Ou para o dashboard
+                backLink.classList.remove('hidden'); // Mostra o botão de voltar
+            }
+
+            // Obter o ID do usuário logado (simulado por enquanto)
+            // No futuro, isso viria do token de autenticação
+            const userId = localStorage.getItem(window.commonUi.CONFIG.LOCAL_STORAGE_USER_ID_KEY) || '1'; // Usar um ID de usuário padrão para teste
+            currentUserId = parseInt(userId);
+            if (isNaN(currentUserId)) {
+                window.commonUi.showFeedback("ID do usuário não encontrado. Algumas funcionalidades podem estar limitadas.", 'warning');
+                currentUserId = 1; // Fallback para 1
+            }
+
+            await populateProjectSelect(); // Carrega os projetos primeiro
+            renderGantt(); // Renderiza o Gantt inicialmente vazio
+
+            projectSelect.addEventListener('change', async (event) => {
+                currentProjectId = event.target.value;
+                if (currentProjectId) {
+                    noProjectSelectedMessage.classList.add('hidden');
+                    addTaskBtn.disabled = false;
+                    await loadGanttData();
+                } else {
+                    noProjectSelectedMessage.classList.remove('hidden');
+                    addTaskBtn.disabled = true;
+                    tasksData = []; // Limpa os dados do Gantt
+                    renderGantt(); // Limpa o Gantt se nenhum projeto for selecionado
+                }
+            });
+
+            addTaskBtn.addEventListener('click', openAddModal);
+            cancelBtn.addEventListener('click', closeTaskModal);
+            taskModal.addEventListener('click', (event) => {
+                if (event.target === taskModal) {
+                    closeTaskModal();
+                }
+            });
+
+            confirmCancelBtn.addEventListener('click', closeConfirmModal);
+            confirmOkBtn.addEventListener('click', () => {
+                if (typeof confirmCallback === 'function') {
+                    confirmCallback();
+                }
+                closeConfirmModal();
+            });
+            confirmModal.addEventListener('click', (event) => {
+                if (event.target === confirmModal) {
+                    closeConfirmModal();
+                }
+            });
+
+            viewModeSelect.addEventListener('change', (event) => {
+                if (gantt) {
+                    gantt.change_view_mode(event.target.value);
+                }
+            });
+        });
+    </script>
+</body>
+</ht

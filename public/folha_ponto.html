@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Folha de Ponto - Sistema Studio 57</title>
+    <!-- CORREÇÃO AQUI: URLs COMPLETAS E CORRETAS PARA CDNs -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" xintegrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FIM CORREÇÃO CDN -->
+    <link rel="stylesheet" href="css/global.css"> <!-- LINK PARA CSS GLOBAL -->
+
+    <style>
+        /* Estilos ESPECÍFICOS da Folha de Ponto que NÃO estão no global.css */
+        .selection-area { display: flex; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--color-border); }
+        .selection-area > div { flex: 1; min-width: 200px; }
+        .action-panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .action-panel .btn { height: 44px; } /* Ajuste de altura para botões de ação */
+
+        .log-section { margin-top: 1.5rem; }
+        .timesheet-log-table { width: 100%; border-collapse: collapse; font-size: 0.95em; margin-bottom: 1rem;}
+        .timesheet-log-table th, .timesheet-log-table td { border: 1px solid var(--color-border); padding: 0.6rem 0.5rem; text-align: center; vertical-align: middle; }
+        .timesheet-log-table th { background-color: var(--color-light); font-weight: 600; font-family: var(--font-heading); white-space: nowrap; }
+        .timesheet-log-table tbody tr:nth-child(odd) { background-color: var(--color-white); } /* Ajustado */
+        .timesheet-log-table tbody tr:hover { background-color: #f3f4f6; } /* gray-100 */
+        .timesheet-log-table td.time-cell, .timesheet-log-table td.date-cell { cursor: pointer; position: relative; }
+        .timesheet-log-table td.editing { background-color: #e7f3ff; padding: 0.125rem; } /* Ajustado padding */
+        .timesheet-log-table td input[type="time"], .timesheet-log-table td input[type="date"] { width: calc(100% - 2.5rem); padding: 0.5rem; margin: 0; border: 1px solid var(--color-primary); border-radius: var(--border-radius-sm); font-size: 1em; text-align: center; }
+        .save-btn { font-size: 0.8em; padding: 0.25rem 0.375rem; margin-left: 0.25rem; vertical-align: middle; background-color: var(--color-primary); color: white; border:none; border-radius:var(--border-radius-sm); cursor:pointer; height: 36px; }
+        .save-btn:hover { background-color: var(--color-primary-dark); }
+        td.date-cell, td.day-of-week-cell { white-space: nowrap; }
+        td.day-of-week-cell { font-size: 0.9em; color: var(--color-muted); }
+        .timesheet-remove-btn { background: none; border: none; color: var(--color-danger); cursor: pointer; font-size: 1.2em; padding: 0 0.3125rem; line-height: 1; vertical-align: middle; }
+        .timesheet-remove-btn:hover { color: var(--color-danger-dark); }
+
+        /* Indicador de Edição */
+        .edit-indicator { color: var(--color-warning); font-weight: bold; margin-left: 0.25rem; font-size: 1.1em; display: none; cursor: help; }
+        td.edited .edit-indicator { display: inline; }
+
+        /* Resumo Mensal */
+        .monthly-summary { margin-top: 1.5rem; padding: 1rem 1.5rem; border: 1px solid var(--color-border); border-radius: var(--border-radius-md); background-color: var(--color-light); text-align: center; }
+        .summary-grid { display: flex; justify-content: space-around; flex-wrap: wrap; gap: 1.5rem; }
+        .summary-item { font-family: var(--font-heading); font-size: 1.1em; color: var(--color-dark); }
+        .summary-item strong { display: block; font-size: 1.4em; color: var(--color-primary-dark); margin-top: 0.25rem; font-weight: 700; }
+
+        /* Rodapés e Botões */
+        .footer-actions { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1.5rem; justify-content: center; padding-top: 1.5rem; border-top: 1px solid var(--color-border); }
+        .footer-actions .btn { flex-grow: 1; min-width: 150px; padding: 0.75rem 1.5rem; }
+        .table-footer { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--color-border); font-size: 0.9em; color: var(--color-muted); text-align: center;}
+        .legend { display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 1rem; flex-wrap: wrap;}
+        .legend span { display: flex; align-items: center; gap: 0.25rem; }
+        .legal-footer { margin-top: 1rem; padding: 0.5rem 0; text-align: center; font-size: 0.8em; color: #aaa; line-height: 1.5; }
+        .legal-footer p { margin-bottom: 0; }
+
+        @media print {
+            body { margin: 10mm; font-size: 9pt; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .main-container { max-width: 100%; box-shadow: none; border: none; padding: 0; margin: 0; }
+            .page-header { display: none !important; } /* Esconde o header na impressão */
+            .sidebar { display: none !important; } /* Esconde a sidebar na impressão */
+            .selection-area, .action-panel, .footer-actions, .table-footer .legend { display: none !important; }
+            .monthly-summary { border: 1px dashed #ccc !important; background: none !important; padding: 8px; margin-top: 15px;} .summary-item { font-size: 0.9em; } .summary-item strong {font-size: 1.1em;}
+            .timesheet-log-table { width: 100%; font-size: 8pt; border-collapse: collapse !important; }
+            .timesheet-log-table th, .timesheet-log-table td { padding: 4px 5px; border: 1px solid #bbb !important; }
+            .timesheet-log-table th { background-color: #eee !important; color: #000 !important; font-weight: bold !important; }
+            .timesheet-log-table td input[type="time"], .timesheet-log-table td input[type="date"] { display: none; } .timesheet-log-table td .save-btn { display: none; }
+            .edit-indicator { display: inline !important; color: #555 !important; }
+            .table-footer p, .legal-footer { font-size: 7.5pt; text-align: center; margin-top: 10px; border-top: 1px solid #ccc !important;}
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER SERÁ CARREGADO AQUI VIA JS -->
+    <div id="header-placeholder"></div>
+
+    <div class="page-wrapper">
+        <!-- SIDEBAR SERÁ CARREGADA AQUI VIA JS -->
+        <div id="sidebar-placeholder"></div>
+
+        <main class="main-content" id="main-content-area">
+            <div id="feedback" class="hidden"></div>
+
+            <section class="section">
+                <h2>Folha de Ponto</h2>
+                <div class="selection-area">
+                    <div> <label for="employee-select">Funcionário:</label> <select id="employee-select"><option value="">-- Carregando Funcionários --</option></select> </div>
+                    <div> <label for="month-select">Mês/Ano:</label> <input type="month" id="month-select"> </div>
+                    <div> <label for="date-select">Data para Ações:</label> <input type="date" id="date-select"> </div>
+                </div>
+            </section>
+
+            <section class="section action-panel">
+                <button id="btn-entrada" class="btn btn-success" disabled>Registrar Entrada</button>
+                <button id="btn-inicio-intervalo" class="btn btn-warning" disabled>Iniciar Intervalo</button>
+                <button id="btn-fim-intervalo" class="btn btn-warning" disabled>Fim Intervalo</button>
+                <button id="btn-saida" class="btn btn-danger" disabled>Registrar Saída</button>
+            </section>
+
+            <section class="section log-section">
+                <h3>Registros do Mês</h3>
+                <div class="table-container">
+                    <table class="timesheet-log-table" id="log-table">
+                        <colgroup> <col style="width: 10%;"> <col style="width: 8%;"> <col style="width: 10%;"> <col style="width: 10%;"> <col style="width: 10%;"> <col style="width: 10%;"> <col style="width: 10%;"> <col style="width: 15%;"> <col style="width: 7%;"> </colgroup>
+                        <thead> <tr> <th>Data</th><th>Dia</th><th>Entrada</th><th>Início Int.</th><th>Fim Int.</th><th>Saída</th><th>Total Horas</th><th>Obs.</th><th>Ações</th> </tr> </thead>
+                        <tbody id="log-table-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="section monthly-summary">
+                <h3>Resumo do Mês</h3>
+                <div class="summary-grid">
+                    <div class="summary-item">Dias Trabalhados (Mês): <strong id="summary-total-days">0</strong></div>
+                    <div class="summary-item">Total Horas (Mês): <strong id="summary-total-hours">00:00</strong></div>
+                </div>
+            </section>
+
+            <div class="footer-actions">
+                <button type="button" id="print-button" class="btn btn-success"><i class="fas fa-print"></i> Imprimir Folha</button>
+                <button type="button" id="export-csv-button" class="btn btn-primary"><i class="fas fa-file-csv"></i> Exportar Mês (CSV)</button>
+                <button type="button" id="send-email-button" class="btn btn-primary"><i class="fas fa-envelope"></i> Enviar por Email</button>
+            </div>
+            <footer class="table-footer">
+                <div class="legend"> <span><span class="edit-indicator">⚠️</span> Horário Editado Manualmente</span> </div>
+                <p>Clique em uma data ou horário para editar. Use os botões de ação para registrar a hora atual na data selecionada.</p>
+            </footer>
+            <footer class="legal-footer"> <p> © 2025 Studio 57 Arquitetura e Incorporação - CNPJ: 41.464.589/0001-66. Todos os direitos reservados. </p> </footer>
+        </main>
+    </div>
+
+    <script src="js/common_ui.js"></script> <!-- LINK PARA JS COMUM -->
+    <script>
+        // --- Seletores DOM ---
+        const employeeSelect = document.getElementById('employee-select');
+        const monthSelect = document.getElementById('month-select');
+        const dateSelect = document.getElementById('date-select');
+        const logTableBody = document.getElementById('log-table-body');
+        const summaryTotalDays = document.getElementById('summary-total-days');
+        const summaryTotalHours = document.getElementById('summary-total-hours');
+        const entryBtn = document.getElementById('btn-entrada');
+        const startBreakBtn = document.getElementById('btn-inicio-intervalo');
+        const endBreakBtn = document.getElementById('btn-fim-intervalo');
+        const exitBtn = document.getElementById('btn-saida');
+
+        // --- Estado da Aplicação ---
+        let timesheetData = {}; // Armazena dados da folha de ponto por data
+        let buttonState = { entrada: false, inicio_intervalo: false, fim_intervalo: false, saida: false };
+        let editingCell = null; // Célula atualmente em edição
+        const weekDays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+
+        // --- Funções Auxiliares ---
+        function formatDate(date) { 
+            if (!date) return '--/--/----'; 
+            const d = new Date(date); // Cria uma nova instância de Date
+            const day = String(d.getUTCDate()).padStart(2, '0'); 
+            const month = String(d.getUTCMonth() + 1).padStart(2, '0'); 
+            const year = d.getUTCFullYear(); 
+            return `${day}/${month}/${year}`; 
+        }
+        function formatTime(date) { 
+            if (!date) return ''; 
+            const d = new Date(date); // Cria uma nova instância de Date
+            return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', hour12: false }); 
+        }
+        function getDateString(date) { 
+            if (!date) return null; 
+            const d = new Date(date); // Cria uma nova instância de Date
+            const year = d.getUTCFullYear(); 
+            const month = String(d.getUTCMonth() + 1).padStart(2, '0'); 
+            const day = String(d.getUTCDate()).padStart(2, '0'); 
+            return `${year}-${month}-${day}`; 
+        }
+        function parseTime(timeString, baseDate) { 
+            if (!timeString || timeString === '--:--') return null; 
+            const [hours, minutes] = timeString.split(':').map(Number); 
+            if (isNaN(hours) || isNaN(minutes)) return null; 
+            const date = new Date(baseDate); 
+            date.setUTCHours(hours, minutes, 0, 0); 
+            return date; 
+        }
+        function calculateTotalHours(dayData) { 
+            const dateBase = new Date(dayData.dateString + 'T00:00:00Z'); 
+            const entrada = parseTime(dayData.entrada, dateBase); 
+            const saida = parseTime(dayData.saida, dateBase); 
+            const inicio_intervalo = parseTime(dayData.inicio_intervalo, dateBase); 
+            const fim_intervalo = parseTime(dayData.fim_intervalo, dateBase); 
+            
+            if (!entrada || !saida) return '--:--'; 
+            
+            let totalMillis = saida.getTime() - entrada.getTime(); 
+            
+            if (inicio_intervalo && fim_intervalo && fim_intervalo.getTime() > inicio_intervalo.getTime()) { 
+                totalMillis -= (fim_intervalo.getTime() - inicio_intervalo.getTime()); 
+            } 
+            
+            if (totalMillis < 0) totalMillis = 0; 
+            
+            const totalHours = Math.floor(totalMillis / (1000 * 60 * 60)); 
+            const totalMinutes = Math.floor((totalMillis % (1000 * 60 * 60)) / (1000 * 60)); 
+            
+            return `${String(totalHours).padStart(2, '0')}:${String(totalMinutes).padStart(2, '0')}`; 
+        }
+
+        // --- Funções de UI, Estado e Resumo ---
+        function renderTable() { 
+            logTableBody.innerHTML = ''; 
+            const selectedMonthYear = monthSelect.value; 
+            let monthEntriesData = [];
+            
+            if (selectedMonthYear && employeeSelect.value) {
+                const [year, month] = selectedMonthYear.split('-').map(Number); 
+                const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+                
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const currentDate = new Date(Date.UTC(year, month - 1, day)); 
+                    const dateString = getDateString(currentDate); 
+                    const weekDayIndex = currentDate.getUTCDay(); 
+                    const weekDayName = weekDays[weekDayIndex];
+                    
+                    if (!timesheetData[dateString]) { 
+                        timesheetData[dateString] = { dateString: dateString }; 
+                    } 
+                    const dayData = timesheetData[dateString]; 
+                    const tr = document.createElement('tr'); 
+                    tr.dataset.date = dateString; 
+                    const totalHoursStr = calculateTotalHours(dayData); 
+                    dayData.totalHours = totalHoursStr; 
+                    monthEntriesData.push(dayData);
+                    
+                    tr.innerHTML = `
+                        <td class="date-cell">${formatDate(currentDate)}</td> 
+                        <td class="day-of-week-cell">${weekDayName}</td>
+                        <td class="time-cell" data-field="entrada" data-original-time="${dayData.original_entrada || ''}">${dayData.entrada || '--:--'} <span class="edit-indicator" title="Horário editado manualmente">⚠️</span></td>
+                        <td class="time-cell" data-field="inicio_intervalo" data-original-time="${dayData.original_inicio_intervalo || ''}">${dayData.inicio_intervalo || '--:--'} <span class="edit-indicator" title="Horário editado manualmente">⚠️</span></td>
+                        <td class="time-cell" data-field="fim_intervalo" data-original-time="${dayData.original_fim_intervalo || ''}">${dayData.fim_intervalo || '--:--'} <span class="edit-indicator" title="Horário editado manualmente">⚠️</span></td>
+                        <td class="time-cell" data-field="saida" data-original-time="${dayData.original_saida || ''}">${dayData.saida || '--:--'} <span class="edit-indicator" title="Horário editado manualmente">⚠️</span></td>
+                        <td class="total-cell">${totalHoursStr}</td> 
+                        <td>${dayData.obs || ''}</td>
+                        <td><button class="btn btn-danger btn-sm timesheet-remove-btn" data-date="${dateString}" title="Remover Dia">🗑️</button></td>
+                    `;
+                    tr.querySelectorAll('.time-cell').forEach(cell => { 
+                        const field = cell.dataset.field; 
+                        if (dayData[field] && (!dayData[`original_${field}`] || dayData[field] !== dayData[`original_${field}`])) { 
+                            cell.classList.add('edited'); 
+                        } else { 
+                            cell.classList.remove('edited'); 
+                        } 
+                    });
+                    logTableBody.appendChild(tr);
+                } 
+            } 
+            updateButtonState(); 
+            updateMonthlySummary(monthEntriesData); 
+        }
+        function updateMonthlySummary(monthEntries) { 
+            let totalDays = 0; 
+            let totalMinutesMonth = 0; 
+            monthEntries.forEach(dayData => { 
+                if (dayData.entrada && dayData.saida) { 
+                    totalDays++; 
+                    const totalDayStr = dayData.totalHours; 
+                    if (totalDayStr && totalDayStr !== '--:--') { 
+                        const [hours, minutes] = totalDayStr.split(':').map(Number); 
+                        if (!isNaN(hours) && !isNaN(minutes)) { 
+                            totalMinutesMonth += (hours * 60) + minutes; 
+                        } 
+                    } 
+                } 
+            }); 
+            const totalHoursMonth = Math.floor(totalMinutesMonth / 60); 
+            const remainingMinutesMonth = totalMinutesMonth % 60; 
+            const formattedTotalHours = `${String(totalHoursMonth).padStart(2, '0')}:${String(remainingMinutesMonth).padStart(2, '0')}`; 
+            summaryTotalDays.textContent = totalDays; 
+            summaryTotalHours.textContent = formattedTotalHours; 
+        }
+        function updateButtonState() { 
+            const selectedDateStr = getDateString(dateSelect.valueAsDate); 
+            const dataForSelectedDate = timesheetData[selectedDateStr] || {}; 
+            const canEdit = employeeSelect.value !== '' && selectedDateStr !== null; 
+            buttonState.entrada = !!dataForSelectedDate.entrada; 
+            buttonState.inicio_intervalo = !!dataForSelectedDate.inicio_intervalo; 
+            buttonState.fim_intervalo = !!dataForSelectedDate.fim_intervalo; 
+            buttonState.saida = !!dataForSelectedDate.saida; 
+            entryBtn.disabled = !canEdit || buttonState.entrada; 
+            startBreakBtn.disabled = !canEdit || !buttonState.entrada || buttonState.inicio_intervalo || buttonState.saida; 
+            endBreakBtn.disabled = !canEdit || !buttonState.inicio_intervalo || buttonState.fim_intervalo || buttonState.saida; 
+            exitBtn.disabled = !canEdit || !buttonState.entrada || buttonState.saida; 
+            if(buttonState.inicio_intervalo && !buttonState.fim_intervalo) { 
+                exitBtn.disabled = true; 
+                startBreakBtn.disabled = true; 
+            } 
+        }
+        function loadState() { 
+            const employeeId = employeeSelect.value; 
+            console.log(`Carregando dados para Funcionário: ${employeeId}`); 
+            const savedData = localStorage.getItem(`timesheet_${employeeId}`); 
+            timesheetData = savedData ? JSON.parse(savedData) : {}; 
+            renderTable(); 
+        }
+        function saveState() { 
+            const employeeId = employeeSelect.value; 
+            if (!employeeId) return; 
+            console.log(`Salvando dados para Funcionário: ${employeeId}`); 
+            localStorage.setItem(`timesheet_${employeeId}`, JSON.stringify(timesheetData)); 
+        }
+
+        // --- Lógica de Ações ---
+        function registerTime(field) { 
+            const selectedDateStr = getDateString(dateSelect.valueAsDate); 
+            if (!selectedDateStr || !employeeSelect.value) { 
+                alert("Selecione um funcionário e uma data específica."); 
+                return; 
+            } 
+            const dayData = timesheetData[selectedDateStr]; 
+            if (!dayData) { 
+                console.error(`Dados não encontrados para ${selectedDateStr}. A linha deveria existir.`); 
+                alert("Erro: Não foi possível encontrar o dia selecionado na tabela."); 
+                return; 
+            } 
+            if (field === 'inicio_intervalo' && !dayData.entrada) { alert("Registre a Entrada primeiro."); return; } 
+            if (field === 'fim_intervalo' && !dayData.inicio_intervalo) { alert("Inicie o Intervalo primeiro."); return; } 
+            if (field === 'saida' && !dayData.entrada) { alert("Registre a Entrada primeiro."); return; } 
+            if (field === 'saida' && dayData.inicio_intervalo && !dayData.fim_intervalo) { alert("Finalize o Intervalo primeiro."); return; } 
+            const now = new Date(); 
+            const timeString = formatTime(now); 
+            dayData[field] = timeString; 
+            dayData[`original_${field}`] = timeString; 
+            saveState(); 
+            renderTable(); 
+        }
+        function removeDayRow(dateString) { 
+            if (!timesheetData[dateString]) return; 
+            const formattedDate = formatDate(new Date(dateString + 'T00:00:00Z')); 
+            if (confirm(`Tem certeza que deseja remover o registro do dia ${formattedDate}?`)) { 
+                delete timesheetData[dateString]; 
+                saveState(); 
+                renderTable(); 
+                console.log(`Registro do dia ${dateString} removido.`); 
+            } 
+        }
+
+        // --- Lógica de Edição ---
+        logTableBody.addEventListener('click', (event) => { 
+            const removeButton = event.target.closest('.timesheet-remove-btn'); 
+            if (removeButton) { removeDayRow(removeButton.dataset.date); return; } 
+            if (editingCell && !editingCell.contains(event.target)) { cancelEdit(editingCell); } 
+            const timeCell = event.target.closest('td.time-cell'); 
+            const dateCell = event.target.closest('td.date-cell'); 
+            if (timeCell) { makeTimeCellEditable(timeCell); } else if (dateCell) { makeDateCellEditable(dateCell); } 
+        });
+        function makeTimeCellEditable(cell) { 
+            if(editingCell) cancelEdit(editingCell); 
+            editingCell = cell; 
+            cell.classList.add('editing'); 
+            const currentText = cell.textContent.replace('⚠️','').trim(); 
+            const field = cell.dataset.field; 
+            const originalTimeAttr = cell.dataset.originalTime || ''; 
+            const dateString = cell.closest('tr').dataset.date; 
+            cell.innerHTML = `<input type="time" value="${currentText !== '--:--' ? currentText : ''}" data-field="${field}" data-original-time="${originalTimeAttr}" data-date="${dateString}"><button class="save-btn">✔</button>`; 
+            const input = cell.querySelector('input[type="time"]'); 
+            input.focus(); 
+            const saveButton = cell.querySelector('.save-btn'); 
+            const handleSave = () => saveTimeEdit(cell, input); 
+            const handleKeyDown = (e) => { 
+                if (e.key === 'Enter'){e.preventDefault(); handleSave();} 
+                if (e.key === 'Escape') {cancelEdit(cell);} 
+            }; 
+            saveButton.addEventListener('click', handleSave); 
+            input.addEventListener('keydown', handleKeyDown); 
+            input.addEventListener('blur', () => setTimeout(() => {if (editingCell === cell) cancelEdit(cell);}, 150)); 
+        }
+        function makeDateCellEditable(cell) { 
+            if(editingCell) cancelEdit(editingCell); 
+            editingCell = cell; 
+            cell.classList.add('editing'); 
+            const oldDateString = cell.closest('tr').dataset.date; 
+            cell.innerHTML = `<input type="date" value="${oldDateString}" data-old-date="${oldDateString}"><button class="save-btn">✔</button>`; 
+            const input = cell.querySelector('input[type="date"]'); 
+            input.focus(); 
+            const saveButton = cell.querySelector('.save-btn'); 
+            const handleSave = () => saveDateEdit(cell, input); 
+            const handleKeyDown = (e) => { 
+                if (e.key === 'Enter'){e.preventDefault(); handleSave();} 
+                if (e.key === 'Escape') {cancelEdit(cell);} 
+            }; 
+            saveButton.addEventListener('click', handleSave); 
+            input.addEventListener('keydown', handleKeyDown); 
+            input.addEventListener('blur', () => setTimeout(() => {if (editingCell === cell) cancelEdit(cell);}, 150)); 
+        }
+        function saveTimeEdit(cell, input) { 
+            const dateString = input.dataset.date; 
+            const field = input.dataset.field; 
+            let newValue = input.value; 
+            if (newValue && !/^[0-2][0-9]:[0-5][0-9]$/.test(newValue)) { alert("Formato HH:MM inválido."); input.focus(); return; } 
+            if (!newValue) newValue = null; 
+            if (timesheetData[dateString]) { timesheetData[dateString][field] = newValue; } 
+            editingCell = null; 
+            saveState(); 
+            renderTable(); 
+        }
+        function saveDateEdit(cell, input) { 
+            const oldDateString = input.dataset.oldDate; 
+            const newDateString = input.value; 
+            if (!newDateString) { alert("Selecione uma data válida."); input.focus(); return; } 
+            if (newDateString === oldDateString) { cancelEdit(cell); return; } 
+            if (timesheetData[newDateString]) { alert(`Já existe registro para ${formatDate(new Date(newDateString+'T00:00:00Z'))}. Não é possível duplicar.`); input.focus(); return; } 
+            if (timesheetData[oldDateString]) { timesheetData[newDateString] = { ...timesheetData[oldDateString], dateString: newDateString }; delete timesheetData[oldDateString]; console.log(`Data alterada de ${oldDateString} para ${newDateString}`); } 
+            editingCell = null; 
+            saveState(); 
+            renderTable(); 
+        }
+        function cancelEdit(cell) { 
+            editingCell = null; 
+            renderTable(); 
+        }
+
+        // --- Funções Export/Print ---
+        function sendTimesheetByEmail() { 
+            const employeeId = employeeSelect.value; 
+            const employeeName = employeeSelect.options[employeeSelect.selectedIndex]?.text || 'N/A'; 
+            const monthYear = monthSelect.value; 
+            if (!employeeId || !monthYear) { alert("Selecione um funcionário e o mês/ano."); return; } 
+            const totalDays = summaryTotalDays.textContent; 
+            const totalHours = summaryTotalHours.textContent; 
+            const subject = `Folha de Ponto - ${employeeName} - ${monthYear.substring(5,7)}/${monthYear.substring(0,4)}`; 
+            let body = `Olá,\n\nSegue o resumo da folha de ponto:\n\nFuncionário: ${employeeName}\nPeríodo: ${monthYear.substring(5,7)}/${monthYear.substring(0,4)}\n--------------------------------------\nTotal de Dias Trabalhados: ${totalDays}\nTotal de Horas Trabalhadas: ${totalHours}\n\nPara detalhes, consulte o sistema ou o arquivo CSV/impresso.\n\nAtenciosamente,\nStudio 57`; 
+            const recipient = "contato@studio57.arq.br"; 
+            const encodedBody = encodeURIComponent(body); 
+            const mailtoLink = `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodedBody}`; 
+            try { window.location.href = mailtoLink; } catch (e) { console.error("Erro mailto:", e); alert("Não foi possível abrir o cliente de e-mail."); } 
+        }
+        function printTimesheet() { window.print(); }
+
+        // --- Função para Atualizar Data/Hora no Cabeçalho (AGORA commonUi.updateDateTime) ---
+        // Removida: commonUi.updateDateTime já faz isso
+
+        // --- Carregar Funcionários para Select ---
+        async function loadEmployeesForSelect() {
+            if (!employeeSelect) return;
+            employeeSelect.disabled = true;
+            employeeSelect.innerHTML = '<option value="">-- Carregando Funcionários --</option>';
+            try {
+                // Usa a função apiFetch global do common_ui.js
+                const result = await window.commonUi.apiFetch('/api/get-employees', { method: 'GET' });
+                const employees = result && result.employees ? result.employees : [];
+
+                employeeSelect.innerHTML = '<option value="">-- Selecione o Funcionário --</option>';
+                if (employees.length > 0) {
+                    employees.forEach(func => {
+                        const option = document.createElement('option');
+                        option.value = func.id;
+                        option.textContent = func.fullName || `Funcionário ${func.id}`;
+                        employeeSelect.appendChild(option);
+                    });
+                    employeeSelect.disabled = false;
+                } else {
+                    employeeSelect.innerHTML = '<option value="">Nenhum funcionário encontrado</option>';
+                }
+            } catch (error) {
+                employeeSelect.innerHTML = '<option value="">Erro ao carregar funcionários</option>';
+                window.commonUi.showFeedback('Erro ao carregar lista de funcionários para folha de ponto.', 'error');
+            }
+        }
+
+
+        // --- Inicialização e Listeners ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            // common_ui.js já cuida do carregamento de header/sidebar, data/hora e user info.
+            if (!window.commonUi || !window.commonUi.checkAuth || !window.commonUi.checkAuth()) {
+                return; 
+            }
+
+            // Lógica específica para o back-link desta página
+            const backLink = document.querySelector('.back-link');
+            if (backLink) {
+                backLink.href = 'dashboard.html'; // Ou para o dashboard
+                backLink.classList.remove('hidden'); // Mostra o botão de voltar
+            }
+
+            // Inicialização da Folha de Ponto
+            const today = new Date();
+            const currentYear = today.getFullYear();
+            const currentMonth = String(today.getMonth() + 1).padStart(2, '0');
+            const currentDay = String(today.getDate()).padStart(2, '0');
+            
+            monthSelect.value = `${currentYear}-${currentMonth}`;
+            dateSelect.value = `${currentYear}-${currentMonth}-${currentDay}`;
+            
+            await loadEmployeesForSelect(); // Carrega funcionários primeiro
+            loadState(); // Carrega o estado da folha de ponto após os funcionários
+
+            employeeSelect.addEventListener('change', loadState);
+            monthSelect.addEventListener('change', renderTable);
+            dateSelect.addEventListener('change', updateButtonState);
+            entryBtn.addEventListener('click', () => registerTime('entrada'));
+            startBreakBtn.addEventListener('click', () => registerTime('inicio_intervalo'));
+            endBreakBtn.addEventListener('click', () => registerTime('fim_intervalo'));
+            exitBtn.addEventListener('click', () => registerTime('saida'));
+            document.getElementById('print-button')?.addEventListener('click', printTimesheet);
+            document.getElementById('export-csv-button')?.addEventListener('click', () => { window.commonUi.showFeedback('Exportar CSV ainda não implementado.', 'info'); });
+            document.getElementById('send-email-button')?.addEventListener('click', sendTimesheetByEmail);
+        });
+    </script>
+
+</body>
+</ht

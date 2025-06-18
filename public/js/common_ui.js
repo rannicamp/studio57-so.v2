@@ -1,25 +1,18 @@
 // public/js/common_ui.js
 
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Seletores Comuns ---
     let userInfoSpan = document.getElementById('user-info')?.querySelector('span');
     let currentDatetimeSpan = document.getElementById('current-datetime');
     let pageTitleH1 = document.getElementById('page-title');
     let logoutLink = document.getElementById('logout-link');
     let navLinks = document.querySelectorAll('.nav-menu a.nav-link');
-    let feedbackDiv = document.getElementById('feedback'); // O elemento #feedback global
+    let feedbackDiv = document.getElementById('feedback');
 
-    // --- Configurações ---
     const CONFIG = {
         LOCAL_STORAGE_AUTH_TOKEN_KEY: 'authToken',
         LOCAL_STORAGE_USER_EMAIL_KEY: 'loggedInUserEmail',
-        // ATENÇÃO: API_BASE_URL já é o prefixo para funções, então o endpoint não precisa começar com '/'
-        // Ex: para chamar /api/companies, você passará 'companies' ou '/companies' para apiFetch.
-        // A função apiFetch garantirá o '/'.
-        API_BASE_URL: window.location.origin + '/.netlify/functions', 
+        API_BASE_URL: window.location.origin + '/.netlify/functions',
     };
-
-    // --- Funções Utilitárias Globais ---
 
     function updateDateTime() {
         if (currentDatetimeSpan) {
@@ -41,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         feedbackDiv.textContent = message;
-        feedbackDiv.className = 'p-4 mb-6 rounded-md border font-medium text-center'; // Reset
+        feedbackDiv.className = 'p-4 mb-6 rounded-md border font-medium text-center';
         feedbackDiv.classList.add(type);
         feedbackDiv.classList.remove('hidden');
 
@@ -51,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function checkAuth() {
-        return true; // Temporariamente desabilitado
+        return true; 
     }
 
     function setActiveNavigationLink() {
@@ -59,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentFileName = currentPath.split('/').pop();
 
         navLinks.forEach(link => {
-            const linkHref = link.getAttribute('href'); // Ex: diario_de_obras.html
+            const linkHref = link.getAttribute('href');
 
             link.classList.remove('active');
 
@@ -76,10 +69,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function apiFetch(endpoint, options = {}) {
-        // Garante que o endpoint passado para apiFetch NÃO comece com '/', pois ele será adicionado
-        // se necessário, e a API_BASE_URL já inclui o prefixo /.netlify/functions
         const cleanEndpoint = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
-        const url = `${CONFIG.API_BASE_URL}/${cleanEndpoint}`; // CORREÇÃO AQUI: Garante uma única barra
+        const url = `${CONFIG.API_BASE_URL}/${cleanEndpoint}`;
 
         const token = localStorage.getItem(CONFIG.LOCAL_STORAGE_AUTH_TOKEN_KEY);
         
@@ -127,17 +118,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    /**
-     * Carrega dinamicamente o cabeçalho e a barra lateral de arquivos HTML separados.
-     * Insere-os nos placeholders no DOM.
-     */
     async function loadReusableComponents() {
         const headerPlaceholder = document.getElementById('header-placeholder');
         const sidebarPlaceholder = document.getElementById('sidebar-placeholder');
 
         if (headerPlaceholder) {
             try {
-                // CORREÇÃO AQUI: Caminho ABSOLUTO a partir da raiz pública do site
                 const headerResponse = await fetch('/includes/header.html'); 
                 headerPlaceholder.innerHTML = await headerResponse.text();
             } catch (error) {
@@ -147,7 +133,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (sidebarPlaceholder) {
             try {
-                // CORREÇÃO AQUI: Caminho ABSOLUTO a partir da raiz pública do site
                 const sidebarResponse = await fetch('/includes/sidebar.html'); 
                 sidebarPlaceholder.innerHTML = await sidebarResponse.text();
             } catch (error) {
@@ -167,18 +152,18 @@ document.addEventListener('DOMContentLoaded', () => {
             loadUserInfo();
             setActiveNavigationLink();
 
-            logoutLink?.addEventListener('click', (e) => {
-                e.preventDefault();
-                localStorage.removeItem(CONFIG.LOCAL_STORAGE_AUTH_TOKEN_KEY);
-                localStorage.removeItem(CONFIG.LOCAL_STORAGE_USER_EMAIL_KEY);
-                showFeedback("Logout realizado com sucesso!", 'info');
-                setTimeout(() => window.location.href = 'login.html', 1500);
-            });
+            if (logoutLink) {
+                logoutLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    localStorage.removeItem(CONFIG.LOCAL_STORAGE_AUTH_TOKEN_KEY);
+                    localStorage.removeItem(CONFIG.LOCAL_STORAGE_USER_EMAIL_KEY);
+                    showFeedback("Logout realizado com sucesso!", 'info');
+                    setTimeout(() => window.location.href = 'login.html', 1500);
+                });
+            }
         }, 100);
     }
 
-
-    // Exporta as funções e a constante CONFIG para uso em outros scripts
     window.commonUi = {
         CONFIG,
         updateDateTime,
