@@ -13,9 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const CONFIG = {
         LOCAL_STORAGE_AUTH_TOKEN_KEY: 'authToken',
         LOCAL_STORAGE_USER_EMAIL_KEY: 'loggedInUserEmail',
-        // BASE_URL pode ser necessária se suas APIs não forem relativas
         API_BASE_URL: window.location.origin + '/.netlify/functions', // Exemplo para Netlify Functions
-        // OPENWEATHER_API_KEY: 'SUA_CHAVE_API_OPENWEATHERMAP_AQUI' // Se usar globalmente
     };
 
     // --- Funções Utilitárias Globais ---
@@ -54,7 +52,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         feedbackDiv.textContent = message;
-        // Limpa todas as classes de tipo antes de adicionar a nova
         feedbackDiv.className = 'p-4 mb-6 rounded-md border font-medium text-center'; // Reset
         feedbackDiv.classList.add(type); // Adiciona a classe de tipo
         feedbackDiv.classList.remove('hidden'); // Garante que esteja visível
@@ -63,6 +60,23 @@ document.addEventListener('DOMContentLoaded', () => {
             feedbackDiv.classList.add('hidden'); // Esconde a mensagem após a duração
         }, duration);
     }
+
+    /**
+     * Verifica o estado de autenticação do usuário. Se não autenticado, redireciona para login.
+     * @returns {boolean} - True se autenticado, false caso contrário.
+     */
+    function checkAuth() {
+        const token = localStorage.getItem(CONFIG.LOCAL_STORAGE_AUTH_TOKEN_KEY);
+        if (!token) {
+            showFeedback("Você não está autenticado. Redirecionando para login...", 'error', 4000);
+            setTimeout(() => {
+                window.location.href = 'login.html'; // Ajuste para o nome da sua página de login
+            }, 3000);
+            return false;
+        }
+        return true;
+    }
+
 
     /**
      * Define o link de navegação ativo na barra lateral e atualiza o título da página.
@@ -78,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
             link.classList.remove('active');
 
             // Verifica se o link corresponde à página atual
-            if (linkHref && currentPagePath.includes(linkHref)) { // Adicionado linkHref &&
+            if (linkHref && currentPagePath.includes(linkHref)) {
                 link.classList.add('active');
                 // Atualiza o título da página no cabeçalho
                 if (pageTitleH1 && link.dataset.pageTitle) {
@@ -89,17 +103,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (parentUl) {
                     const parentSectionTitle = parentUl.previousElementSibling; // span.section-title-sidebar
                     if (parentSectionTitle && parentSectionTitle.tagName === 'SPAN') {
-                        const parentLi = parentSectionTitle.closest('li');
-                        if (parentLi && parentLi.querySelector('a.nav-link')) { // Se a categoria tiver um link principal (ex: Dashboard)
-                            // Não marca o span como ativo, mas o link principal da categoria se for o caso
-                        }
+                        // Não marca o span como ativo, mas o link principal da categoria se for o caso
                     }
                 }
             }
         });
-         // Se nenhum link de navegação corresponder à página atual, pode ser um sub-item
+         // Se nenhum link de navegação corresponder à página atual, tenta pegar do <title>
         if (pageTitleH1 && !pageTitleH1.textContent) {
-            // Tenta pegar o título da tag <title>
             pageTitleH1.textContent = document.title.split(' - ')[0] || 'Sistema Studio 57';
         }
     }
@@ -113,13 +123,11 @@ document.addEventListener('DOMContentLoaded', () => {
      * @throws {Error} - Em caso de falha na requisição ou resposta HTTP não OK.
      */
     async function apiFetch(endpoint, options = {}) {
-        // Garante que o endpoint comece com '/' para que a URL base funcione corretamente.
         const formattedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
         const url = `${CONFIG.API_BASE_URL}${formattedEndpoint}`;
         const token = localStorage.getItem(CONFIG.LOCAL_STORAGE_AUTH_TOKEN_KEY);
         
         const headers = {
-            // Se o corpo for FormData (para uploads de arquivos), não defina 'Content-Type'
             ...(options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
             ...options.headers,
         };
@@ -156,7 +164,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return await response.text(); // Para respostas não-JSON
         } catch (error) {
             console.error('Erro na API:', error.message, 'Endpoint:', formattedEndpoint);
-            // Evita mostrar feedback duplicado se já for um erro de autenticação ou de rede
             if (!error.message.includes("Sessão expirada") && !error.message.includes("Token") && !error.message.includes("Network request failed")) {
                 showFeedback(`Erro ao comunicar com o servidor: ${error.message}`, 'error');
             }
@@ -164,23 +171,56 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    /**
+     * Carrega dinamicamente o cabeçalho e a barra lateral de arquivos HTML separados.
+     * Esta função será chamada por cada página principal.
+     */
+    async function loadReusableComponents() {
+        const headerPlaceholder = document.getElementById('header-placeholder');
+        const sidebarPlaceholder = document.getElementById('sidebar-placeholder');
 
-    // --- Inicialização de Funções Comuns ---
-    updateDateTime(); // Chama imediatamente
-    setInterval(updateDateTime, 1000); // Atualiza a cada segundo
+        if (headerPlaceholder) {
+            try {
+                const headerResponse = await fetch('includes/header.html');
+                headerPlaceholder.innerHTML = await headerResponse.text();
+            } catch (error) {
+                console.error("Erro ao carregar header.html:", error);
+                headerPlaceholder.innerHTML = "<header class='page-header bg-red-100 text-red-700 p-4'>Erro ao carregar cabeçalho</header>";
+            }
+        }
+        if (sidebarPlaceholder) {
+            try {
+                const sidebarResponse = await fetch('includes/sidebar.html');
+                sidebarPlaceholder.innerHTML = await sidebarResponse.text();
+            } catch (error) {
+                console.error("Erro ao carregar sidebar.html:", error);
+                sidebarPlaceholder.innerHTML = "<nav class='sidebar bg-red-100 text-red-700 p-4'>Erro ao carregar menu lateral</nav>";
+            }
+        }
+        // Após carregar os componentes, as funções do common_ui precisam ser executadas para eles.
+        // Já estão em DOMContentLoaded, mas podemos chamar as específicas aqui para garantir.
+        // No entanto, como elas dependem de seletores já estarem no DOM, o ideal é que elas
+        // rodem após o carregamento do common_ui.js e os elementos já existam.
+        // A lógica do common_ui.js já tem um DOMContentLoaded.
 
-    loadUserInfo(); // Carrega info do usuário
+        // Após carregar os componentes, re-executa a lógica de ativação de links, pois os links agora estão no DOM
+        setActiveNavigationLink();
+        updateDateTime(); // Re-executa para garantir que a hora apareça
+        loadUserInfo(); // Re-executa para garantir que o usuário apareça
 
-    setActiveNavigationLink(); // Marca o link ativo na sidebar
+        // Ajuste o link de voltar no header, se aplicável a esta página específica
+        const backLink = document.querySelector('.page-header .back-link');
+        if (backLink) {
+            // Este backLink será tratado individualmente por cada página
+            // para definir seu href e visibilidade.
+        }
+    }
 
-    // Listener para o botão de logout (se existir)
-    logoutLink?.addEventListener('click', (e) => {
-        e.preventDefault();
-        localStorage.removeItem(CONFIG.LOCAL_STORAGE_AUTH_TOKEN_KEY);
-        localStorage.removeItem(CONFIG.LOCAL_STORAGE_USER_EMAIL_KEY);
-        showFeedback("Logout realizado com sucesso!", 'info');
-        setTimeout(() => window.location.href = 'login.html', 1500);
-    });
+
+    // --- Inicialização de Funções Comuns para TODAS as páginas ---
+    // Estas funções são chamadas diretamente no DOMContentLoaded global do common_ui.js
+    // para garantir que o header/sidebar sejam carregados e a UI comum funcione.
+    loadReusableComponents(); // Inicia o carregamento dos componentes
 
     // Exporta as funções e a constante CONFIG para uso em outros scripts
     window.commonUi = {
@@ -189,6 +229,8 @@ document.addEventListener('DOMContentLoaded', () => {
         loadUserInfo,
         showFeedback,
         apiFetch,
-        setActiveNavigationLink // Exportar para que páginas específicas possam chamá-lo
+        setActiveNavigationLink,
+        checkAuth, // Exportado para outras páginas poderem usar
+        loadReusableComponents // Exportado para páginas que precisam coordenar o carregamento
     };
 });

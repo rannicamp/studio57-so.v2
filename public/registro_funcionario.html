@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro de Funcionários - Sistema Studio 57</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" xintegrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
+    <link rel="stylesheet" href="[https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css](https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css)" xintegrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="preconnect" href="[https://fonts.googleapis.com](https://fonts.googleapis.com)">
+    <link rel="preconnect" href="[https://fonts.gstatic.com](https://fonts.gstatic.com)" crossorigin>
+    <link href="[https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap](https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap)" rel="stylesheet">
     <link rel="stylesheet" href="css/global.css"> <!-- LINK PARA CSS GLOBAL -->
 
     <style>
@@ -192,7 +192,6 @@
     <script src="js/common_ui.js"></script> <!-- LINK PARA JS COMUM -->
     <script>
         // --- Seletores Globais (adaptados para common_ui.js) ---
-        // Removido feedbackMessageDiv daqui, agora é gerenciado globalmente via commonUi
         const fotoInput = document.getElementById('foto-funcionario');
         const fotoPreviewImg = document.getElementById('photo-preview-img');
         const fotoPlaceholder = document.getElementById('photo-placeholder');
@@ -219,9 +218,6 @@
         let currentEmployeeId = null;
 
         // --- Funções Auxiliares (adaptadas para common_ui.js) ---
-        // updateDateTime (usar commonUi.updateDateTime), showFeedback (usar commonUi.showFeedback), apiFetch (usar commonUi.apiFetch)
-        // foram movidas para common_ui.js.
-
         function handlePhotoPreview(event) {
             const file = event.target.files[0];
             if (file && file.type.startsWith('image/')) {
@@ -322,7 +318,6 @@
             if (employee.cep) buscarEnderecoPorCEP(employee.cep);
 
             // Associação de Empresa e Empreendimento
-            // A pré-seleção será feita após o carregamento dos selects em Promise.all
             if (empresaSelect) empresaSelect.value = employee.empresaId;
             if (empreendimentoSelect) empreendimentoSelect.value = employee.empreendimentoAtualId;
 
@@ -347,7 +342,6 @@
 
         async function handleFormSubmit(event) {
             event.preventDefault();
-            // showFeedback('Enviando dados...', 'info'); // Substituído por commonUi.showFeedback
             window.commonUi.showFeedback('Enviando dados...', 'info');
 
 
@@ -361,16 +355,13 @@
                 return;
             }
 
-            // Para uploads de arquivo, você está pegando o nome do arquivo, mas a lógica de upload real precisaria ser implementada
-            // e retornaria URLs que seriam salvas no DB. Por enquanto, os nomes de arquivo são strings.
             const asoFileName = asoInput.files[0] ? asoInput.files[0].name : (document.getElementById('upload-aso-info').textContent.replace('Arquivo: ', '') || null);
             const contratoFileName = contratoInput.files[0] ? contratoInput.files[0].name : (document.getElementById('upload-contrato-info').textContent.replace('Arquivo: ', '') || null);
             const identidadeFileName = identidadeInput.files[0] ? identidadeInput.files[0].name : (document.getElementById('upload-identidade-info').textContent.replace('Arquivo: ', '') || null);
 
-            delete data.foto_funcionario; // A foto é um arquivo, não um dado de texto direto no formulário
+            delete data.foto_funcionario;
 
 
-            // Ajusta valores vazios para null para o banco de dados
             const cleanedData = {};
             for (const key in data) {
                 cleanedData[key] = data[key] === '' ? null : data[key];
@@ -401,7 +392,7 @@
                 paymentMethod: cleanedData['forma_pagamento'],
                 pixKey: cleanedData['chave_pix'],
                 bankDetails: cleanedData['dados_bancarios'],
-                asoDoc: asoFileName, // Usando o nome do arquivo
+                asoDoc: asoFileName,
                 contractDoc: contratoFileName,
                 identityDoc: identidadeFileName,
                 observations: cleanedData['observacoes'],
@@ -423,21 +414,19 @@
                     method = 'PUT';
                 }
 
-                // Usando a função apiFetch do common_ui.js
                 const result = await window.commonUi.apiFetch(url, {
                     method: method,
                     body: JSON.stringify(employeeData),
                 });
 
-                if (result) { // A função apiFetch já lida com o response.ok
+                if (result) {
                     window.commonUi.showFeedback(`Funcionário ${currentEmployeeId ? 'atualizado' : 'cadastrado'} com sucesso!`, 'success');
                     console.log(`Funcionário ${currentEmployeeId ? 'atualizado' : 'cadastrado'}:`, result.employee);
                     if (!currentEmployeeId) {
                         form.reset();
                         limparCamposEndereco();
-                        handlePhotoPreview({ target: { files: [] } }); // Limpa preview da foto
+                        handlePhotoPreview({ target: { files: [] } });
                         togglePaymentFields();
-                        // Limpa info dos uploads
                         document.getElementById('upload-aso-info').textContent = '';
                         document.getElementById('upload-contrato-info').textContent = '';
                         document.getElementById('upload-identidade-info').textContent = '';
@@ -449,7 +438,6 @@
                     }
                 }
             } catch (error) {
-                // Erros já são tratados e exibidos por commonUi.apiFetch
                 console.error('Erro na requisição fetch (handleFormSubmit):', error);
             }
         }
@@ -465,13 +453,11 @@
                 window.commonUi.showFeedback(`Carregando dados para edição do funcionário com ID: ${employeeId}...`, 'info');
 
                 try {
-                    // Usando a função apiFetch do common_ui.js
                     const result = await window.commonUi.apiFetch(`/api/get-employee-by-id?id=${employeeId}`, {
                         method: 'GET',
                     });
 
                     if (result && result.employee) {
-                        // Armazena o funcionário para ser usado após o carregamento dos selects em Promise.all
                         window.employeeDataToFill = result.employee;
                         window.commonUi.showFeedback('Dados do funcionário carregados com sucesso!', 'success');
                     } else {
@@ -479,7 +465,6 @@
                         console.error('Funcionário não encontrado:', result);
                     }
                 } catch (error) {
-                    // Erros já são tratados e exibidos por commonUi.apiFetch
                     console.error('Erro na requisição fetch para carregar funcionário:', error);
                 }
             } else {
@@ -498,7 +483,6 @@
             window.commonUi.showFeedback('Formulário limpo.', 'info');
             currentEmployeeId = null;
             document.querySelector('h1').textContent = 'Cadastro de Funcionários';
-            // Recarrega selects após reset para garantir que estejam vazios ou preenchidos novamente
             loadCompaniesIntoSelect();
             loadEmpreendimentosIntoSelect();
         }
@@ -506,7 +490,6 @@
         // Função para carregar empresas no select
         async function loadCompaniesIntoSelect() {
             try {
-                // Usando a função apiFetch do common_ui.js
                 const result = await window.commonUi.apiFetch('/api/companies', {
                     method: 'GET',
                 });
@@ -518,14 +501,13 @@
                         option.textContent = company.nomeFantasia || company.razaoSocial;
                         empresaSelect.appendChild(option);
                     });
-                    return result.companies; // Retorna as empresas carregadas
+                    return result.companies;
                 } else {
                     console.error('Erro ao carregar empresas: Nenhum dado retornado ou erro na API.');
                     window.commonUi.showFeedback('Erro ao carregar lista de empresas.', 'error');
                     return [];
                 }
             } catch (error) {
-                // commonUi.apiFetch já mostra o erro
                 console.error('Erro de rede ao carregar empresas (loadCompaniesIntoSelect):', error);
                 return [];
             }
@@ -534,8 +516,7 @@
         // Função para carregar empreendimentos no select (AINDA PRECISA DA API)
         async function loadEmpreendimentosIntoSelect() {
             try {
-                // Usando a função apiFetch do common_ui.js
-                const result = await window.commonUi.apiFetch('/api/empreendimentos', { // ESTA API AINDA NÃO FOI CRIADA
+                const result = await window.commonUi.apiFetch('/api/empreendimentos', {
                     method: 'GET',
                 });
                 if (result && result.empreendimentos) {
@@ -546,7 +527,7 @@
                         option.textContent = empreendimento.nome;
                         empreendimentoSelect.appendChild(option);
                     });
-                    return result.empreendimentos; // Retorna os empreendimentos
+                    return result.empreendimentos;
                 } else {
                     console.warn('Nenhum empreendimento carregado ou erro:', result.error || 'Erro desconhecido.');
                     return [];
@@ -560,27 +541,17 @@
 
         // --- Event Listeners e Inicialização ---
         document.addEventListener('DOMContentLoaded', async () => {
-            // common_ui.js já cuida da inicialização de data/hora e user info.
-
-            // Carrega os componentes reutilizáveis (Header e Sidebar)
-            // Esta função foi movida para o escopo global ou um setup inicial.
-            // Para páginas que não têm um setup de layout específico no init, podemos chamar aqui:
-            if (window.loadReusableComponents) { // Supondo que você crie uma função global em common_ui.js ou em um script de layout
-                await window.loadReusableComponents();
-            } else {
-                // Fallback ou aviso se a função não for encontrada
-                console.warn("loadReusableComponents não encontrada. Header/Sidebar podem não carregar.");
-            }
+            // common_ui.js já cuida da inicialização de data/hora e user info e do carregamento dos componentes reutilizáveis.
 
             // Verifica autenticação (usando a função do common_ui)
             if (!window.commonUi || !window.commonUi.checkAuth || !window.commonUi.checkAuth()) {
-                return; // commonUi.checkAuth já lida com o redirecionamento
+                return;
             }
             
             // Lógica específica para o back-link desta página
             const backLink = document.querySelector('.back-link');
             if (backLink) {
-                backLink.href = 'quadrodefuncionarios.html'; // De volta para o quadro de funcionários
+                backLink.href = 'quadrodefuncionarios.html';
                 backLink.classList.remove('hidden'); // Mostra o botão de voltar
             }
 
@@ -604,7 +575,7 @@
             cepInput?.addEventListener('input', () => {
                 const cepValue = cepInput.value.replace(/\D/g, "");
                 clearTimeout(cepTimeout);
-                if (cepStatusSpan) { cepStatusSpan.textContent = ""; cepStatusSpan.classList.add("hidden"); } // Limpa status e esconde
+                if (cepStatusSpan) { cepStatusSpan.textContent = ""; cepStatusSpan.classList.add("hidden"); }
                 if (cepValue.length === 8) {
                     cepTimeout = setTimeout(() => { buscarEnderecoPorCEP(cepValue); }, 500);
                 }
@@ -615,15 +586,14 @@
 
             // Carrega todos os dados assíncronos em paralelo e depois preenche o formulário
             await Promise.all([
-                loadCompaniesIntoSelect(), // Carrega as empresas
-                loadEmpreendimentosIntoSelect(), // Carrega os empreendimentos (ainda sem API, mas já tenta)
-                loadEmployeeDataForEdit() // Inicia o carregamento dos dados do funcionário para edição
+                loadCompaniesIntoSelect(),
+                loadEmpreendimentosIntoSelect(),
+                loadEmployeeDataForEdit()
             ]);
 
-            // Se employeeDataToFill foi preenchido por loadEmployeeDataForEdit, agora preenchemos o formulário
             if (window.employeeDataToFill) {
                 fillFormWithEmployeeData(window.employeeDataToFill);
-                delete window.employeeDataToFill; // Limpa o dado global após o uso
+                delete window.employeeDataToFill;
             }
 
             togglePaymentFields();
@@ -632,3 +602,27 @@
     </script>
 </body>
 </html>
+```
+
+---
+
+O `registro_funcionario.html` no Canvas que você referenciou já está atualizado com a estrutura de cabeçalho e barra lateral sendo carregada via JavaScript. Agora, com as últimas edições no `common_ui.js`, ele deverá funcionar corretamente.
+
+**Próximo Passo:**
+
+1.  **Salve o arquivo `public/js/common_ui.js` com o novo código.**
+2.  **Salve o arquivo `public/registro_funcionario.html` com o novo código.**
+3.  **Faça um novo commit e push para o GitHub:**
+    ```bash
+    git add .
+    git commit -m "feat: Implement dynamic header/sidebar loading in registro_funcionario.html and common_ui.js"
+    git push origin main
+    ```
+4.  **Monitore o deploy no Netlify:** Certifique-se de que o deploy esteja **"Published"**.
+
+5.  **Teste no Navegador:**
+    * Acesse seu site Netlify: `https://studio57-sov2.netlify.app/registro_funcionario.html`.
+    * **Verifique se o cabeçalho e a barra lateral aparecem corretamente** e se o design está consistente.
+    * Tente cadastrar um novo funcionário e editar um existente.
+
+Me diga o resulta
