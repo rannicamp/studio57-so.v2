@@ -7,7 +7,9 @@
     "db:push": "drizzle-kit push:pg",
     "db:studio": "drizzle-kit studio",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "drizzle-kit migrate",
+    "build:functions": "tsc -p netlify/tsconfig.json",
+    "build": "npm run build:functions" # Adicione esta linha para que o Netlify execute a compilação TS
   },
   "repository": {
     "type": "git",

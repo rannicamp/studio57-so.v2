@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             return await response.text();
         } catch (error) {
-            console.error('Erro na API:', error.message, 'Endpoint:', formattedEndpoint);
+            console.error(`Erro na API (${url}):`, error); // Correção aqui
             if (!error.message.includes("Sessão expirada") && !error.message.includes("Token") && !error.message.includes("Network request failed")) {
                 showFeedback(`Erro ao comunicar com o servidor: ${error.message}`, 'error');
             }

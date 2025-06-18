@@ -4,17 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro de Funcionários - Sistema Studio 57</title>
-    <!-- CORREÇÃO AQUI: URLs COMPLETAS E CORRETAS PARA CDNs (removido prefixo duplicado) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" xintegrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- FIM CORREÇÃO CDN -->
-    
-    <link rel="stylesheet" href="css/global.css"> <!-- LINK PARA CSS GLOBAL -->
-
-    <style>
+    <link rel="stylesheet" href="css/global.css"> <style>
         /* Estilos ESPECÍFICOS do Cadastro de Funcionários que NÃO estão no global.css */
         .personal-data-layout { display: flex; flex-wrap: wrap; gap: 1.5rem; }
         .photo-section { flex-shrink: 0; width: 150px; text-align: center; }
@@ -55,27 +50,27 @@
                 <section class="section">
                     <h2>Dados Pessoais</h2>
                     <div class="personal-data-layout">
-                         <div class="photo-section">
-                             <div id="photo-preview-container">
-                                 <span id="photo-placeholder">📷</span> <img id="photo-preview-img" src="#" alt="Foto do Funcionário" style="display: none;">
-                             </div>
-                             <label for="foto-funcionario" id="foto-funcionario-label"><i class="fas fa-camera"></i> Carregar Foto</label>
-                             <input type="file" id="foto-funcionario" name="foto_funcionario" accept="image/*" style="display: none;">
-                         </div>
-                         <div class="info-section">
-                             <div class="form-grid">
-                                 <div class="grid-col-span-2 form-group"> <label for="nome-completo" class="required">Nome Completo:</label> <input type="text" id="nome-completo" name="nome_completo" required> </div>
-                                 <div class="form-group"> <label for="cpf" class="required">CPF:</label> <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00" required> </div>
-                                 <div class="form-group"> <label for="rg">RG:</label> <input type="text" id="rg" name="rg"> </div>
-                                 <div class="form-group"> <label for="data-nascimento">Data de Nascimento:</label> <input type="date" id="data-nascimento" name="data_nascimento"> </div>
-                                 <div class="form-group"> <label for="telefone">Telefone:</label> <input type="tel" id="telefone" name="telefone" placeholder="(00) 00000-0000"> </div>
-                                 <div class="form-group"> <label for="email">Email:</label> <input type="email" id="email" name="email"> </div>
-                             </div>
-                         </div>
+                           <div class="photo-section">
+                               <div id="photo-preview-container">
+                                   <span id="photo-placeholder">📷</span> <img id="photo-preview-img" src="#" alt="Foto do Funcionário" style="display: none;">
+                               </div>
+                               <label for="foto-funcionario" id="foto-funcionario-label"><i class="fas fa-camera"></i> Carregar Foto</label>
+                               <input type="file" id="foto-funcionario" name="foto_funcionario" accept="image/*" style="display: none;">
+                           </div>
+                           <div class="info-section">
+                               <div class="form-grid">
+                                   <div class="grid-col-span-2 form-group"> <label for="nome-completo" class="required">Nome Completo:</label> <input type="text" id="nome-completo" name="nome_completo" required> </div>
+                                   <div class="form-group"> <label for="cpf" class="required">CPF:</label> <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00" required> </div>
+                                   <div class="form-group"> <label for="rg">RG:</label> <input type="text" id="rg" name="rg"> </div>
+                                   <div class="form-group"> <label for="data-nascimento">Data de Nascimento:</label> <input type="date" id="data-nascimento" name="data_nascimento"> </div>
+                                   <div class="form-group"> <label for="telefone">Telefone:</label> <input type="tel" id="telefone" name="telefone" placeholder="(00) 00000-0000"> </div>
+                                   <div class="form-group"> <label for="email">Email:</label> <input type="email" id="email" name="email"> </div>
+                               </div>
+                           </div>
                     </div>
                 </section>
 
-                 <section class="section">
+                   <section class="section">
                     <h2>Associação de Empresa e Empreendimento</h2>
                     <div class="form-grid">
                         <div class="form-group">
@@ -93,9 +88,9 @@
                     </div>
                 </section>
 
-                 <section class="section">
+                   <section class="section">
                     <h2>Endereço</h2>
-                     <div class="form-grid address-grid">
+                       <div class="form-grid address-grid">
                         <div class="cep-container grid-col-span-2 form-group">
                             <div> <label for="cep" class="required">CEP:</label> <input type="text" id="cep" name="cep" placeholder="00000-000" required maxlength="9"> <span id="cep-status"></span> </div>
                             <button type="button" id="buscar-cep-btn" class="btn btn-info"><i class="fas fa-search"></i> Buscar</button>
@@ -106,7 +101,7 @@
                         <div class="form-group"> <label for="bairro" class="required">Bairro:</label> <input type="text" id="bairro" name="neighborhood" required> </div>
                         <div class="form-group"> <label for="cidade" class="required">Cidade:</label> <input type="text" id="cidade" name="city" required> </div>
                         <div class="form-group"> <label for="estado" class="required">Estado (UF):</label> <input type="text" id="estado" name="state" required maxlength="2"> </div>
-                     </div>
+                    </div>
                 </section>
 
                 <section class="section">
@@ -123,23 +118,23 @@
                 <section class="section">
                     <h2>Dados de Pagamento</h2>
                     <div class="form-grid">
-                         <div class="form-group">
-                             <label for="forma-pagamento">Forma de Pagamento:</label>
-                             <select id="forma-pagamento" name="forma_pagamento">
-                                 <option value="">-- Selecione --</option>
-                                 <option value="pix">PIX</option>
-                                 <option value="deposito">Depósito Bancário</option>
-                                 <option value="dinheiro">Dinheiro</option>
-                             </select>
-                         </div>
-                         <div id="chave-pix-container" class="conditional-field form-group">
-                             <label for="chave-pix">Chave PIX:</label>
-                             <input type="text" id="chave-pix" name="chave_pix" placeholder="CPF, CNPJ, Email, Telefone ou Aleatória">
-                         </div>
+                           <div class="form-group">
+                               <label for="forma-pagamento">Forma de Pagamento:</label>
+                               <select id="forma-pagamento" name="forma_pagamento">
+                                   <option value="">-- Selecione --</option>
+                                   <option value="pix">PIX</option>
+                                   <option value="deposito">Depósito Bancário</option>
+                                   <option value="dinheiro">Dinheiro</option>
+                               </select>
+                           </div>
+                           <div id="chave-pix-container" class="conditional-field form-group">
+                               <label for="chave-pix">Chave PIX:</label>
+                               <input type="text" id="chave-pix" name="chave_pix" placeholder="CPF, CNPJ, Email, Telefone ou Aleatória">
+                           </div>
                     </div>
                     <div id="dados-bancarios-container" class="conditional-field form-group">
-                         <label for="dados-bancarios">Dados Bancários (Banco, Agência, Conta):</label>
-                         <textarea id="dados-bancarios" name="dados_bancarios" rows="3"></textarea>
+                           <label for="dados-bancarios">Dados Bancários (Banco, Agência, Conta):</label>
+                           <textarea id="dados-bancarios" name="dados_bancarios" rows="3"></textarea>
                     </div>
                 </section>
 
@@ -147,39 +142,39 @@
                     <h2>Documentos</h2>
                     <p style="font-size: 0.9em; color: var(--color-muted); margin-top: -0.5em; margin-bottom: 1em;">O cadastro pode ser salvo com documentos pendentes, mas o funcionário será marcado com pendência.</p>
                     <div class="form-grid">
-                         <div class="form-group">
-                             <label for="upload-aso">ASO:</label>
-                             <input type="file" id="upload-aso" name="upload_aso" accept=".pdf, image/*" class="file-input-styled"/>
-                             <label for="upload-aso" class="btn btn-secondary"><i class="fas fa-upload"></i> Selecionar ASO</label>
-                              <span id="upload-aso-info" class="file-upload-info"></span>
-                         </div>
-                         <div class="form-group">
-                             <label for="upload-contrato">Contrato de Trabalho:</label>
-                              <input type="file" id="upload-contrato" name="upload_contrato" accept=".pdf, .doc, .docx, image/*" class="file-input-styled"/>
-                              <label for="upload-contrato" class="btn btn-secondary"><i class="fas fa-upload"></i> Selecionar Contrato</label>
-                              <span id="upload-contrato-info" class="file-upload-info"></span>
-                         </div>
-                         <div class="form-group">
-                             <label for="upload-identidade">Documento Identidade (com Foto):</label>
-                              <input type="file" id="upload-identidade" name="upload_identidade" accept=".pdf, image/*" class="file-input-styled"/>
-                              <label for="upload-identidade" class="btn btn-secondary"><i class="fas fa-upload"></i> Selecionar Identidade</label>
-                             <span id="upload-identidade-info" class="file-upload-info"></span>
-                         </div>
+                           <div class="form-group">
+                               <label for="upload-aso">ASO:</label>
+                               <input type="file" id="upload-aso" name="upload_aso" accept=".pdf, image/*" class="file-input-styled"/>
+                               <label for="upload-aso" class="btn btn-secondary"><i class="fas fa-upload"></i> Selecionar ASO</label>
+                                <span id="upload-aso-info" class="file-upload-info"></span>
+                           </div>
+                           <div class="form-group">
+                               <label for="upload-contrato">Contrato de Trabalho:</label>
+                                <input type="file" id="upload-contrato" name="upload_contrato" accept=".pdf, .doc, .docx, image/*" class="file-input-styled"/>
+                                <label for="upload-contrato" class="btn btn-secondary"><i class="fas fa-upload"></i> Selecionar Contrato</label>
+                                <span id="upload-contrato-info" class="file-upload-info"></span>
+                           </div>
+                           <div class="form-group">
+                               <label for="upload-identidade">Documento Identidade (com Foto):</label>
+                                <input type="file" id="upload-identidade" name="upload_identidade" accept=".pdf, image/*" class="file-input-styled"/>
+                                <label for="upload-identidade" class="btn btn-secondary"><i class="fas fa-upload"></i> Selecionar Identidade</label>
+                               <span id="upload-identidade-info" class="file-upload-info"></span>
+                           </div>
                     </div>
                 </section>
 
-                 <section class="section">
-                     <h2>Observações</h2>
-                     <div class="form-group">
-                         <label for="observacoes">Observações Adicionais:</label>
-                         <textarea id="observacoes" name="observacoes" rows="3" placeholder="Alguma observação sobre o funcionário, contratação ou documentos..."></textarea>
-                     </div>
-                 </section>
+                   <section class="section">
+                       <h2>Observações</h2>
+                       <div class="form-group">
+                           <label for="observacoes">Observações Adicionais:</label>
+                           <textarea id="observacoes" name="observacoes" rows="3" placeholder="Alguma observação sobre o funcionário, contratação ou documentos..."></textarea>
+                       </div>
+                   </section>
 
-                 <div class="main-actions">
-                     <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Salvar Cadastro</button>
-                     <button type="reset" class="btn btn-secondary"><i class="fas fa-undo"></i> Limpar Formulário</button>
-                 </div>
+                   <div class="main-actions">
+                       <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Salvar Cadastro</button>
+                       <button type="reset" class="btn btn-secondary"><i class="fas fa-undo"></i> Limpar Formulário</button>
+                   </div>
             </form>
 
             <footer class="legal-footer">
@@ -431,9 +426,9 @@
                         document.getElementById('upload-identidade-info').textContent = '';
                     }
                     if (currentEmployeeId) {
-                         setTimeout(() => {
-                             window.location.href = 'detalhes_funcionario.html?id=' + currentEmployeeId;
-                         }, 1500);
+                           setTimeout(() => {
+                               window.location.href = 'detalhes_funcionario.html?id=' + currentEmployeeId;
+                           }, 1500);
                     }
                 }
             } catch (error) {

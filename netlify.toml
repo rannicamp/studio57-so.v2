@@ -1,5 +1,12 @@
 [build]
   publish = "public"
+  command = "npm run build" # Certifique-se que seu build principal também é executado
+
+[functions]
+  node_bundler = "esbuild" # Netlify recomenda esbuild para funções JS/TS
+  directory = "netlify/functions/" # A pasta onde suas funções TS estão
+  external_node_modules = ["drizzle-orm", "@neondatabase/serverless"] # Opcional, ajuda a reduzir o tamanho do bundle se estas libs são grandes
+  # Inclua aqui quaisquer outras configurações específicas para suas funções
 
 [[redirects]]
   from = "/*"
