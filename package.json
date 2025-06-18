@@ -26,7 +26,8 @@
   "devDependencies": {
     "drizzle-kit": "^0.31.1",
     "pg": "^8.11.5",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "@types/netlify__functions": "^2.0.4"
   },
   "dependencies": {
     "@netlify/neon": "^0.1.0",

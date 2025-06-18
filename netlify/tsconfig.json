@@ -7,7 +7,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "../../.netlify/functions-internal",
-    "rootDir": "./",
+    "rootDir": "../",
     "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
@@ -15,7 +15,8 @@
     }
   },
   "include": [
-    "**/*.ts"
+    "**/*.ts",
+    "../db/**/*.ts"
   ],
   "exclude": [
     "node_modules",
