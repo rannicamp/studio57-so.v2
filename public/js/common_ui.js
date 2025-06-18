@@ -13,7 +13,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const CONFIG = {
         LOCAL_STORAGE_AUTH_TOKEN_KEY: 'authToken',
         LOCAL_STORAGE_USER_EMAIL_KEY: 'loggedInUserEmail',
-        API_BASE_URL: window.location.origin + '/.netlify/functions', // Exemplo para Netlify Functions
+        // ATENÇÃO: API_BASE_URL já é o prefixo para funções, então o endpoint não precisa começar com '/'
+        // Ex: para chamar /api/companies, você passará 'companies' ou '/companies' para apiFetch.
+        // A função apiFetch garantirá o '/'.
+        API_BASE_URL: window.location.origin + '/.netlify/functions', 
     };
 
     // --- Funções Utilitárias Globais ---
@@ -47,34 +50,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }, duration);
     }
 
-    /**
-     * Verifica o estado de autenticação do usuário. Se não autenticado, redireciona para login.
-     * ATENÇÃO: Temporariamente desabilitado para facilitar o desenvolvimento.
-     * REMOVER/AJUSTAR QUANDO O SISTEMA DE LOGIN FOR IMPLEMENTADO.
-     * @returns {boolean} - True se autenticado, false caso contrário.
-     */
     function checkAuth() {
-        // const token = localStorage.getItem(CONFIG.LOCAL_STORAGE_AUTH_TOKEN_KEY);
-        // if (!token) {
-        //     showFeedback("Você não está autenticado. Redirecionando para login...", 'error', 4000);
-        //     setTimeout(() => {
-        //         window.location.href = 'login.html';
-        //     }, 3000);
-        //     return false;
-        // }
-        // return true;
-
-        // RETORNA SEMPRE TRUE TEMPORARIAMENTE PARA DESENVOLVIMENTO
-        return true; 
+        return true; // Temporariamente desabilitado
     }
-
 
     function setActiveNavigationLink() {
         const currentPath = window.location.pathname;
         const currentFileName = currentPath.split('/').pop();
 
         navLinks.forEach(link => {
-            const linkHref = link.getAttribute('href');
+            const linkHref = link.getAttribute('href'); // Ex: diario_de_obras.html
 
             link.classList.remove('active');
 
@@ -91,8 +76,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function apiFetch(endpoint, options = {}) {
-        const formattedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-        const url = `${CONFIG.API_BASE_URL}${formattedEndpoint}`;
+        // Garante que o endpoint passado para apiFetch NÃO comece com '/', pois ele será adicionado
+        // se necessário, e a API_BASE_URL já inclui o prefixo /.netlify/functions
+        const cleanEndpoint = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
+        const url = `${CONFIG.API_BASE_URL}/${cleanEndpoint}`; // CORREÇÃO AQUI: Garante uma única barra
+
         const token = localStorage.getItem(CONFIG.LOCAL_STORAGE_AUTH_TOKEN_KEY);
         
         const headers = {
@@ -149,7 +137,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (headerPlaceholder) {
             try {
-                const headerResponse = await fetch('includes/header.html');
+                // CORREÇÃO AQUI: Caminho ABSOLUTO a partir da raiz pública do site
+                const headerResponse = await fetch('/includes/header.html'); 
                 headerPlaceholder.innerHTML = await headerResponse.text();
             } catch (error) {
                 console.error("Erro ao carregar header.html:", error);
@@ -158,7 +147,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (sidebarPlaceholder) {
             try {
-                const sidebarResponse = await fetch('includes/sidebar.html');
+                // CORREÇÃO AQUI: Caminho ABSOLUTO a partir da raiz pública do site
+                const sidebarResponse = await fetch('/includes/sidebar.html'); 
                 sidebarPlaceholder.innerHTML = await sidebarResponse.text();
             } catch (error) {
                 console.error("Erro ao carregar sidebar.html:", error);
@@ -166,23 +156,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Após carregar os componentes, inicializa suas funcionalidades globais
-        // com um pequeno atraso para garantir que o DOM esteja completamente atualizado.
         setTimeout(() => {
-            // Re-seletores para garantir que os elementos carregados dinamicamente sejam encontrados
-            // e atualizar as referências das variáveis de escopo superior
             userInfoSpan = document.getElementById('user-info')?.querySelector('span');
             currentDatetimeSpan = document.getElementById('current-datetime');
             pageTitleH1 = document.getElementById('page-title');
             logoutLink = document.getElementById('logout-link');
-            navLinks = document.querySelectorAll('.nav-menu a.nav-link'); // Re-seleciona todos os links
+            navLinks = document.querySelectorAll('.nav-menu a.nav-link');
 
-            // Re-executa as funções de inicialização da UI Comum
             updateDateTime();
             loadUserInfo();
-            setActiveNavigationLink(); // Ativa o link correto na sidebar carregada
+            setActiveNavigationLink();
 
-            // Re-adiciona listener de logout se o elemento foi recarregado
             logoutLink?.addEventListener('click', (e) => {
                 e.preventDefault();
                 localStorage.removeItem(CONFIG.LOCAL_STORAGE_AUTH_TOKEN_KEY);
@@ -190,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 showFeedback("Logout realizado com sucesso!", 'info');
                 setTimeout(() => window.location.href = 'login.html', 1500);
             });
-        }, 100); // Pequeno atraso
+        }, 100);
     }
 
 
@@ -203,9 +187,8 @@ document.addEventListener('DOMContentLoaded', () => {
         apiFetch,
         setActiveNavigationLink,
         checkAuth,
-        loadReusableComponents // Continua exportando para páginas que precisam coordenar
+        loadReusableComponents
     };
 
-    // Chama o carregamento dos componentes reutilizáveis assim que o common_ui.js estiver pronto
     loadReusableComponents();
 });

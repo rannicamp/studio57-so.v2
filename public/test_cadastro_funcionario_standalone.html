@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TESTE - Cadastro de Funcionários (Standalone)</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #f0f2f5;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Alinha no topo */
+            min-height: 100vh;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        section {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        section:last-of-type {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        h2 {
+            font-size: 1.3em;
+            color: #555;
+            margin-bottom: 15px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        .form-group {
+            margin-bottom: 15px; /* Ajustado para ser compatível com o grid */
+        }
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #444;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="date"], input[type="number"], input[type="email"], input[type="tel"], select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 0.9em;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 70px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.2s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .form-actions {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .form-actions button {
+            margin: 0 10px;
+        }
+        .feedback {
+            padding: 10px;
+            margin-top: 20px;
+            border-radius: 4px;
+            text-align: center;
+            display: none; /* Hidden by default */
+        }
+        .feedback.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .feedback.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .conditional-field {
+            display: none;
+        }
+        .conditional-field.visible {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Cadastro de Funcionário (Teste Standalone)</h1>
+
+        <div id="feedback" class="feedback"></div>
+
+        <form id="cadastro-funcionario-form">
+            <section>
+                <h2>Dados Pessoais</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="nome-completo">Nome Completo:</label>
+                        <input type="text" id="nome-completo" name="nome_completo" required value="João Teste Silva">
+                    </div>
+                    <div class="form-group">
+                        <label for="cpf">CPF:</label>
+                        <input type="text" id="cpf" name="cpf" required value="000.000.000-00">
+                    </div>
+                    <div class="form-group">
+                        <label for="rg">RG:</label>
+                        <input type="text" id="rg" name="rg" value="MG-1234567">
+                    </div>
+                    <div class="form-group">
+                        <label for="data-nascimento">Data de Nascimento:</label>
+                        <input type="date" id="data-nascimento" name="data_nascimento" value="1990-05-10">
+                    </div>
+                    <div class="form-group">
+                        <label for="telefone">Telefone:</label>
+                        <input type="tel" id="telefone" name="telefone" value="(33)98888-7777">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" name="email" value="joao.teste@exemplo.com">
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h2>Associação de Empresa e Empreendimento</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="empresa-id">ID Empresa Contratante:</label>
+                        <input type="number" id="empresa-id" name="empresa_id" required value="1"> <!-- Usar um ID de empresa existente (Ex: ID da Studio 57 Incorporacoes) -->
+                        <small style="color: #666;">Insira o ID de uma empresa existente (ex: 1, 2, 3...)</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="empreendimento-atual-id">ID Empreendimento Alocado (Opcional):</label>
+                        <input type="number" id="empreendimento-atual-id" name="empreendimento_atual_id" placeholder="Opcional" value="">
+                        <small style="color: #666;">Insira o ID de um empreendimento existente, se houver.</small>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h2>Endereço</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="logradouro">Logradouro:</label>
+                        <input type="text" id="logradouro" name="address_street" value="Rua Teste">
+                    </div>
+                    <div class="form-group">
+                        <label for="numero">Número:</label>
+                        <input type="text" id="numero" name="address_number" value="123">
+                    </div>
+                    <div class="form-group">
+                        <label for="complemento">Complemento:</label>
+                        <input type="text" id="complemento" name="address_complement" value="Apto 101">
+                    </div>
+                    <div class="form-group">
+                        <label for="bairro">Bairro:</label>
+                        <input type="text" id="bairro" name="neighborhood" value="Centro">
+                    </div>
+                    <div class="form-group">
+                        <label for="cidade">Cidade:</label>
+                        <input type="text" id="cidade" name="city" value="Governador Valadares">
+                    </div>
+                    <div class="form-group">
+                        <label for="estado">Estado (UF):</label>
+                        <input type="text" id="estado" name="state" value="MG">
+                    </div>
+                    <div class="form-group">
+                        <label for="cep">CEP:</label>
+                        <input type="text" id="cep" name="cep" value="35010-000">
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h2>Dados Contratuais</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="cargo">Cargo / Função:</label>
+                        <input type="text" id="cargo" name="cargo" required value="Desenvolvedor">
+                    </div>
+                    <div class="form-group">
+                        <label for="data-admissao">Data de Admissão:</label>
+                        <input type="date" id="data-admissao" name="data_admissao" required value="2024-01-01">
+                    </div>
+                    <div class="form-group">
+                        <label for="salario-base">Salário Base (R$):</label>
+                        <input type="number" id="salario-base" name="salario_base" step="0.01" value="3000.00">
+                    </div>
+                    <div class="form-group">
+                        <label for="salario-total">Salário Total (R$):</label>
+                        <input type="number" id="salario-total" name="salario_total" step="0.01" value="3500.00">
+                    </div>
+                    <div class="form-group">
+                        <label for="valor-dia">Valor Dia (R$):</label>
+                        <input type="number" id="valor-dia" name="valor_dia" step="0.01" value="150.00">
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h2>Dados de Pagamento</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="forma-pagamento">Forma de Pagamento:</label>
+                        <select id="forma-pagamento" name="forma_pagamento">
+                            <option value="pix" selected>PIX</option>
+                            <option value="deposito">Depósito Bancário</option>
+                            <option value="dinheiro">Dinheiro</option>
+                        </select>
+                    </div>
+                    <div id="chave-pix-container" class="conditional-field visible form-group">
+                        <label for="chave-pix">Chave PIX:</label>
+                        <input type="text" id="chave-pix" name="chave_pix" value="chave-pix-teste">
+                    </div>
+                    <div id="dados-bancarios-container" class="conditional-field form-group">
+                        <label for="dados-bancarios">Dados Bancários:</label>
+                        <textarea id="dados-bancarios" name="dados_bancarios" rows="3"></textarea>
+                    </div>
+                </div>
+            </section>
+            
+            <section>
+                <h2>Documentos (Nomes de Arquivo)</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="aso-doc">ASO URL:</label>
+                        <input type="text" id="aso-doc" name="aso_doc_url" value="http://example.com/aso.pdf">
+                    </div>
+                    <div class="form-group">
+                        <label for="contrato-doc">Contrato URL:</label>
+                        <input type="text" id="contrato-doc" name="contract_doc_url" value="http://example.com/contrato.pdf">
+                    </div>
+                    <div class="form-group">
+                        <label for="identidade-doc">Identidade URL:</label>
+                        <input type="text" id="identidade-doc" name="identity_doc_url" value="http://example.com/rg.pdf">
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h2>Observações</h2>
+                <div class="form-group">
+                    <label for="observacoes">Observações Adicionais:</label>
+                    <textarea id="observacoes" name="observacoes" rows="3">Observações de teste para o funcionário.</textarea>
+                </div>
+            </section>
+
+            <div class="form-actions">
+                <button type="submit" id="submit-btn">Salvar Funcionário</button>
+                <button type="reset" id="reset-btn">Limpar Formulário</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const form = document.getElementById('cadastro-funcionario-form');
+        const feedbackDiv = document.getElementById('feedback');
+        const empresaIdInput = document.getElementById('empresa-id'); // Campo de ID da empresa
+        const empreendimentoAtualIdInput = document.getElementById('empreendimento-atual-id'); // Campo de ID do empreendimento
+
+        // Campos de pagamento condicional
+        const formaPagamentoSelect = document.getElementById('forma-pagamento');
+        const chavePixContainer = document.getElementById('chave-pix-container');
+        const dadosBancariosContainer = document.getElementById('dados-bancarios-container');
+
+        // Função de feedback simples
+        function showFeedback(message, type) {
+            feedbackDiv.textContent = message;
+            feedbackDiv.className = `feedback ${type}`;
+            feedbackDiv.style.display = 'block';
+            setTimeout(() => {
+                feedbackDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // Função para alternar campos de pagamento
+        function togglePaymentFields() {
+            const selectedValue = formaPagamentoSelect.value;
+            chavePixContainer.classList.toggle("visible", selectedValue === "pix");
+            dadosBancariosContainer.classList.toggle("visible", selectedValue === "deposito");
+        }
+
+        // Adiciona listener para a forma de pagamento
+        formaPagamentoSelect.addEventListener('change', togglePaymentFields);
+
+        // Dispara a função uma vez ao carregar para garantir o estado inicial
+        togglePaymentFields();
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            showFeedback('Enviando dados...', 'info');
+
+            const formData = new FormData(form);
+            const data = {};
+            formData.forEach((value, key) => {
+                data[key] = value;
+            });
+
+            // Tratamento de valores vazios para null
+            for (const key in data) {
+                if (data[key] === '') {
+                    data[key] = null;
+                }
+            }
+            
+            // Certifique-se de que os IDs numéricos sejam realmente números
+            if (data['empresa_id']) data['empresa_id'] = parseInt(data['empresa_id']);
+            if (data['empreendimento_atual_id']) data['empreendimento_atual_id'] = parseInt(data['empreendimento_atual_id']);
+
+
+            // Mapear campos do formulário para o schema do banco de dados (nomes do Drizzle)
+            const employeeData = {
+                fullName: data['nome_completo'],
+                cpf: data['cpf'],
+                rg: data['rg'],
+                birthDate: data['data_nascimento'],
+                phone: data['telefone'],
+                email: data['email'],
+                addressStreet: data['address_street'], // Nome do campo 'name' no HTML é 'address_street'
+                addressNumber: data['address_number'], // Nome do campo 'name' no HTML é 'address_number'
+                addressComplement: data['address_complement'], // Nome do campo 'name' no HTML é 'address_complement'
+                cep: data['cep'],
+                city: data['cidade'],
+                state: data['estado'],
+                neighborhood: data['neighborhood'],
+                empresaId: data['empresa_id'], // Vem do input de ID
+                empreendimentoAtualId: data['empreendimento_atual_id'], // Vem do input de ID (opcional)
+                contractRole: data['cargo'],
+                admissionDate: data['data_admissao'],
+                baseSalary: data['salario_base'],
+                totalSalary: data['salario_total'],
+                dailyValue: data['valor_dia'],
+                paymentMethod: data['forma_pagamento'],
+                pixKey: data['chave_pix'],
+                bankDetails: data['dados_bancarios'],
+                asoDoc: data['aso_doc_url'], // URL do documento
+                contractDoc: data['contract_doc_url'],
+                identityDoc: data['identity_doc_url'],
+                observations: data['observacoes'],
+            };
+
+            // Remover campos PIX/Banco se não forem relevantes para a forma de pagamento selecionada
+            if (employeeData.paymentMethod !== 'pix') {
+                delete employeeData.pixKey;
+            }
+            if (employeeData.paymentMethod !== 'deposito') {
+                delete employeeData.bankDetails;
+            }
+
+            try {
+                // A URL para sua função Netlify
+                const url = `/.netlify/functions/create-employee`; // Caminho absoluto para a função Netlify
+                
+                const response = await fetch(url, {
+                    method: 'POST', // Sempre POST para novo cadastro neste teste
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(employeeData),
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showFeedback(`Funcionário cadastrado com sucesso! ID: ${result.employee.id}`, 'success');
+                    form.reset(); // Limpa o formulário após o sucesso
+                    togglePaymentFields(); // Reseta os campos condicionais
+                } else {
+                    showFeedback(`Erro ao cadastrar funcionário: ${result.error || 'Erro desconhecido.'}`, 'error');
+                    console.error('Erro na API:', result);
+                }
+            } catch (error) {
+                showFeedback('Erro de rede ou servidor. Verifique o console para detalhes.', 'error');
+                console.error('Erro geral no fetch:', error);
+            }
+        });
+
+        form.addEventListener('reset', () => {
+            showFeedback('Formulário limpo.', 'info');
+            togglePaymentFields(); // Reseta os campos condicionais
+        });
+    </script>
+</body>
+</html>
