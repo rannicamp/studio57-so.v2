@@ -269,7 +269,10 @@ export const materiaisAtividade = pgTable('materiais_atividade', {
 });
 
 // Chave primária composta para a tabela N:N
-export const materiaisAtividadePk = primaryKey(materiaisAtividade, ['atividadeId', 'materialId']);
+export const materiaisAtividadePk = primaryKey(
+  materiaisAtividade.atividadeId,
+  materiaisAtividade.materialId
+);
 
 // Relações para materiaisAtividade
 export const materiaisAtividadeRelations = relations(materiaisAtividade, ({ one }) => ({
